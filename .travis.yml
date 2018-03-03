@@ -1,0 +1,22 @@
+sudo: required
+dist: trusty
+language: python
+python:
+- '3.4'
+- '3.5'
+- '3.6'
+install:
+- pip install -e .
+- python setup.py install
+addons:
+script:
+- make tests
+deploy:
+  on:
+    branch: master
+    python: '3.6'
+  provider: pypi
+  user: valerii.tikhonov
+  distributions: "bdist_wheel"
+  password:
+    secure: "oRbZQpWG06qfuJhdR8OFE7e1nQ3lcclPQr+fykh3rjQxcy6fJgnRatVhNp10ZUG4FOye9v2Pzdvlhi78YEE21aA1Tb4Cl8uGQsCQEMwXTo+/82aEeWqly2oxpt9QU3OHSs4MgpvYFNT20c7mB1yWYKGWS93pI6NzvflM1RdeHloRmyOsJpBFcGo2fnf5AcYdDpvjmj/iVkLWkhkkINjaPaTWUnHJJdkTjexXOeL9EQK0ow62JCReZtPuKx5Tf9hQfAkHQdzRnJn+q7/7Rtu+OPGkgI4MN/au9XY64nqz7VnLxRYHSs9zMdleC5fsMwq8rgBc8dIfRXrNRsmExpdBoab7WyUxSx+JIAnhWjZOQ8FqSWBd1muhD4fycfu72tF2SlkpY4A1xFxwdhURfjvNgT9HFrx0ZLJWCiArN4Nr24Chlcx308l3swg21U6HlJ96X0jtq330afNCBKZMOCCImH2pYFIRAz6C9e/9MNfWjO2YtsczAYDmXqNUi91oGkeOVBn68JmbkauEetiiUXU1rc2Pzw1HWFrUwf5TJkb4+HDsfQb1xCvmNhQmUwKYU8X6risXPSBPLJdzQ/DJGuXzesL0z+hkLyDX0Py6AsL5JDr8GvoPyOFtN9c8XtBGjxShOzQkPORtsq8nNf+rOjxruSLdzhq1O5QCOlgB1kyOl+0="

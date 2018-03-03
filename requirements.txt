@@ -1,0 +1,6 @@
+docopt
+mock
+pytest
+requests
+requests_mock
+PyYAML
