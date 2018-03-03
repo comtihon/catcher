@@ -44,7 +44,7 @@ class UtilsTest(TestClass):
         result = get_files(join(self.test_dir, 'd'))
         expected = [join(self.test_dir, f) for f in files if f.endswith('yaml')]
         expected.reverse()
-        self.assertEqual(expected, result)
+        self.assertEqual(sorted(expected), sorted(result))
 
     # find all files, when launched via `catcher /path/to` with subdirs
     def test_find_all_with_subdir(self):
@@ -53,7 +53,7 @@ class UtilsTest(TestClass):
         result = get_files(join(self.test_dir, 'd'))
         expected = [join(self.test_dir, f) for f in files if f.endswith('yaml')]
         expected.reverse()
-        self.assertEqual(expected, result)
+        self.assertEqual(sorted(expected), sorted(result))
 
     # find all files, when launched via `catcher /path/to` with subdirs and other files
     def test_find_all_filter_unknown(self):
@@ -66,7 +66,7 @@ class UtilsTest(TestClass):
         result = get_files(join(self.test_dir, 'd'))
         expected = [join(self.test_dir, f) for f in files if f.endswith('yaml')]
         expected.reverse()
-        self.assertEqual(expected, result)
+        self.assertEqual(sorted(expected), sorted(result))
 
     def __populate_files(self, files):
         for file in files:
