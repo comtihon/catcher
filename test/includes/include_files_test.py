@@ -5,7 +5,7 @@ from catcher.core.runner import Runner
 from test.abs_test_class import TestClass
 
 
-class UtilsTest(TestClass):
+class IncludeFilesTest(TestClass):
     def __init__(self, method_name):
         super().__init__('includes_files_test', method_name)
 
