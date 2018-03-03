@@ -4,3 +4,4 @@ pytest
 requests
 requests_mock
 PyYAML
+Jinja2
