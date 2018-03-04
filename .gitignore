@@ -3,3 +3,4 @@
 catcher.egg-info
 dist
 build
+*__pycache__*

@@ -27,3 +27,7 @@ class TestClass(unittest.TestCase):
 
     def tearDown(self):
         remove_dir(test.get_test_dir(self.test_name))
+
+    def populate_file(self, file: str, content: str):
+        with open(join(self.test_dir, file), 'w') as f:
+            f.write(content)

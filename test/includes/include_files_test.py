@@ -3,6 +3,7 @@ from os.path import join
 
 from catcher.core.runner import Runner
 from test.abs_test_class import TestClass
+from test.test_utils import check_file
 
 
 class IncludeFilesTest(TestClass):
@@ -119,14 +120,3 @@ class IncludeFilesTest(TestClass):
             self.fail('circular dependency not detected')
         except Exception as e:
             self.assertTrue(str(e).startswith('Circular dependencies for'))
-
-    def populate_file(self, file: str, content: str):
-        with open(join(self.test_dir, file), 'w') as f:
-            f.write(content)
-
-
-def check_file(file: str, content: str) -> bool:
-    if not os.path.exists(file):
-        return False
-    with open(file, 'r') as f:
-        return f.read() == content

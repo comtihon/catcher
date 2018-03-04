@@ -6,6 +6,7 @@ from catcher.utils.logger import info
 
 class Echo(Step):
     def __init__(self, path: str, body: dict) -> None:
+        super().__init__(body)
         self._export_from = body['from']
         self._export_to = body.get('to', None)
         self._path = path
@@ -30,4 +31,4 @@ class Echo(Step):
         else:
             with open(join(self.path, self.dst), 'w') as f:
                 f.write(out)
-        return variables
+        return self.process_register(variables)

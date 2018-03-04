@@ -39,19 +39,20 @@ class Runner:
         test_files = get_files(self.tests_path)
         for file in test_files:
             self.all_includes = []
-            test = self.prepare_test(file, variables, True)
+            test = self.prepare_test(file, variables)
             # TODO catch errors and report fail for file (continue in ignore_errors is True)
             result, _ = test.run()
         return True
 
-    def prepare_test(self, file: str, variables: dict, original=False) -> Test:
+    def prepare_test(self, file: str, variables: dict, override_vars: None or dict = None) -> Test:
         body = read_yaml_file(file)
-        registered_includes, include_vars = self.process_includes(body.get('include', []), variables)
-        if not original:  # override variables with previous include variables
-            variables = merge_two_dicts(variables, include_vars)
+        registered_includes = self.process_includes(body.get('include', []), variables)
+        variables = merge_two_dicts(variables, body.get('variables', {}))  # override variables with test's variables
+        if override_vars:  # TODO warn when overriding inventory vars?
+            variables = merge_two_dicts(variables, override_vars)
         return Test(self.path,
                     registered_includes,
-                    merge_two_dicts(variables, body.get('variables', {})),  # override variables with test's variables
+                    variables,
                     body.get('config', {}),
                     body.get('steps', []))
 
@@ -62,18 +63,18 @@ class Runner:
         if registered_includes is None:
             registered_includes = {}
         if isinstance(includes, str) or isinstance(includes, dict):  # single include
-            variables = self.process_include(includes, registered_includes, variables)
+            self.process_include(includes, registered_includes, variables)
         elif isinstance(includes, list):  # an array of includes
             for i in includes:  # run all includes and save includes with alias
                 variables = self.process_include(i, registered_includes, variables)
-        return registered_includes, variables
+        return registered_includes
 
     def process_include(self, include_file: str or dict, includes: dict, variables: dict) -> dict:
         include_file = self.path_from_root(include_file)
         self.check_circular(include_file)
         include = Include(**include_file)
         self.all_includes.append(include)
-        include.test = self.prepare_test(include.file, variables)
+        include.test = self.prepare_test(include.file, variables, include.variables)
         if include.alias is not None:
             includes[include.alias] = include
         if include.run_on_include:
@@ -81,7 +82,7 @@ class Runner:
             if not result and not include.ignore_errors:
                 raise Exception('Include ' + include.file + ' failed.')
             return new_vars
-        return variables
+        return include.test.variables
 
     def check_circular(self, current_include: dict):
         path = current_include['file']

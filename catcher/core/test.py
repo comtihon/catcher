@@ -17,6 +17,10 @@ class Test:
     def variables(self) -> dict:
         return self._variables
 
+    @variables.setter
+    def variables(self, variables):
+        self._variables = variables
+
     @property
     def config(self) -> dict:
         return self._config
@@ -32,5 +36,7 @@ class Test:
     # TODO return registered variables
     def run(self) -> {bool, dict}:
         for step in self.steps:
-            step_factory.get_step(self.path, step).action(self.variables)
-        return True, {}
+            actions = step_factory.get_actions(self.path, step)
+            for action in actions:
+                self.variables = action.action(self.variables)
+        return True, self.variables  # TODO update variables from steps
