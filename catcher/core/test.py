@@ -1,4 +1,5 @@
 from catcher.steps import step_factory
+from catcher.utils.logger import debug
 
 
 class Test:
@@ -33,10 +34,27 @@ class Test:
     def path(self) -> str:
         return self._path
 
-    # TODO return registered variables
-    def run(self) -> {bool, dict}:
+    def run(self, tag=None) -> {bool, dict}:
         for step in self.steps:
+            [action] = step.keys()
+            ignore_errors = get_or_default('ignore_errors', step[action], False)
+            if tag is not None:
+                step_tag = get_or_default('tag', step[action], None)
+                if step_tag != tag:
+                    continue
             actions = step_factory.get_actions(self.path, step)
-            for action in actions:
-                self.variables = action.action(self.variables)
-        return True, self.variables  # TODO update variables from steps
+            for action_object in actions:
+                try:
+                    self.variables = action_object.action(self.includes, self.variables)
+                except Exception:
+                    debug('Step ' + action + ' failed, but we ignore it')
+                    if ignore_errors:
+                        continue
+        return True, self.variables
+
+
+def get_or_default(key: str, body: dict or str, default: any) -> any:
+    if isinstance(body, dict):
+        return body.get(key, default)
+    else:
+        return default

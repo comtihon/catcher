@@ -120,3 +120,27 @@ class IncludeFilesTest(TestClass):
             self.fail('circular dependency not detected')
         except Exception as e:
             self.assertTrue(str(e).startswith('Circular dependencies for'))
+
+    # test run on include and later by alias
+    def test_run_on_include_and_later(self):
+        self.populate_file('main.yaml', '''---
+        include: 
+            file: simple_file.yaml
+            variables:
+                file: include
+            as: test
+            run_on_include: true
+        steps:
+            - run: 
+                include: test
+                variables: 
+                    file: other
+        ''')
+        self.populate_file('simple_file.yaml', '''---
+        steps:
+            - echo: {from: 'hello', to: '{{ file }}.output'}
+        ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        runner.run_tests()
+        self.assertTrue(check_file(join(self.test_dir, 'include.output'), 'hello'))
+        self.assertTrue(check_file(join(self.test_dir, 'other.output'), 'hello'))

@@ -23,12 +23,14 @@ class Echo(Step):
     def path(self):
         return self._path
 
-    def action(self, variables: dict) -> dict:
+    def action(self, includes: dict, variables: dict) -> dict:
         template = Template(self.source)
         out = template.render(variables)
         if self.dst is None:
             info(out)
         else:
-            with open(join(self.path, self.dst), 'w') as f:
+            template = Template(self.dst)
+            dst = template.render(variables)
+            with open(join(self.path, dst), 'w') as f:
                 f.write(out)
         return self.process_register(variables)

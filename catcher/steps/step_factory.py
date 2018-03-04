@@ -1,5 +1,7 @@
 from catcher.steps.echo import Echo
+from catcher.steps.run import Run
 from catcher.steps.step import Step
+from catcher.steps.wait import Wait
 
 
 def get_actions(path: str, step: dict) -> [Step]:
@@ -14,7 +16,14 @@ def get_actions(path: str, step: dict) -> [Step]:
     return steps
 
 
-def get_action(path: str, action, body: dict) -> Step:
+def get_action(path: str, action, body: dict or str) -> Step:
     if action == 'echo':
         return Echo(path, body)
+    if action == 'wait':
+        return Wait(body)
+    if action == 'run':
+        if isinstance(body, str):
+            return Run(**{'include': body})
+        else:
+            return Run(**body)
     return None

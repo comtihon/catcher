@@ -10,7 +10,7 @@ class Step:
             self._register = body['register']
 
     @abstractmethod
-    def action(self, variables: dict) -> dict:
+    def action(self, includes: dict, variables: dict) -> dict:
         pass
 
     @property

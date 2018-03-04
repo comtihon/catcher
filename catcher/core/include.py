@@ -5,10 +5,10 @@ class Include:
     def __init__(self, **keywords) -> None:
         if 'file' not in keywords:
             raise RuntimeError('Can\'t include unknown file.')
-        self._run_on_include = keywords.get('run_on_include', True)
         self._file = keywords['file']
         self._variables = keywords.get('variables', {})
-        self._alias = keywords.get('alias', None)
+        self._alias = keywords.get('as', None)
+        self._run_on_include = keywords.get('run_on_include', self.alias is None)
         self._ignore_errors = keywords.get('ignore_errors', False)
         self._test = None
 

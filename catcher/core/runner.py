@@ -3,6 +3,7 @@ from os.path import join
 from catcher.core.include import Include
 from catcher.core.test import Test
 from catcher.utils.file_utils import read_yaml_file, get_files
+from catcher.utils.misc import merge_two_dicts
 
 
 class Runner:
@@ -76,7 +77,7 @@ class Runner:
         self.all_includes.append(include)
         include.test = self.prepare_test(include.file, variables, include.variables)
         if include.alias is not None:
-            includes[include.alias] = include
+            includes[include.alias] = include.test
         if include.run_on_include:
             result, new_vars = include.test.run()
             if not result and not include.ignore_errors:
@@ -95,9 +96,3 @@ class Runner:
         else:
             include_file['file'] = join(self.path, include_file['file'])
             return include_file
-
-
-def merge_two_dicts(x, y):
-    z = x.copy()  # start with x's keys and values
-    z.update(y)  # modifies z with y's keys and values & returns None
-    return z
