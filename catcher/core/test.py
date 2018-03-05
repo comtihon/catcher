@@ -1,5 +1,7 @@
+import traceback
+
 from catcher.steps import step_factory
-from catcher.utils.logger import debug
+from catcher.utils.logger import debug, warning
 
 
 class Test:
@@ -46,10 +48,13 @@ class Test:
             for action_object in actions:
                 try:
                     self.variables = action_object.action(self.includes, self.variables)
-                except Exception:
-                    debug('Step ' + action + ' failed, but we ignore it')
+                except Exception as e:
                     if ignore_errors:
+                        debug('Step ' + action + ' failed, but we ignore it')
                         continue
+                    print(traceback.format_exc())
+                    warning('Step ' + action + ' crashed: ' + str(e))
+                    return False, self.variables
         return True, self.variables
 
 
