@@ -2,7 +2,6 @@ from os.path import join
 
 from catcher.core.runner import Runner
 from test.abs_test_class import TestClass
-from test.test_utils import check_file
 
 
 class ChecksTest(TestClass):
@@ -22,14 +21,54 @@ class ChecksTest(TestClass):
     # test computed var equals other var
     def test_computed_equals_variable(self):
         self.populate_file('main.yaml', '''---
-        include: simple_file.yaml
-        ''')
-        self.populate_file('simple_file.yaml', '''---
         variables:
             foo: bar
+            foo2: bar
         steps:
-            - echo: {from: '{{ foo }}', to: foo.output}
+            - echo: {from: '{{ foo }}'}
+            - check: {the: 'bar', equals: '{{ foo }}'}
+            - check: {the: '{{ foo }}', equals: 'bar'}
+            - check: {the: '{{ foo }}', equals: '{{ foo2 }}'}
         ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
-        runner.run_tests()
-        self.assertTrue(check_file(join(self.test_dir, 'foo.output'), 'bar'))
+        self.assertTrue(runner.run_tests())
+
+    # test if any of the list's elements is equal to var
+    def test_any_equal(self):
+        self.populate_file('main.yaml', '''---
+        variables:
+            foo: [bar, baz]
+        steps:
+            - echo: {from: '{{ foo }}'}
+            - check: 
+                the: '{{ foo }}'
+                any:
+                    equals: 'baz'
+            - check: 
+                the: [bar, baz]
+                any:
+                    equals: 'baz'
+        ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
+
+    # test if all of the list's elements is equal to var
+    def test_all_equal(self):
+        self.populate_file('main.yaml', '''---
+        variables:
+            foo: [1, 1]
+        steps:
+            - echo: {from: '{{ foo }}'}
+            - check: 
+                the: '{{ foo }}'
+                all:
+                    equals: 1
+            - check: 
+                the: [1, 1]
+                all:
+                    equals: 1
+        ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
+
+
