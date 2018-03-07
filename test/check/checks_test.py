@@ -71,4 +71,67 @@ class ChecksTest(TestClass):
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
         self.assertTrue(runner.run_tests())
 
+    # test if `contains` work with list/dict
+    def test_contains(self):
+        self.populate_file('main.yaml', '''---
+        variables:
+            list: ['a', 'b', 'c']
+            dict: {'a': 1, 'b': 2, 'c': 3}
+        steps:
+            - check: 
+                the: '{{ list }}'
+                contains: 'a'
+            - check: 
+                the: '{{ dict }}'
+                contains: 'a'
+        ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
 
+    # test if `or` works
+    def test_or(self):
+        self.populate_file('main.yaml', '''---
+        variables:
+            list: ['a', 'b', 'c']
+        steps:
+            - check: 
+                the: '{{ list }}'
+                or: 
+                    - contains: '1'
+                    - equals: {the: '{{ list[0] }}', equals: 'a'}
+                    - contains: 'b'
+        ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
+
+    # test if `and` works
+    def test_and(self):
+        self.populate_file('main.yaml', '''---
+        variables:
+            list: ['a', 'b', 3]
+        steps:
+            - check: 
+                the: '{{ list }}'
+                and: 
+                    - contains: 'a'
+                    - equals: {the: '{{ list[1] }}', equals: 'b'}
+                    - equals: {the: '{{ list[2] > 2 }}', equals: true}
+        ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
+
+    # test if inverted operators work
+    def test_negative(self):
+        self.populate_file('main.yaml', '''---
+        variables:
+            list: ['d', 'c', 1]
+        steps:
+            - check: 
+                the: '{{ list }}'
+                and: 
+                    - not_contains: 'a'
+                    - equals: {the: '{{ list[1] }}', not_equals: 'b'}
+                    - not_equals: {the: '{{ list[2] > 2 }}', equals: true}
+        ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())

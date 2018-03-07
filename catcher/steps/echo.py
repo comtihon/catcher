@@ -1,7 +1,7 @@
 from os.path import join
-from jinja2 import Template
 from catcher.steps.step import Step
 from catcher.utils.logger import info
+from catcher.utils.misc import fill_template
 
 
 class Echo(Step):
@@ -24,13 +24,11 @@ class Echo(Step):
         return self._path
 
     def action(self, includes: dict, variables: dict) -> dict:
-        template = Template(self.source)
-        out = template.render(variables)
+        out = fill_template(self.source, variables)
         if self.dst is None:
             info(out)
         else:
-            template = Template(self.dst)
-            dst = template.render(variables)
+            dst = fill_template(self.dst, variables)
             with open(join(self.path, dst), 'w') as f:
-                f.write(out)
+                f.write(str(out))
         return self.process_register(variables)
