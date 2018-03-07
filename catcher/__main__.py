@@ -21,6 +21,7 @@ from catcher.core.runner import Runner
 from catcher.utils import logger
 
 
+# TODO variables from cmd
 def main(args=None):
     try:
         arguments = docopt(__doc__, argv=args, version=APPVSN)

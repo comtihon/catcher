@@ -4,6 +4,7 @@ from catcher.core.include import Include
 from catcher.core.test import Test
 from catcher.utils.file_utils import read_yaml_file, get_files
 from catcher.utils.misc import merge_two_dicts
+from catcher.utils.logger import warning
 
 
 class Runner:
@@ -38,12 +39,17 @@ class Runner:
         if self.inventory is not None:
             variables = read_yaml_file(self.inventory)
         test_files = get_files(self.tests_path)
+        results = []
         for file in test_files:
             self.all_includes = []
             test = self.prepare_test(file, variables)
-            # TODO catch errors and report fail for file (continue in ignore_errors is True)
-            result, _ = test.run()
-        return True
+            try:
+                result, _ = test.run()
+                results.append(result)
+            except Exception:
+                warning('test ' + file + ' failed')
+                results.append(False)
+        return all(results)
 
     def prepare_test(self, file: str, variables: dict, override_vars: None or dict = None) -> Test:
         body = read_yaml_file(file)
