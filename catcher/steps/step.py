@@ -21,10 +21,8 @@ class Step:
         if self.register is not None:
             for key in self.register.keys():
                 if output:
-                    template = Template(self.register[key])
-                    out = template.render(output)
+                    out = Template(self.register[key]).render({'OUTPUT': output})
                 else:
-                    template = Template(self.register[key])
-                    out = template.render(variables)
+                    out = Template(self.register[key]).render(variables)
                 variables[key] = out
         return variables

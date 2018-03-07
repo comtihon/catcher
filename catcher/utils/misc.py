@@ -22,3 +22,7 @@ def fill_template(source: any, variables: dict) -> any:
         except (ValueError, SyntaxError):
             return source
     return source
+
+
+def fill_template_str(source: any, variables: dict) -> str:
+    return Template(str(source)).render(variables)

@@ -3,6 +3,7 @@ from catcher.steps.run import Run
 from catcher.steps.step import Step
 from catcher.steps.wait import Wait
 from catcher.steps.check import Check
+from catcher.steps.http import Http
 
 
 def get_actions(path: str, step: dict) -> [Step]:
@@ -17,6 +18,7 @@ def get_actions(path: str, step: dict) -> [Step]:
     return steps
 
 
+#  TODO refactor me
 def get_action(path: str, action, body: dict or str) -> Step:
     if action == 'echo':
         return Echo(path, body)
@@ -29,4 +31,6 @@ def get_action(path: str, action, body: dict or str) -> Step:
             return Run(**body)
     if action == 'check':
         return Check(body)
+    if action == 'http':
+        return Http(body)
     return None

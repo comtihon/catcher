@@ -40,6 +40,15 @@ def read_yaml_file(file: str) -> dict or None:
             raise yaml.YAMLError(err)
 
 
+def read_file(file: str) -> str:
+    if not os.path.exists(file):
+        err = 'No such file: ' + file
+        error(err)
+        raise FileNotFoundError(err)
+    with open(file, 'r') as stream:
+        return stream.read()
+
+
 # If dir exists delete and and create again
 def ensure_empty(path: str):
     remove_dir(path)
