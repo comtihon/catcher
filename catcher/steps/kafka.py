@@ -1,14 +1,9 @@
-import json
-from time import sleep, time
-
-from kafka import KafkaConsumer, KafkaProducer, TopicPartition, OffsetAndMetadata
-from kafka.consumer.fetcher import ConsumerRecord
-from kafka.errors import KafkaError
+from pykafka import KafkaClient, SimpleConsumer
+from pykafka.common import OffsetType
 
 from catcher.steps.check import Operator
 from catcher.steps.step import Step
 from catcher.utils.file_utils import read_file
-from catcher.utils.logger import warning
 from catcher.utils.time_utils import to_seconds
 
 
@@ -61,46 +56,36 @@ class Kafka(Step):
     def timeout(self) -> int:
         return self._timeout
 
-    @timeout.setter
-    def timeout(self, new_timeout):
-        self._timeout = new_timeout
-
     def action(self, includes: dict, variables: dict) -> dict:
+        client = KafkaClient(hosts=self.server)
+        topic = client.topics[self.topic.encode('utf-8')]
         # TODO templating in topics and in consume body!
+        out = {}
         if self.method == 'consume':
-            out = self.consume(variables)
+            out = self.consume(topic, variables)
         elif self.method == 'produce':
-            out = self.produce()
+            self.produce(topic)
         else:
             raise AttributeError('unknown method: ' + self.method)
         return self.process_register(variables, out)
 
-    def consume(self, variables: dict) -> list:
-        start = time()
-        consumer = self.__connect_consumer()
+    def consume(self, topic, variables: dict) -> dict:
+        consumer = topic.get_simple_consumer(consumer_group=self.group_id.encode('utf-8'),
+                                             auto_offset_reset=OffsetType.EARLIEST,
+                                             reset_offset_on_start=False,
+                                             consumer_timeout_ms=self.timeout * 1000)
         if self.where is not None:
             operator = Operator.find_operator(self.where)
         else:
             operator = None
-        messages = Kafka.get_messages(consumer, operator, variables)
-        spent = time() - start
-        if not messages:
-            if self.timeout > 0 and spent < self.timeout:
-                sleep(1)
-                self.timeout -= (spent + 1)
-                return self.consume(variables)
-            raise RuntimeError('No messages available')
-        [message] = messages
-        return message
+        return Kafka.get_messages(consumer, operator, variables)
 
-    def produce(self) -> dict:
-        producer = self.__connect_producer()
-        future = producer.send(self.topic, self.data)
-        try:
-            return future.get(timeout=self.timeout)
-        except KafkaError as e:
-            warning('Can\'t produce message to topic ' + self.topic + ' with ' + str(e))
-            raise KafkaError('Producing message failed for ' + self.topic)
+    def produce(self, topic):
+        message = self.data
+        if not isinstance(message, bytes):
+            message = str(message).encode('utf-8')
+        with topic.get_sync_producer() as producer:
+            producer.produce(message)
 
     def __filter_message(self, message: dict, variables: dict) -> dict or None:
         operator = Operator.find_operator(self.where)
@@ -110,53 +95,15 @@ class Kafka(Step):
             return None
         return operator
 
-    def __connect_consumer(self):
-        start = time()
-        try:
-            return KafkaConsumer(self.topic,
-                                 group_id=self.group_id,
-                                 bootstrap_servers=self.server,
-                                 auto_offset_reset='earliest',
-                                 enable_auto_commit=False)
-        except:
-            spent = time() - start
-            if self.timeout > 0 and spent < self.timeout:
-                sleep(1)
-                self.timeout -= (spent + 1)
-                return self.__connect_consumer()
-            raise Exception('No kafka brokers available')
-
-    def __connect_producer(self):
-        start = time()
-        try:
-            if isinstance(self.data, dict):
-                return KafkaProducer(bootstrap_servers=self.server,
-                                     value_serializer=lambda m: json.dumps(m).encode('ascii'))
-            else:
-                return KafkaProducer(bootstrap_servers=self.server, api_version=(0, 10, 1))
-        except:
-            spent = time() - start
-            if self.timeout > 0 and spent < self.timeout:
-                sleep(1)
-                self.timeout -= (spent + 1)
-                return self.__connect_consumer()
-            raise Exception('No kafka brokers available')
-
     @staticmethod
-    def get_messages(consumer: KafkaConsumer, where: Operator or None, variables) -> [dict]:
-        for message in consumer:
-            print('REPEAT')
-            variables = dict(variables)
-            value = message.value.decode('utf-8')
-            variables['MESSAGE'] = value
-            print(value)
-            tp = TopicPartition(message.topic, message.partition)
-            consumer.commit({tp: OffsetAndMetadata(message.offset, None)})
+    def get_messages(consumer: SimpleConsumer, where: Operator or None, variables) -> dict or None:
+        message = consumer.consume(True)
+        variables = dict(variables)
+        value = message.value.decode('utf-8')
+        variables['MESSAGE'] = value
+        if where is not None:
             if where.operation(variables) is True:
-                print('bingo! ' + value)
                 return value
-        return []
-
-    @staticmethod
-    def parse_value(c: ConsumerRecord) -> dict:
-        return json.loads(c.value.decode())
+            else:
+                return None
+        return value

@@ -2,6 +2,8 @@ from abc import abstractmethod
 
 from jinja2 import Template
 
+from catcher.utils.misc import try_get_object
+
 
 class Step:
     def __init__(self, body: dict) -> None:
@@ -22,7 +24,7 @@ class Step:
         if self.register is not None:
             for key in self.register.keys():
                 if output:
-                    out = Template(self.register[key]).render({'OUTPUT': output})
+                    out = Template(self.register[key]).render({'OUTPUT': try_get_object(output)})
                 else:
                     out = Template(self.register[key]).render(variables)
                 variables[key] = out

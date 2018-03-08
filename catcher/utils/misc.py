@@ -14,6 +14,15 @@ def get_all_subclasses_of(clazz) -> list:
                                      for g in get_all_subclasses_of(s)]
 
 
+def try_get_object(source: str or dict):
+    if isinstance(source, str):
+        try:
+            source = ast.literal_eval(source)
+        except (ValueError, SyntaxError):
+            return source
+    return source
+
+
 def fill_template(source: any, variables: dict) -> any:
     if isinstance(source, str):
         source = Template(source).render(variables)

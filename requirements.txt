@@ -5,4 +5,4 @@ requests
 requests_mock
 PyYAML
 Jinja2
-kafka
+pykafka
