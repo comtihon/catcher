@@ -1,0 +1,11 @@
+---
+            steps:
+                - kafka: 
+                    consume: 
+                        server: '127.0.0.1:9092'
+                        topic: 'test'
+                    register: {money: '{{ OUTPUT.action.withdraw }}'}
+                - check:
+                    the: '{{ money }}'
+                    equals: 1000
+            

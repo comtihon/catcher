@@ -9,6 +9,7 @@ class Step:
         if 'register' in body:
             self._register = body['register']
 
+    # TODO inject RANDOM and NOW
     @abstractmethod
     def action(self, includes: dict, variables: dict) -> dict:
         pass

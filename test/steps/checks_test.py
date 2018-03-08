@@ -41,12 +41,12 @@ class ChecksTest(TestClass):
         steps:
             - echo: {from: '{{ foo }}'}
             - check: 
-                the: '{{ foo }}'
                 any:
+                    of: '{{ foo }}'
                     equals: 'baz'
             - check: 
-                the: [bar, baz]
                 any:
+                    of: [bar, baz]
                     equals: 'baz'
         ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
@@ -60,12 +60,12 @@ class ChecksTest(TestClass):
         steps:
             - echo: {from: '{{ foo }}'}
             - check: 
-                the: '{{ foo }}'
                 all:
+                    of: '{{ foo }}'
                     equals: 1
             - check: 
-                the: [1, 1]
-                all:
+                all: 
+                    of: [1,1]
                     equals: 1
         ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
@@ -79,11 +79,9 @@ class ChecksTest(TestClass):
             dict: {'a': 1, 'b': 2, 'c': 3}
         steps:
             - check: 
-                the: '{{ list }}'
-                contains: 'a'
+                contains: {the: 'a', in: '{{ list }}'}
             - check: 
-                the: '{{ dict }}'
-                contains: 'a'
+                contains: {the: 'a', in: '{{ dict }}'}
         ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
         self.assertTrue(runner.run_tests())
@@ -95,11 +93,10 @@ class ChecksTest(TestClass):
             list: ['a', 'b', 'c']
         steps:
             - check: 
-                the: '{{ list }}'
                 or: 
-                    - contains: '1'
-                    - equals: {the: '{{ list[0] }}', equals: 'a'}
-                    - contains: 'b'
+                    - contains: {the: '1', in '{{ list }}'}
+                    - equals: {the: '{{ list[0] }}', is: 'a'}
+                    - contains: {the: 'b', in '{{ list }}'}
         ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
         self.assertTrue(runner.run_tests())
@@ -111,11 +108,10 @@ class ChecksTest(TestClass):
             list: ['a', 'b', 3]
         steps:
             - check: 
-                the: '{{ list }}'
                 and: 
-                    - contains: 'a'
-                    - equals: {the: '{{ list[1] }}', equals: 'b'}
-                    - equals: {the: '{{ list[2] > 2 }}', equals: true}
+                    - contains: {the: 'a' in: '{{ list }}'}
+                    - equals: {the: '{{ list[1] }}', is: 'b'}
+                    - equals: {the: '{{ list[2] > 2 }}', is: true}
         ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
         self.assertTrue(runner.run_tests())
@@ -127,11 +123,29 @@ class ChecksTest(TestClass):
             list: ['d', 'c', 1]
         steps:
             - check: 
-                the: '{{ list }}'
                 and: 
-                    - not_contains: 'a'
-                    - equals: {the: '{{ list[1] }}', not_equals: 'b'}
-                    - not_equals: {the: '{{ list[2] > 2 }}', equals: true}
+                    - contains: {the: 'a', not_in: '{{ list }}}
+                    - equals: {the: '{{ list[1] }}', is_not: 'b'}
+                    - equals: {the: '{{ list[2] > 2 }}', is: true}
+        ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
+
+    # test if with-items work
+    def test_with_items(self):
+        # TODO same as in ansible
+        True
+
+    # test if ITEM is available in list
+    def test_items_iteration(self):
+        self.populate_file('main.yaml', '''---
+        variables:
+            list: [{n: 1, k: 'a'}, {n: 2, l: 'a'}, {n: 3, k: 'a'}]
+        steps:
+            - check: 
+                all:
+                    of: '{{ list }}'
+                    equals: {the: '{{ ITEM.k }}', is: 'a'}
         ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
         self.assertTrue(runner.run_tests())
