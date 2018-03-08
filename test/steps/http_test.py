@@ -40,9 +40,7 @@ class HttpTest(TestClass):
                         url: 'http://test.com'
                         response_code: 200
                     register: {checked: '{{ OUTPUT.checked }}'}
-                - check:
-                    the: '{{ checked }}'
-                    equals: true
+                - check: '{{ checked }}'
             ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
         self.assertTrue(runner.run_tests())
@@ -58,8 +56,7 @@ class HttpTest(TestClass):
                         body: {'id': 1234, 'action': 'fee'}
                     register: {reply: '{{ OUTPUT }}'}
                 - check:
-                    the: '{{ reply }}'
-                    contains: 'Error'
+                    contains: {'the': 'Error', in: '{{ reply }}'}
             ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
         self.assertTrue(runner.run_tests())
@@ -77,8 +74,7 @@ class HttpTest(TestClass):
                         body: {'id': '{{ id }}', 'action': 'fee'}
                     register: {reply: '{{ OUTPUT.id }}'}
                 - check:
-                    the: '{{ reply }}'
-                    equals: '{{ id }}'
+                    equals: {the: '{{ reply }}', is: '{{ id }}'}
             ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
         self.assertTrue(runner.run_tests())
@@ -107,8 +103,7 @@ class HttpTest(TestClass):
                            + join(self.test_dir, 'answers.json') + '''"
                     register: {reply: '{{ OUTPUT }}'}
                 - check:
-                    the: '{{ reply }}'
-                    equals: 'loaded ok'
+                    equals: {the: '{{ reply }}', is: 'loaded ok'}
             ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
         self.assertTrue(runner.run_tests())

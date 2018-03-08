@@ -8,12 +8,23 @@ class ChecksTest(TestClass):
     def __init__(self, method_name):
         super().__init__('checks_test', method_name)
 
+    # test simple equals
+    def test_check_short_form(self):
+        self.populate_file('main.yaml', '''---
+        variables:
+            foo: true
+        steps:
+            - check: '{{ foo }}'
+        ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
+
     # test computed var equals constant value
     def test_computed_equals_constant(self):
         self.populate_file('main.yaml', '''---
         steps:
             - echo: {from: 'hello', register: {'foo': 'value'}}
-            - check: {the: '{{ foo }}', equals: 'value'}
+            - check: {equals: {the: '{{ foo }}', is: 'value'}}
         ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
         self.assertTrue(runner.run_tests())
@@ -26,9 +37,9 @@ class ChecksTest(TestClass):
             foo2: bar
         steps:
             - echo: {from: '{{ foo }}'}
-            - check: {the: 'bar', equals: '{{ foo }}'}
-            - check: {the: '{{ foo }}', equals: 'bar'}
-            - check: {the: '{{ foo }}', equals: '{{ foo2 }}'}
+            - check: {equals: {the: 'bar', is: '{{ foo }}'}}
+            - check: {equals: {the: '{{ foo }}', is: 'bar'}}
+            - check: {equals: {the: '{{ foo2 }}', is: '{{ foo }}'}}
         ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
         self.assertTrue(runner.run_tests())
@@ -94,9 +105,9 @@ class ChecksTest(TestClass):
         steps:
             - check: 
                 or: 
-                    - contains: {the: '1', in '{{ list }}'}
+                    - contains: {the: '1', in: '{{ list }}'}
                     - equals: {the: '{{ list[0] }}', is: 'a'}
-                    - contains: {the: 'b', in '{{ list }}'}
+                    - contains: {the: 'b', in: '{{ list }}'}
         ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
         self.assertTrue(runner.run_tests())
@@ -109,7 +120,7 @@ class ChecksTest(TestClass):
         steps:
             - check: 
                 and: 
-                    - contains: {the: 'a' in: '{{ list }}'}
+                    - contains: {the: 'a', in: '{{ list }}'}
                     - equals: {the: '{{ list[1] }}', is: 'b'}
                     - equals: {the: '{{ list[2] > 2 }}', is: true}
         ''')
@@ -124,23 +135,18 @@ class ChecksTest(TestClass):
         steps:
             - check: 
                 and: 
-                    - contains: {the: 'a', not_in: '{{ list }}}
+                    - contains: {the: 'a', not_in: '{{ list }}'}
                     - equals: {the: '{{ list[1] }}', is_not: 'b'}
-                    - equals: {the: '{{ list[2] > 2 }}', is: true}
+                    - equals: {the: '{{ list[2] > 2 }}', is_not: true}
         ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
         self.assertTrue(runner.run_tests())
-
-    # test if with-items work
-    def test_with_items(self):
-        # TODO same as in ansible
-        True
 
     # test if ITEM is available in list
     def test_items_iteration(self):
         self.populate_file('main.yaml', '''---
         variables:
-            list: [{n: 1, k: 'a'}, {n: 2, l: 'a'}, {n: 3, k: 'a'}]
+            list: [{n: 1, k: 'a'}, {n: 2, k: 'a'}, {n: 3, k: 'a'}]
         steps:
             - check: 
                 all:

@@ -8,7 +8,7 @@ from kafka.errors import KafkaError
 from catcher.steps.step import Step
 from catcher.utils.file_utils import read_file
 from catcher.utils.time_utils import to_seconds
-from utils.logger import warning
+from catcher.utils.logger import warning
 
 
 class Kafka(Step):

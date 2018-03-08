@@ -7,6 +7,9 @@
 1. Test's variables override inventory's variables.
 2. Variables from include don't go to main test file.
 
+## Running checks
+see [checks](doc/checks.md) for details.
+
 ## Built-in variables
 1. `OUTPUT` - operation's output. Can be used for new variables registration:
 ```yaml

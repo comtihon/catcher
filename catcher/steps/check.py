@@ -2,9 +2,7 @@ from abc import abstractmethod
 
 from catcher.steps.step import Step
 from catcher.utils.logger import debug
-from catcher.utils.misc import merge_two_dicts, get_all_subclasses_of, fill_template
-
-NEGATIVE_RULES = ['equals', 'contains']
+from catcher.utils.misc import get_all_subclasses_of, fill_template
 
 
 class Operator(object):
@@ -16,16 +14,13 @@ class Operator(object):
     def negative(self) -> bool:
         return self._negative
 
-    @property
-    def source(self) -> str:
-        return self.subject['the']
+    @negative.setter
+    def negative(self, new_value: bool):
+        self._negative = new_value
 
     @property
     def body(self) -> any:
-        classname = self.__class__.__name__.lower()
-        if self.negative and classname in NEGATIVE_RULES:
-            return 'not_' + classname
-        return classname
+        return self.__class__.__name__.lower()
 
     @property
     def subject(self) -> dict:
@@ -36,32 +31,38 @@ class Operator(object):
         pass
 
     @staticmethod
-    def find_operator(source: dict) -> 'Operator':
-        [operator_str] = source.keys()
-        operator_str, negative = Operator.find_negate(operator_str)
+    def find_operator(source: dict or str) -> 'Operator':
+        if isinstance(source, str):
+            operator_str = 'equals'
+        else:
+            [operator_str] = source.keys()
         operators = get_all_subclasses_of(Operator)
         named = dict([(o.__name__.lower(), o) for o in operators])
         if operator_str not in named:
             raise RuntimeError('No ' + operator_str + ' available')
         cls = named[operator_str]
-        return cls(source, negative)
-
-    @staticmethod
-    def find_negate(operator: str) -> (str, bool):
-        if operator.startswith('not_'):
-            [splitted] = [f for f in operator.split('not_') if f is not '']
-            if splitted in NEGATIVE_RULES:
-                return splitted, True
-        return operator, False
+        return cls(source)
 
 
 class Equals(Operator):
+    @staticmethod
+    def to_long_form(source: any, value: any):
+        return {'the': source, 'is': value}
+
+    def determine_source(self, body: dict):
+        if 'is' in body:
+            return body['is']
+        self.negative = True
+        return body['is_not']
+
     def operation(self, variables: dict) -> bool:
-        print(variables)
-        source = fill_template(self.source, variables)
-        print(source)
-        subject = fill_template(self.subject[self.body], variables)
-        print(subject)
+        if isinstance(self.subject, str):
+            subject = fill_template(self.subject, variables)
+            source = True
+        else:
+            body = self.subject[self.body]
+            subject = fill_template(body['the'], variables)
+            source = fill_template(self.determine_source(body), variables)
         result = source == subject
         if self.negative:
             result = not result
@@ -71,9 +72,20 @@ class Equals(Operator):
 
 
 class Contains(Operator):
+    @staticmethod
+    def to_long_form(source: any, value: any):
+        return {'the': source, 'in': value}
+
+    def determine_source(self, body: dict):
+        if 'in' in body:
+            return body['in']
+        self.negative = True
+        return body['not_in']
+
     def operation(self, variables: dict):
-        source = fill_template(self.source, variables)
-        subject = fill_template(self.subject[self.body], variables)
+        body = self.subject[self.body]
+        source = fill_template(self.determine_source(body), variables)
+        subject = fill_template(body['the'], variables)
         result = subject in source
         if self.negative:
             result = not result
@@ -90,27 +102,10 @@ class And(Operator):
     def operation(self, variables) -> bool:
         operators = self.subject[self.body]  # or or and
         for operator in operators:
-            print('get next operator ' + str(operator))
-            body = self.get_next_operator(operator, variables)
-            next_operation = Operator.find_operator(body)
+            next_operation = Operator.find_operator(operator)
             if next_operation.operation(variables) == self.end:
                 return self.end
         return True
-
-    def get_next_operator(self, operator: dict, variables: dict) -> dict:
-        [body] = list(operator.values())
-        print('body before ' + str(body))
-        if 'the' not in body:
-            source = fill_template(self.source, variables)
-            body = merge_two_dicts(operator, {'the': source})
-        [key] = [k for k in operator.keys() if k != 'the']
-        print('key ' + str(key))
-        print('body ' + str(body))
-        splitted = key.split('not_')
-        if len(splitted) > 1 and splitted[1] in body:
-            body[key] = body[splitted[1]]
-            body.pop(splitted[1])
-        return body
 
 
 class Or(And):
@@ -124,24 +119,28 @@ class All(Operator):
         return all(data)
 
     def operation(self, variables) -> bool:
-        source = fill_template(self.source, variables)
+        body = self.subject[self.body]
+        source = fill_template(body['of'], variables)
         if isinstance(source, list):
-            results = []
-            for element in source:
-                option = self.body  # all or any
-                subject = self.subject[option]
-                print('subject ' + str(self.subject))
-                print('body ' + str(subject))
-                if 'the' not in subject:
-                    print('merge the!')
-                    subject = merge_two_dicts(subject, {'the': element})
-                print('final ' + str(subject))
-                next_operation = Operator.find_operator(subject)
-                variables['ITEM'] = element
-                results.append(next_operation.operation(variables))
-            return self.operator(results)
+            elements = source
+        elif isinstance(source, dict):
+            elements = source.items()
         else:
+            debug(str(source) + ' not iterable')
             return False
+        results = []
+        for element in elements:
+            oper_body = dict([(k, v) for (k, v) in body.items() if k != 'of'])
+            [next_operator] = oper_body.keys()
+            if not isinstance(oper_body[next_operator], dict):  # terminator in short form
+                if next_operator == 'equals':
+                    oper_body[next_operator] = Equals.to_long_form('{{ ITEM }}', oper_body[next_operator])
+                if next_operator == 'contains':
+                    oper_body[next_operator] = Contains.to_long_form('{{ ITEM }}', oper_body[next_operator])
+            next_operation = Operator.find_operator(oper_body)
+            variables['ITEM'] = element
+            results.append(next_operation.operation(variables))
+        return self.operator(results)
 
 
 class Any(All):
