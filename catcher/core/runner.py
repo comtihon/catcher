@@ -1,3 +1,4 @@
+import traceback
 from os.path import join
 
 from catcher.core.include import Include
@@ -48,6 +49,7 @@ class Runner:
                 results.append(result)
             except Exception:
                 warning('test ' + file + ' failed')
+                print(traceback.format_exc())
                 results.append(False)
         return all(results)
 

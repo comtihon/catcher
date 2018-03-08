@@ -61,6 +61,8 @@ class Equals(Operator):
             source = True
         else:
             body = self.subject[self.body]
+            if isinstance(body, str):
+                body = Equals.to_long_form(body, True)
             subject = fill_template(body['the'], variables)
             source = fill_template(self.determine_source(body), variables)
         result = source == subject

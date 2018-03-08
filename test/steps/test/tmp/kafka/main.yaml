@@ -4,8 +4,9 @@
                     consume: 
                         server: '127.0.0.1:9092'
                         topic: 'test'
-                    register: {money: '{{ OUTPUT.action.withdraw }}'}
+                        where: 
+                            equals: {the: '{{ MESSAGE.id }}', is: 'uuid3'}
+                    register: {user: '{{ OUTPUT }}'}
                 - check:
-                    the: '{{ money }}'
-                    equals: 1000
+                    equals: {the: '{{ user.name }}', is: 'bar'}
             

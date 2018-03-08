@@ -1,14 +1,15 @@
 import json
 from time import sleep, time
 
-from kafka import KafkaConsumer, KafkaProducer
+from kafka import KafkaConsumer, KafkaProducer, TopicPartition, OffsetAndMetadata
 from kafka.consumer.fetcher import ConsumerRecord
 from kafka.errors import KafkaError
 
+from catcher.steps.check import Operator
 from catcher.steps.step import Step
 from catcher.utils.file_utils import read_file
-from catcher.utils.time_utils import to_seconds
 from catcher.utils.logger import warning
+from catcher.utils.time_utils import to_seconds
 
 
 class Kafka(Step):
@@ -67,21 +68,30 @@ class Kafka(Step):
     def action(self, includes: dict, variables: dict) -> dict:
         # TODO templating in topics and in consume body!
         if self.method == 'consume':
-            out = self.consume()
+            out = self.consume(variables)
         elif self.method == 'produce':
             out = self.produce()
         else:
             raise AttributeError('unknown method: ' + self.method)
         return self.process_register(variables, out)
 
-    def consume(self) -> list:
+    def consume(self, variables: dict) -> list:
+        start = time()
         consumer = self.__connect_consumer()
-        messages = Kafka.get_messages(consumer)
         if self.where is not None:
-            # TODO filter messages. If none found - use timeout to wait for.
-            return messages
+            operator = Operator.find_operator(self.where)
         else:
-            return messages
+            operator = None
+        messages = Kafka.get_messages(consumer, operator, variables)
+        spent = time() - start
+        if not messages:
+            if self.timeout > 0 and spent < self.timeout:
+                sleep(1)
+                self.timeout -= (spent + 1)
+                return self.consume(variables)
+            raise RuntimeError('No messages available')
+        [message] = messages
+        return message
 
     def produce(self) -> dict:
         producer = self.__connect_producer()
@@ -92,6 +102,14 @@ class Kafka(Step):
             warning('Can\'t produce message to topic ' + self.topic + ' with ' + str(e))
             raise KafkaError('Producing message failed for ' + self.topic)
 
+    def __filter_message(self, message: dict, variables: dict) -> dict or None:
+        operator = Operator.find_operator(self.where)
+        variables = dict(variables)
+        variables['MESSAGE'] = message
+        if operator.operation(variables) is False:
+            return None
+        return operator
+
     def __connect_consumer(self):
         start = time()
         try:
@@ -99,7 +117,7 @@ class Kafka(Step):
                                  group_id=self.group_id,
                                  bootstrap_servers=self.server,
                                  auto_offset_reset='earliest',
-                                 api_version=(0, 10, 1))
+                                 enable_auto_commit=False)
         except:
             spent = time() - start
             if self.timeout > 0 and spent < self.timeout:
@@ -113,7 +131,6 @@ class Kafka(Step):
         try:
             if isinstance(self.data, dict):
                 return KafkaProducer(bootstrap_servers=self.server,
-                                     api_version=(0, 10, 1),
                                      value_serializer=lambda m: json.dumps(m).encode('ascii'))
             else:
                 return KafkaProducer(bootstrap_servers=self.server, api_version=(0, 10, 1))
@@ -126,10 +143,19 @@ class Kafka(Step):
             raise Exception('No kafka brokers available')
 
     @staticmethod
-    def get_messages(consumer: KafkaConsumer) -> [dict]:
-        consumer_records = consumer.poll(10000).values()
-        records = [item for sublist in consumer_records for item in sublist]
-        return [Kafka.parse_value(c) for c in records]
+    def get_messages(consumer: KafkaConsumer, where: Operator or None, variables) -> [dict]:
+        for message in consumer:
+            print('REPEAT')
+            variables = dict(variables)
+            value = message.value.decode('utf-8')
+            variables['MESSAGE'] = value
+            print(value)
+            tp = TopicPartition(message.topic, message.partition)
+            consumer.commit({tp: OffsetAndMetadata(message.offset, None)})
+            if where.operation(variables) is True:
+                print('bingo! ' + value)
+                return value
+        return []
 
     @staticmethod
     def parse_value(c: ConsumerRecord) -> dict:
