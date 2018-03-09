@@ -17,7 +17,7 @@ class Kafka(Step):
         self._group_id = conf.get('group_id', 'catcher')
         self._server = conf['server']
         self._topic = conf['topic']
-        timeout = conf.get('timeout', {})
+        timeout = conf.get('timeout', {'seconds': 1})
         self._timeout = to_seconds(timeout)
         self._where = conf.get('where', None)
         self._data = None
@@ -66,6 +66,8 @@ class Kafka(Step):
         out = {}
         if self.method == 'consume':
             out = self.consume(topic, variables)
+            if out is None:
+                raise RuntimeError('No kafka messages were consumed')
         elif self.method == 'produce':
             self.produce(topic, variables)
         else:
@@ -101,6 +103,8 @@ class Kafka(Step):
     @staticmethod
     def get_messages(consumer: SimpleConsumer, where: Operator or None, variables) -> dict or None:
         message = consumer.consume(True)
+        if message is None:
+            return None
         variables = dict(variables)
         value = try_get_object(message.value.decode('utf-8'))
         variables['MESSAGE'] = value
