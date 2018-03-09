@@ -18,16 +18,19 @@ class Http(Step):
         if self.method != 'get':
             self._body = conf.get('body', None)
             if self.body is None:
-                json = conf['body_from_file']
-                self._body = read_file(json)
+                self._file = conf['body_from_file']
 
     @property
     def method(self) -> str:
         return self._method
 
     @property
-    def body(self) -> dict or None:
+    def body(self) -> any:
         return self._body
+
+    @property
+    def file(self) -> str:
+        return self._file
 
     @property
     def url(self) -> str:
@@ -44,9 +47,7 @@ class Http(Step):
     def action(self, includes: dict, variables: dict) -> dict:
         url = fill_template(self.url, variables)
         headers = dict([(fill_template(k, variables), fill_template(v, variables)) for k, v in self.headers])
-        body = None
-        if self.body is not None:
-            body = fill_template_str(self.body, variables)
+        body = self.__form_body(variables)
         r = request(self.method, url, params=None, headers=headers, data=body)
         if r.status_code != self.code:
             raise RuntimeError('Code mistatch: ' + str(r.status_code) + ' vs ' + str(self.code))
@@ -55,3 +56,11 @@ class Http(Step):
         except ValueError:
             response = r.text
         return self.process_register(variables, response)
+
+    def __form_body(self, variables):
+        if self.method == 'get':
+            return None
+        body = None
+        if self.body is None:
+            body = read_file(fill_template_str(self.file, variables))
+        return fill_template_str(body, variables)

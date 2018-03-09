@@ -24,8 +24,7 @@ class Kafka(Step):
         if self.method != 'consume':
             self._data = conf.get('data', None)
             if self.data is None:
-                file = conf['data_from_file']
-                self._data = read_file(file)
+                self._file = conf['data_from_file']
 
     @property
     def group_id(self):
@@ -42,6 +41,10 @@ class Kafka(Step):
     @property
     def topic(self):
         return self._topic
+
+    @property
+    def file(self) -> str:
+        return self._file
 
     @property
     def data(self) -> bytes or dict:
@@ -81,11 +84,19 @@ class Kafka(Step):
         return Kafka.get_messages(consumer, operator, variables)
 
     def produce(self, topic, variables):
-        message = self.data
+        message = self.__form_body(variables)
         if not isinstance(message, bytes):
             message = fill_template_str(message, variables).encode('utf-8')
         with topic.get_sync_producer() as producer:
             producer.produce(message)
+
+    def __form_body(self, variables):
+        if self.method == 'get':
+            return None
+        data = None
+        if self.data is None:
+            data = read_file(fill_template_str(self.file, variables))
+        return fill_template_str(data, variables)
 
     @staticmethod
     def get_messages(consumer: SimpleConsumer, where: Operator or None, variables) -> dict or None:
