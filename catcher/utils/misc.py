@@ -48,5 +48,5 @@ def inject_builtins(variables: dict) -> dict:
     variables_copy['RANDOM_INT'] = random.randint(-2147483648, 2147483648)
     ts = time.time()
     variables_copy['NOW_TS'] = ts
-    variables_copy['NOW_DT'] = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
+    variables_copy['NOW_DT'] = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%dT%H:%M:%S0+0000')
     return variables_copy
