@@ -1,8 +1,6 @@
-from jinja2 import Template
-
 from catcher.steps.step import Step
 from catcher.utils.logger import error
-from catcher.utils.misc import merge_two_dicts
+from catcher.utils.misc import merge_two_dicts, fill_template_str
 
 
 class Run(Step):
@@ -27,8 +25,7 @@ class Run(Step):
         return self._variables
 
     def action(self, includes: dict, variables: dict) -> dict:
-        template = Template(self.include)
-        out = template.render(variables)
+        out = fill_template_str(self.include, variables)
         test, tag = get_tag(out)
         if test not in includes:
             error('No include registered for name ' + test)

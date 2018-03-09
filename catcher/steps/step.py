@@ -1,8 +1,6 @@
 from abc import abstractmethod
 
-from jinja2 import Template
-
-from catcher.utils.misc import try_get_object
+from catcher.utils.misc import try_get_object, merge_two_dicts, fill_template
 
 
 class Step:
@@ -11,7 +9,6 @@ class Step:
         if 'register' in body:
             self._register = body['register']
 
-    # TODO inject RANDOM and NOW
     @abstractmethod
     def action(self, includes: dict, variables: dict) -> dict:
         pass
@@ -20,12 +17,13 @@ class Step:
     def register(self) -> dict or None:
         return self._register
 
-    def process_register(self, variables, output: dict or None = None) -> dict:
+    def process_register(self, variables, output: dict or str or None = None) -> dict:
         if self.register is not None:
             for key in self.register.keys():
                 if output:
-                    out = Template(self.register[key]).render({'OUTPUT': try_get_object(output)})
+                    out = fill_template(self.register[key],
+                                        merge_two_dicts(variables, {'OUTPUT': try_get_object(output)}))
                 else:
-                    out = Template(self.register[key]).render(variables)
+                    out = fill_template(self.register[key], variables)
                 variables[key] = out
         return variables

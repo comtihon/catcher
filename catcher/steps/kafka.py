@@ -5,6 +5,7 @@ from catcher.steps.check import Operator
 from catcher.steps.step import Step
 from catcher.utils.file_utils import read_file
 from catcher.utils.time_utils import to_seconds
+from catcher.utils.misc import try_get_object, fill_template_str
 
 
 class Kafka(Step):
@@ -58,13 +59,12 @@ class Kafka(Step):
 
     def action(self, includes: dict, variables: dict) -> dict:
         client = KafkaClient(hosts=self.server)
-        topic = client.topics[self.topic.encode('utf-8')]
-        # TODO templating in topics and in consume body!
+        topic = client.topics[fill_template_str(self.topic, variables).encode('utf-8')]
         out = {}
         if self.method == 'consume':
             out = self.consume(topic, variables)
         elif self.method == 'produce':
-            self.produce(topic)
+            self.produce(topic, variables)
         else:
             raise AttributeError('unknown method: ' + self.method)
         return self.process_register(variables, out)
@@ -80,30 +80,22 @@ class Kafka(Step):
             operator = None
         return Kafka.get_messages(consumer, operator, variables)
 
-    def produce(self, topic):
+    def produce(self, topic, variables):
         message = self.data
         if not isinstance(message, bytes):
-            message = str(message).encode('utf-8')
+            message = fill_template_str(message, variables).encode('utf-8')
         with topic.get_sync_producer() as producer:
             producer.produce(message)
-
-    def __filter_message(self, message: dict, variables: dict) -> dict or None:
-        operator = Operator.find_operator(self.where)
-        variables = dict(variables)
-        variables['MESSAGE'] = message
-        if operator.operation(variables) is False:
-            return None
-        return operator
 
     @staticmethod
     def get_messages(consumer: SimpleConsumer, where: Operator or None, variables) -> dict or None:
         message = consumer.consume(True)
         variables = dict(variables)
-        value = message.value.decode('utf-8')
+        value = try_get_object(message.value.decode('utf-8'))
         variables['MESSAGE'] = value
         if where is not None:
             if where.operation(variables) is True:
                 return value
             else:
-                return None
+                return Kafka.get_messages(consumer, where, variables)
         return value

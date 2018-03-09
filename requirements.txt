@@ -6,3 +6,4 @@ requests_mock
 PyYAML
 Jinja2
 pykafka
+uuid

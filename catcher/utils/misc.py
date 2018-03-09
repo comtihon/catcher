@@ -1,5 +1,10 @@
 import ast
+import random
+import uuid
 
+import time
+
+import datetime
 from jinja2 import Template
 
 
@@ -25,7 +30,7 @@ def try_get_object(source: str or dict):
 
 def fill_template(source: any, variables: dict) -> any:
     if isinstance(source, str):
-        source = Template(source).render(variables)
+        source = Template(source).render(inject_builtins(variables))
         try:
             source = ast.literal_eval(source)
         except (ValueError, SyntaxError):
@@ -34,4 +39,14 @@ def fill_template(source: any, variables: dict) -> any:
 
 
 def fill_template_str(source: any, variables: dict) -> str:
-    return Template(str(source)).render(variables)
+    return Template(str(source)).render(inject_builtins(variables))
+
+
+def inject_builtins(variables: dict) -> dict:
+    variables_copy = dict(variables)
+    variables_copy['RANDOM_STR'] = str(uuid.uuid4())
+    variables_copy['RANDOM_INT'] = random.randint(-2147483648, 2147483648)
+    ts = time.time()
+    variables_copy['NOW_TS'] = ts
+    variables_copy['NOW_DT'] = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
+    return variables_copy
