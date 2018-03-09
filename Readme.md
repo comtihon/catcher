@@ -7,6 +7,20 @@
 1. Test's variables override inventory's variables.
 2. Variables from include don't go to main test file.
 
+## Running checks
+see [checks](doc/checks.md) for details.
+
+## Built-in variables
+1. `OUTPUT` - operation's output. Can be used for new variables registration:
+```yaml
+    - http: 
+        post: 
+            url: 'http://test.com'
+            body: {'id': '{{ id }}', 'action': 'fee'}
+        register: {reply: '{{ OUTPUT.id }}'}
+```
+2. ``
+
 ## Include variables priority:
 1. include variables override everything (inventory, variables form previous includes and variables
 set in include test file).
