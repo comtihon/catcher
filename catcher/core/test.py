@@ -1,7 +1,5 @@
-import traceback
-
 from catcher.steps import step_factory
-from catcher.utils.logger import debug, warning
+from catcher.utils.logger import debug
 
 
 class Test:
@@ -36,7 +34,7 @@ class Test:
     def path(self) -> str:
         return self._path
 
-    def run(self, tag=None) -> {bool, dict}:
+    def run(self, tag=None) -> dict:
         for step in self.steps:
             [action] = step.keys()
             ignore_errors = get_or_default('ignore_errors', step[action], False)
@@ -48,14 +46,14 @@ class Test:
             for action_object in actions:
                 try:
                     self.variables = action_object.action(self.includes, self.variables)
+                    debug('Step ' + action + ' OK')
                 except Exception as e:
                     if ignore_errors:
                         debug('Step ' + action + ' failed, but we ignore it')
                         continue
-                    print(traceback.format_exc())
-                    warning('Step ' + action + ' crashed: ' + str(e))
-                    return False, self.variables
-        return True, self.variables
+                    debug('Step ' + action + ' failed: ' + str(e))
+                    raise e
+        return self.variables
 
 
 def get_or_default(key: str, body: dict or str, default: any) -> any:

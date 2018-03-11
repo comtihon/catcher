@@ -1,11 +1,10 @@
-import traceback
 from os.path import join
 
 from catcher.core.include import Include
 from catcher.core.test import Test
 from catcher.utils.file_utils import read_yaml_file, get_files
+from catcher.utils.logger import warning, info
 from catcher.utils.misc import merge_two_dicts
-from catcher.utils.logger import warning
 
 
 class Runner:
@@ -45,11 +44,11 @@ class Runner:
             self.all_includes = []
             test = self.prepare_test(file, variables)
             try:
-                result, _ = test.run()
-                results.append(result)
-            except Exception:
-                warning('test ' + file + ' failed')
-                print(traceback.format_exc())
+                test.run()
+                results.append(True)
+                info('Test ' + file + ' passed.')
+            except Exception as e:
+                warning('Test ' + file + ' failed: ' + str(e))
                 results.append(False)
         return all(results)
 

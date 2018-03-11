@@ -162,5 +162,5 @@ class Check(Step):
     def action(self, includes: dict, variables: dict) -> dict:
         operator = Operator.find_operator(self.subject)
         if not operator.operation(variables):
-            raise RuntimeError('operation failed')
+            raise RuntimeError('operation ' + str(self.subject) + ' failed')
         return self.process_register(variables)
