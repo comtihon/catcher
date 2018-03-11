@@ -42,8 +42,8 @@ class Runner:
         results = []
         for file in test_files:
             self.all_includes = []
-            test = self.prepare_test(file, variables)
             try:
+                test = self.prepare_test(file, variables)
                 test.run()
                 results.append(True)
                 info('Test ' + file + ' passed.')
@@ -86,10 +86,11 @@ class Runner:
         if include.alias is not None:
             includes[include.alias] = include.test
         if include.run_on_include:
-            result, new_vars = include.test.run()
-            if not result and not include.ignore_errors:
-                raise Exception('Include ' + include.file + ' failed.')
-            return new_vars
+            try:
+                return include.test.run()
+            except Exception as e:
+                if not include.ignore_errors:
+                    raise Exception('Include ' + include.file + ' failed: ' + str(e))
         return include.test.variables
 
     def check_circular(self, current_include: dict):

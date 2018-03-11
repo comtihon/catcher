@@ -33,12 +33,12 @@ class Run(Step):
         include = includes[test]
         variables = merge_two_dicts(include.variables, self.variables)
         include.variables = variables
-        result, variables = include.run(tag=tag)
-        if result or self.ignore_errors:
-            return self.process_register(variables)
-        else:
-            error('Step run ' + test + ' failed')
-            raise Exception('Step run ' + test + ' failed')
+        try:
+            variables = include.run(tag=tag)
+        except Exception as e:
+            if not self.ignore_errors:
+                raise Exception('Step run ' + test + ' failed: ' + str(e))
+        return self.process_register(variables)
 
 
 def get_tag(include: str) -> str or None:

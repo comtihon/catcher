@@ -115,11 +115,7 @@ class IncludeFilesTest(TestClass):
             - echo: {from: '{{ foo }}', to: other.output}
         ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
-        try:
-            runner.run_tests()
-            self.fail('circular dependency not detected')
-        except Exception as e:
-            self.assertTrue(str(e).startswith('Circular dependencies for'))
+        self.assertFalse(runner.run_tests())
 
     # test run on include and later by alias
     def test_run_on_include_and_later(self):
