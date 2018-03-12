@@ -10,10 +10,10 @@ from catcher.utils.logger import debug
 
 class Http(Step):
     def __init__(self, body: dict) -> None:
+        super().__init__(body)
         [method] = [k for k in body.keys() if k != 'register']  # get/post/put...
         self._method = method.lower()
         conf = body[method]
-        super().__init__(conf)
         self._url = conf['url']
         self._headers = conf.get('headers', {})
         self._body = None
