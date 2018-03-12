@@ -63,7 +63,7 @@ class Http(Step):
     def __form_body(self, variables):
         if self.method == 'get':
             return None
-        body = None
-        if self.body is None:
+        body = self.body
+        if body is None:
             body = read_file(fill_template_str(self.file, variables))
         return fill_template_str(body, variables)
