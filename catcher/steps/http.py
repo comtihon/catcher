@@ -68,6 +68,6 @@ class Http(Step):
         body = self.body
         if body is None:
             body = read_file(fill_template_str(self.file, variables))
-        else:
-            body = fill_template(body, variables)
-        return json.dumps(body)
+        if isinstance(body, dict):  # dump body to json to be able fill templates in
+            body = json.dumps(body)
+        return fill_template_str(body, variables)
