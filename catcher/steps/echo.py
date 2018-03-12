@@ -7,8 +7,14 @@ from catcher.utils.misc import fill_template
 class Echo(Step):
     def __init__(self, path: str, body: dict) -> None:
         super().__init__(body)
-        self._export_from = body['from']
-        self._export_to = body.get('to', None)
+        if isinstance(body, dict):
+            self._export_from = body['from']
+            self._export_to = body.get('to', None)
+        elif isinstance(body, str):
+            self._export_from = body
+            self._export_to = None
+        else:
+            raise ValueError('Incorrect arguments for echo.')
         self._path = path
 
     @property

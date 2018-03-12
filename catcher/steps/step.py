@@ -20,7 +20,7 @@ class Step:
     def process_register(self, variables, output: dict or str or None = None) -> dict:
         if self.register is not None:
             for key in self.register.keys():
-                if output:
+                if output is not None:
                     out = fill_template(self.register[key],
                                         merge_two_dicts(variables, {'OUTPUT': try_get_object(output)}))
                 else:

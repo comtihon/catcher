@@ -1,3 +1,4 @@
+import io
 import os
 import shutil
 from os.path import join
@@ -45,7 +46,7 @@ def read_file(file: str) -> str:
         err = 'No such file: ' + file
         error(err)
         raise FileNotFoundError(err)
-    with open(file, 'r') as stream:
+    with io.open(file, mode='r', encoding='utf-8') as stream:
         return stream.read()
 
 

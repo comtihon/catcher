@@ -10,10 +10,10 @@ from catcher.utils.logger import debug
 
 class Http(Step):
     def __init__(self, body: dict) -> None:
-        super().__init__(body)
         [method] = [k for k in body.keys() if k != 'register']  # get/post/put...
         self._method = method.lower()
         conf = body[method]
+        super().__init__(conf)
         self._url = conf['url']
         self._headers = conf.get('headers', {})
         self._body = None
@@ -53,16 +53,22 @@ class Http(Step):
             [(fill_template_str(k, variables), fill_template_str(v, variables)) for k, v in self.headers.items()])
         body = self.__form_body(variables)
         debug('http ' + str(self.method) + ' ' + str(url) + ', ' + str(headers) + ', ' + str(body))
-        r = request(self.method, url, params=None, headers=headers, data=body)
+        if body is None:
+            r = request(self.method, url, headers=headers)
+        elif isinstance(body, dict):
+            r = request(self.method, url, headers=headers, json=body)
+        else:
+            r = request(self.method, url, headers=headers, data=body)
         if r.status_code != self.code:
-            raise RuntimeError('Code mistatch: ' + str(r.status_code) + ' vs ' + str(self.code))
+            debug(r.text)
+            raise RuntimeError('Code mismatch: ' + str(r.status_code) + ' vs ' + str(self.code))
         try:
             response = r.json()
         except ValueError:
             response = r.text
         return self.process_register(variables, response)
 
-    def __form_body(self, variables):
+    def __form_body(self, variables) -> str or dict:
         if self.method == 'get':
             return None
         body = self.body
@@ -70,4 +76,4 @@ class Http(Step):
             body = read_file(fill_template_str(self.file, variables))
         if isinstance(body, dict):  # dump body to json to be able fill templates in
             body = json.dumps(body)
-        return fill_template_str(body, variables)
+        return fill_template(body, variables)

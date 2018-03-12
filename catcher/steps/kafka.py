@@ -10,10 +10,10 @@ from catcher.utils.misc import try_get_object, fill_template_str
 
 class Kafka(Step):
     def __init__(self, body: dict) -> None:
-        super().__init__(body)
         [method] = [k for k in body.keys() if k != 'register']  # produce/consume
         self._method = method.lower()
         conf = body[method]
+        super().__init__(conf)
         self._group_id = conf.get('group_id', 'catcher')
         self._server = conf['server']
         self._topic = conf['topic']
