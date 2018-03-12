@@ -3,6 +3,7 @@ from requests import request
 from catcher.steps.step import Step
 from catcher.utils.file_utils import read_file
 from catcher.utils.misc import fill_template, fill_template_str
+from catcher.utils.logger import debug
 
 
 class Http(Step):
@@ -49,6 +50,7 @@ class Http(Step):
         headers = dict(
             [(fill_template_str(k, variables), fill_template_str(v, variables)) for k, v in self.headers.items()])
         body = self.__form_body(variables)
+        debug('http ' + str(self.method) + ' ' + str(url) + ', ' + str(headers) + ', ' + str(body))
         r = request(self.method, url, params=None, headers=headers, data=body)
         if r.status_code != self.code:
             raise RuntimeError('Code mistatch: ' + str(r.status_code) + ' vs ' + str(self.code))
