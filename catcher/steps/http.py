@@ -1,3 +1,5 @@
+import json
+
 from requests import request
 
 from catcher.steps.step import Step
@@ -66,4 +68,6 @@ class Http(Step):
         body = self.body
         if body is None:
             body = read_file(fill_template_str(self.file, variables))
-        return fill_template_str(body, variables)
+        else:
+            body = fill_template(body, variables)
+        return json.dumps(body)
