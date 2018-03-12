@@ -46,7 +46,8 @@ class Http(Step):
 
     def action(self, includes: dict, variables: dict) -> dict:
         url = fill_template(self.url, variables)
-        headers = dict([(fill_template(k, variables), fill_template(v, variables)) for k, v in self.headers.items()])
+        headers = dict(
+            [(fill_template_str(k, variables), fill_template_str(v, variables)) for k, v in self.headers.items()])
         body = self.__form_body(variables)
         r = request(self.method, url, params=None, headers=headers, data=body)
         if r.status_code != self.code:
