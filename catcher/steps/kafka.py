@@ -61,7 +61,7 @@ class Kafka(Step):
         return self._timeout
 
     def action(self, includes: dict, variables: dict) -> dict:
-        client = KafkaClient(hosts=self.server)
+        client = KafkaClient(hosts=fill_template_str(self.server, variables))
         topic = client.topics[fill_template_str(self.topic, variables).encode('utf-8')]
         out = {}
         if self.method == 'consume':
