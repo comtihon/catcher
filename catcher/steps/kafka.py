@@ -108,7 +108,7 @@ class Kafka(Step):
                 consumer.fetch()
                 for message in consumer:
                     value = try_get_object(message.value.decode('utf-8'))
-                    debug(message)
+                    debug(value)
                     if Kafka.check_message(where, value, variables):
                         return value
                 if timeout > 0:
