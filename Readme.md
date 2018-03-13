@@ -3,6 +3,23 @@
 [![PyPI](https://img.shields.io/pypi/v/catcher.svg)](https://pypi.python.org/pypi/catcher)
 [![PyPI](https://img.shields.io/pypi/pyversions/catcher.svg)](https://pypi.python.org/pypi/catcher)
 [![PyPI](https://img.shields.io/pypi/wheel/catcher.svg)](https://pypi.python.org/pypi/catcher)  
+Support your team with a good catcher!  
+_What is catcher?_    
+Catcher is a tool for automated tests.  
+_How it works?_  
+Just like ansible for deployment. You create [inventories](doc/inventory.md) for environments,
+write test [scenarios](doc/tests.md) for business logic and call catcher.  
+_Where it can be useful?_  
+Catcher is useful for black box testing, integration testing. And it is extremely useful for 
+microservices end-to-end testing!  
+
+## Why catcher?
+* don't repeat test code. Write one test and call its steps from another.
+* apply [checks](doc/checks.md) to the steps results.
+* write test for development, change inventory and test stage/uat/prod after deploy.
+* test all your [microservices](doc/microservices.md) with ease.
+* automate your testing!
+
 ## Variables override
 1. Test's variables override inventory's variables.
 2. Variables from include don't go to main test file.

@@ -56,6 +56,33 @@ class RunRegisteredIncludeTest(TestClass):
         self.assertTrue(not os.path.exists(join(self.test_dir, 'baz.output')))
         self.assertTrue(check_file(join(self.test_dir, 'bar.output'), '3'))
 
+    # test register include and run only selected tag (long form), include name with dot
+    def test_register_run_tags_with_dot(self):
+        self.populate_file('main.yaml', '''---
+        include: 
+            file: simple_file.yaml
+            as: simple.with_dot
+        steps:
+            - run: 
+                include: 'simple.with_dot'
+                tag: one
+        ''')
+        self.populate_file('simple_file.yaml', '''---
+        variables:
+            foo: 1
+            baz: 2
+            bar: 3
+        steps:
+            - echo: {from: '{{ foo }}', to: foo.output, tag: one}
+            - echo: {from: '{{ baz }}', to: baz.output}
+            - echo: {from: '{{ bar }}', to: bar.output, tag: one}
+        ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        runner.run_tests()
+        self.assertTrue(check_file(join(self.test_dir, 'foo.output'), '1'))
+        self.assertTrue(not os.path.exists(join(self.test_dir, 'baz.output')))
+        self.assertTrue(check_file(join(self.test_dir, 'bar.output'), '3'))
+
     # test include can be run from variable
     def test_run_from_template(self):
         self.populate_file('main.yaml', '''---

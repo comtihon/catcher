@@ -9,12 +9,17 @@ class Run(Step):
         self._variables = keywords.get('variables', {})
         self._ignore_errors = keywords.get('ignore_errors', False)
         self._include = keywords.get('include', None)
+        self._tag = keywords.get('tag', None)
         if self.include is None:
             self._include = keywords['run']
 
     @property
     def include(self):
         return self._include
+
+    @property
+    def tag(self):
+        return self._tag
 
     @property
     def ignore_errors(self) -> bool:
@@ -26,7 +31,7 @@ class Run(Step):
 
     def action(self, includes: dict, variables: dict) -> dict:
         out = fill_template_str(self.include, variables)
-        test, tag = get_tag(out)
+        test, tag = get_tag(out, self.tag)
         if test not in includes:
             error('No include registered for name ' + test)
             raise Exception('No include registered for name ' + test)
@@ -41,7 +46,9 @@ class Run(Step):
         return self.process_register(variables)
 
 
-def get_tag(include: str) -> str or None:
+def get_tag(include: str, tag: str or None) -> str or None:
+    if tag is not None:
+        return include, tag
     if '.' in include:
         splitted = include.split('.')
         return splitted[0], splitted[-1:][0]
