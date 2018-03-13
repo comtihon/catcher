@@ -2,6 +2,8 @@ from os.path import join
 
 import os
 
+import requests_mock
+
 from catcher.core.runner import Runner
 from test.abs_test_class import TestClass
 from test.test_utils import check_file
@@ -34,10 +36,12 @@ class RunTest(TestClass):
         self.assertTrue(check_file(join(self.test_dir, 'main2.output'), 'test2'))
 
     # test run ignore errors
-    def test_run_ignore_errors(self):
+    @requests_mock.mock()
+    def test_run_ignore_errors(self, m):
+        m.get('http://test.com', status_code=500)
         self.populate_file('main.yaml', '''---
         steps:
-            - echo: {from: '{{ test - 2 }}', to: main1.output, ignore_errors: true}
+            - http: {get: {url: 'http://test.com', response_code: 200}, ignore_errors: true}
             - echo: {from: 'test2', to: main2.output}
         ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)

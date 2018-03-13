@@ -13,7 +13,7 @@ from catcher.utils.time_utils import to_seconds
 class Kafka(Step):
     def __init__(self, body: dict) -> None:
         super().__init__(body)
-        [method] = [k for k in body.keys() if k != 'register']  # produce/consume
+        [method] = [k for k in body.keys() if k != 'register' and k != 'ignore_errors']  # produce/consume
         self._method = method.lower()
         conf = body[method]
         self._group_id = conf.get('group_id', 'catcher')

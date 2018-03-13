@@ -10,6 +10,9 @@
 ## Running checks
 see [checks](doc/checks.md) for details.
 
+## Running test steps
+* ignore erros
+
 ## Built-in variables
 1. `OUTPUT` - operation's output. Can be used for new variables registration:
 ```yaml
@@ -19,7 +22,11 @@ see [checks](doc/checks.md) for details.
             body: {'id': '{{ id }}', 'action': 'fee'}
         register: {reply: '{{ OUTPUT.id }}'}
 ```
-2. ``
+2. `ITEM`
+3. `NOW_TS`
+3. `NOW_DT`
+3. `RANDOM_STR`
+3. `RANDOM_INT`
 
 ## Include variables priority:
 1. include variables override everything (inventory, variables form previous includes and variables
