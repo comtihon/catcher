@@ -1,8 +1,10 @@
 import ast
 import datetime
+import json
 import random
 import time
 import uuid
+from json import JSONDecodeError
 
 from jinja2 import Template, UndefinedError
 
@@ -20,10 +22,13 @@ def get_all_subclasses_of(clazz) -> list:
 
 def try_get_object(source: str or dict):
     if isinstance(source, str):
-        try:
+        try:  # try python term '{key: "value"}'
             source = ast.literal_eval(source)
         except (ValueError, SyntaxError):
-            return source
+            try:  # try json object '{"key" : "value"}'
+                source = json.loads(source)
+            except JSONDecodeError:
+                return source
     return source
 
 
