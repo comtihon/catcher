@@ -155,4 +155,5 @@ class KafkaTest(TestClass):
                                              reset_offset_on_start=False,
                                              consumer_timeout_ms=5000)
         message = consumer.consume(True)
+        consumer.commit_offsets()
         return message.value.decode('utf-8')

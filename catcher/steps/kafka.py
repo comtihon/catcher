@@ -1,11 +1,13 @@
+from time import sleep
+
 from pykafka import KafkaClient, SimpleConsumer
 from pykafka.common import OffsetType
 
 from catcher.steps.check import Operator
 from catcher.steps.step import Step
 from catcher.utils.file_utils import read_file
-from catcher.utils.time_utils import to_seconds
 from catcher.utils.misc import try_get_object, fill_template_str
+from catcher.utils.time_utils import to_seconds
 
 
 class Kafka(Step):
@@ -83,7 +85,7 @@ class Kafka(Step):
             operator = Operator.find_operator(self.where)
         else:
             operator = None
-        return Kafka.get_messages(consumer, operator, variables)
+        return Kafka.get_messages(consumer, operator, variables, self.timeout)
 
     def produce(self, topic, variables):
         message = self.__form_body(variables)
@@ -93,24 +95,32 @@ class Kafka(Step):
             producer.produce(message)
 
     def __form_body(self, variables):
-        if self.method == 'get':
-            return None
-        data = None
-        if self.data is None:
+        data = self.data
+        if data is None:
             data = read_file(fill_template_str(self.file, variables))
         return fill_template_str(data, variables)
 
     @staticmethod
-    def get_messages(consumer: SimpleConsumer, where: Operator or None, variables) -> dict or None:
-        message = consumer.consume(True)
-        if message is None:
-            return None
+    def get_messages(consumer: SimpleConsumer, where: Operator or None, variables, timeout) -> dict or None:
+        try:
+            while True:
+                consumer.fetch()
+                for message in consumer:
+                    value = try_get_object(message.value.decode('utf-8'))
+                    if Kafka.check_message(where, value, variables):
+                        return value
+                if timeout > 0:
+                    sleep(1)
+                    timeout -= 1
+                else:
+                    return None
+        finally:
+            consumer.commit_offsets()
+
+    @staticmethod
+    def check_message(where: Operator, message: str, variables: dict) -> bool:
+        if where is None:
+            return True
         variables = dict(variables)
-        value = try_get_object(message.value.decode('utf-8'))
-        variables['MESSAGE'] = value
-        if where is not None:
-            if where.operation(variables) is True:
-                return value
-            else:
-                return Kafka.get_messages(consumer, where, variables)
-        return value
+        variables['MESSAGE'] = message
+        return where.operation(variables)

@@ -1,11 +1,10 @@
 import ast
+import datetime
 import random
+import time
 import uuid
 
-import time
-
-import datetime
-from jinja2 import Template
+from jinja2 import Template, UndefinedError
 
 
 def merge_two_dicts(x, y):
@@ -30,7 +29,7 @@ def try_get_object(source: str or dict):
 
 def fill_template(source: any, variables: dict) -> any:
     if isinstance(source, str):
-        source = Template(source).render(inject_builtins(variables))
+        source = render(source, inject_builtins(variables))
         try:
             source = ast.literal_eval(source)
         except (ValueError, SyntaxError):
@@ -39,7 +38,7 @@ def fill_template(source: any, variables: dict) -> any:
 
 
 def fill_template_str(source: any, variables: dict) -> str:
-    return Template(str(source)).render(inject_builtins(variables))
+    return render(str(source), inject_builtins(variables))
 
 
 def inject_builtins(variables: dict) -> dict:
@@ -50,3 +49,10 @@ def inject_builtins(variables: dict) -> dict:
     variables_copy['NOW_TS'] = ts
     variables_copy['NOW_DT'] = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%dT%H:%M:%S0+0000')
     return variables_copy
+
+
+def render(source: str, variables: dict) -> str:
+    try:
+        return Template(source).render(variables)
+    except UndefinedError:
+        return source
