@@ -4,7 +4,6 @@ import json
 import random
 import time
 import uuid
-from json import JSONDecodeError
 
 from jinja2 import Template, UndefinedError
 
@@ -27,7 +26,7 @@ def try_get_object(source: str or dict):
         except (ValueError, SyntaxError):
             try:  # try json object '{"key" : "value"}'
                 source = json.loads(source)
-            except JSONDecodeError:
+            except ValueError:
                 return source
     return source
 
