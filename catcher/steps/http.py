@@ -59,8 +59,8 @@ class Http(Step):
             r = request(self.method, url, headers=headers, json=body)
         else:
             r = request(self.method, url, headers=headers, data=body)
+        debug(r.text)
         if r.status_code != self.code:
-            debug(r.text)
             raise RuntimeError('Code mismatch: ' + str(r.status_code) + ' vs ' + str(self.code))
         try:
             response = r.json()

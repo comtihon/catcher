@@ -8,6 +8,7 @@ from catcher.steps.step import Step
 from catcher.utils.file_utils import read_file
 from catcher.utils.misc import try_get_object, fill_template_str
 from catcher.utils.time_utils import to_seconds
+from catcher.utils.logger import debug
 
 
 class Kafka(Step):
@@ -107,6 +108,7 @@ class Kafka(Step):
                 consumer.fetch()
                 for message in consumer:
                     value = try_get_object(message.value.decode('utf-8'))
+                    debug(message)
                     if Kafka.check_message(where, value, variables):
                         return value
                 if timeout > 0:
