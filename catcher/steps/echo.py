@@ -37,4 +37,4 @@ class Echo(Step):
             dst = fill_template(self.dst, variables)
             with open(join(self.path, dst), 'w') as f:
                 f.write(str(out))
-        return self.process_register(variables)
+        return self.process_register(variables, out)

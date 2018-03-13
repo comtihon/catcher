@@ -1,10 +1,10 @@
-from os.path import join
-
 import os
+from os.path import join
 
 import requests_mock
 
 from catcher.core.runner import Runner
+from catcher.utils.file_utils import read_file
 from test.abs_test_class import TestClass
 from test.test_utils import check_file
 
@@ -22,6 +22,19 @@ class RunTest(TestClass):
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
         runner.run_tests()
         self.assertTrue(check_file(join(self.test_dir, 'main.output'), 'test'))
+
+    # run action and register variable in it
+    def test_run_register(self):
+        self.populate_file('main.yaml', '''---
+        steps:
+            - echo: {from: 'user-{{ RANDOM_STR }}', register: {uuid: '{{ OUTPUT }}'}}
+            - echo: {from: '{{ uuid }}', to: main.output}
+        ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        runner.run_tests()
+        file = read_file(join(self.test_dir, 'main.output'))
+        self.assertTrue(file.startswith('user'))
+        self.assertTrue('{{' not in file)  # template was filled in
 
     # test run several actions
     def test_run_several_actions(self):
