@@ -86,8 +86,6 @@ Imagine you have this `register_user.yaml` test:
 ```yaml
 
 ---
-variables:
-    user_service_url: 'https://user_service.url'
 steps:
     - echo: {from: '{{ RANDOM_STR }}', register: {uuid: '{{ OUTPUT }}'}}
     - http:
@@ -95,7 +93,7 @@ steps:
           - post:  # register client and get id
               url: '{{ user_service_url }}/sign_up'
               headers: {Content-Type: 'application/json;charset=UTF-8'}
-              body: {email: '{{ uuid + \'@test.com\' }}', name: 'TestUser'}
+              body: {email: '{{ uuid + \'@test.com\' }}', name: 'TestUser', state: 'NEW}
               response_code: 201
             register: {id: '{{ OUTPUT.data.id }}'}
           - post:  # fill some personal data
@@ -103,13 +101,57 @@ steps:
               headers: {Content-Type: 'application/json;charset=UTF-8'}
               body: {id: '{{ id }}', data: {gender: 'M', age: 22}}
 ```
-And you need to register user before 
-<TODO>
+And also you have `deposit_all_new_users.yaml` test, which requires at least one
+new user to be registered. To solve this problem - include `register_user.yaml` and it 
+will be run before the main test:
+```yaml
 
+---
+include: register_user.yaml
+steps:
+    - http: 
+        get:
+          url: '{{ user_service_url }}/fetch_new_users'
+        register: {users: '{{ OUTPUT.data.ids }}'}
+    - kafka:
+        produce:
+          server: '{{ kafka }}'
+          topic: 'message.bank_service.deposits'
+          data: {user_ids: '{{ users }}'}
+    - http:
+        get:
+          url: '{{ statistics_service }}/get_money_in_system'
+        register: {money: '{{ OUTPUT.data.money }}'}
+    - check: {equals: {the: '{{ money > 0 }}', is: true}}
+```
+__Important__: variables, registered in `include` statement will only be accessible for other 
+includes.
 
 # Run on action
-<TODO>
+What if you need to run action only after a specific actions of your test?  
+Imagine you have `deposit_user.yaml`:
+```yaml
 
+---
+variables:
+    uid: some_test_uid
+    deposit: 1000
+steps:
+    - http:
+        actions:
+          - post:
+              url: '{{ admin_service }}/login'
+              body: {user: '{{ admin_user }}', pass: ' {{ admin_pass }}'}
+            register: {token: '{{ OUTPUT.token }}'}
+          - post:
+              url: '{{ bank_service_url }}/deposit'
+              headers: {token: '{{ token }}'}
+          - get:
+              url: '{{ user_service }}/info'
+            register: {money: '{{ OUTPUT.money }}'}
+    - check: {equals: {the: '{{ money }}', is: '{{ deposit }}'}}
+```
+<TODO>
 
 # Run parts on action
 <TODO>
