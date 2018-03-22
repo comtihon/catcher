@@ -58,7 +58,23 @@ steps:
         include: clean
     # .... some steps
 ```
-__Important__: variables in `include` will not be same as in `steps`.
+__Important__: variables in `include` will not be same as in `run` step. But you can supply it with variables:
+```yaml
+
+include:
+    - file: clean_up_something.yaml
+      as: clean
+      variables:
+        foo: bar
+      run_on_include: true
+steps:
+    # .... some steps
+    - run: 
+        include: clean
+        variables: 
+    # .... some steps
+```
+
 * partly include (simple form) - include only part of the test's steps:
 ```yaml
 include:
@@ -93,7 +109,7 @@ steps:
           - post:  # register client and get id
               url: '{{ user_service_url }}/sign_up'
               headers: {Content-Type: 'application/json;charset=UTF-8'}
-              body: {email: '{{ uuid + \'@test.com\' }}', name: 'TestUser', state: 'NEW}
+              body: {email: '{{ uuid + \'@test.com\' }}', name: 'TestUser', state: 'NEW'}
               response_code: 201
             register: {id: '{{ OUTPUT.data.id }}'}
           - post:  # fill some personal data
@@ -129,29 +145,123 @@ includes.
 
 # Run on action
 What if you need to run action only after a specific actions of your test?  
-Imagine you have `deposit_user.yaml`:
+Imagine you have `deposit_user.yaml` and you need to run `register_and_login` after several steps of your test:
 ```yaml
 
 ---
+include: 
+    file: register_and_login.yaml
+    as: sign_up
 variables:
-    uid: some_test_uid
     deposit: 1000
 steps:
     - http:
         actions:
           - post:
-              url: '{{ admin_service }}/login'
+              url: '{{ bank_admin_service }}/login'
               body: {user: '{{ admin_user }}', pass: ' {{ admin_pass }}'}
             register: {token: '{{ OUTPUT.token }}'}
-          - post:
-              url: '{{ bank_service_url }}/deposit'
+          - post: # set auto deposit for all new users
+              url: '{{ bank_admin_service }}/set_initial_deposit'
               headers: {token: '{{ token }}'}
-          - get:
-              url: '{{ user_service }}/info'
-            register: {money: '{{ OUTPUT.money }}'}
-    - check: {equals: {the: '{{ money }}', is: '{{ deposit }}'}}
+              body: {data: '{{ deposit }}', currency: 'EUR'}
+            register: {order_id: '{{ OUTPUT.data.id }}'}
+    - wait: {seconds: 0.5}
+    - kafka:
+        produce:  # approve auto deposit (mocks external service)
+          server: '{{ kafka_server }}'
+          topic: '{{ deposit_admin_topic }}'
+          data: {id: '{{ order_id }}', action: 'APPROVED'}
+    - wait: {seconds: 0.5}
+    - run: sign_up # register new user
+    - kafka: 
+        consume: 
+            server: '{{ kafka_server }}'
+            topic: '{{ registered_users_topic }}'
+            where: # uuid var was computed during run step and is available now.
+                equals: {the: '{{ MESSAGE.uuid }}', is: '{{ uuid }}'}
+        register: {balance: '{{ OUTPUT.balance }}'}
+    - check: {equals: {the: '{{ balance }}', is: '{{ deposit }}'}}  # test each new user gets 1000 eur deposit after sign_up
 ```
-<TODO>
 
 # Run parts on action
-<TODO>
+And now imagine you, in your test need to run only a part of `register_and_login.yaml` steps. How that is possible?  
+First, let's change `register_and_login.yaml` to look like this:
+```yaml
+
+---
+steps:
+    - echo: {from: '{{ RANDOM_STR }}', register: {email: '{{ OUTPUT }}@test.com'}}
+    - http:
+        actions:
+          - post:  # register client and get id
+              url: '{{ user_service_url }}/sign_up'
+              headers: {Content-Type: 'application/json'}
+              body: {email: '{{ email }}', name: 'TestUser'}
+              response_code: 201
+            register: {token: '{{ OUTPUT.data.token }}'}
+            tag: register
+          - post:  # fill some personal data
+              url: '{{ user_service_url }}/data'
+              headers: {Content-Type: 'application/json', Authorization: '{{ token }}'}
+              body: {gender: 'M', age: 22, firstName: 'John', lastName: 'Doe'}
+            register: {uuid: '{{ OUTPUT.data.uuid }}'}
+            tag: register
+    - kafka:  # get password from kafka message, sent to email sender service
+        consume: 
+            server: '{{ kafka_server }}'
+            topic: '{{ new_users_email_topic }}'
+            where:
+                equals: {the: '{{ MESSAGE.uuid }}', is: '{{ uuid }}'}
+        register: {password: '{{ OUTPUT.password }}'}
+        tag: register
+    - http:
+        post:
+          url: '{{ user_service_url }}/login'
+          headers: {Content-Type: 'application/json;charset=UTF-8'}
+          body: {login: '{{ uuid }}', password: '{{ password }}'}
+        register: {token: '{{ OUTPUT.data.token }}'}  # register token for another test's usage
+        tag: login
+    - echo: {from: 'Registered: {{ email }} with credentials {{ login }} : {{ password }}'}
+```
+We tagged important steps and can use it in test `deposit_only_new_logged_users.yaml` below:
+```yaml
+
+include: 
+    file: register_and_login.yaml
+    as: sign_up
+variables:
+    deposit: 1000
+steps:
+    - http:
+        actions:
+          - post:
+              url: '{{ bank_admin_service }}/login'
+              body: {user: '{{ admin_user }}', pass: ' {{ admin_pass }}'}
+            register: {token: '{{ OUTPUT.token }}'}
+          - post: # set auto deposit for all new users
+              url: '{{ bank_admin_service }}/set_initial_deposit'
+              headers: {token: '{{ token }}'}
+              body: {data: '{{ deposit }}', currency: 'EUR'}
+            register: {order_id: '{{ OUTPUT.data.id }}'}
+    - wait: {seconds: 0.5}
+    - kafka:
+        produce:  # approve auto deposit (mocks external service)
+          server: '{{ kafka_server }}'
+          topic: '{{ deposit_admin_topic }}'
+          data: {id: '{{ order_id }}', action: 'APPROVED'}
+    - wait: {seconds: 0.5}
+    - run: # register new user but don't run login
+        include: sign_up.register
+        variables:
+          TODO
+    - kafka: 
+        consume: 
+            server: '{{ kafka_server }}'
+            topic: '{{ registered_users_topic }}'
+            where: # uuid var was computed during run step and is available now.
+                equals: {the: '{{ MESSAGE.uuid }}', is: '{{ uuid }}'}
+        register: {balance: '{{ OUTPUT.balance }}'}
+    - check: {equals: {the: '{{ balance }}', is: 0}}  # no gift for user without login
+    TODO
+```
