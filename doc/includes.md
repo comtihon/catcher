@@ -74,6 +74,7 @@ steps:
         variables: 
     # .... some steps
 ```
+Variables, computed in `run` step are available for all other steps after it. 
 
 * partly include (simple form) - include only part of the test's steps:
 ```yaml
@@ -254,7 +255,7 @@ steps:
     - run: # register new user but don't run login
         include: sign_up.register
         variables:
-          TODO
+          email: 'inactive_user-{{ RANDOM_INT }}@test.com'
     - kafka: 
         consume: 
             server: '{{ kafka_server }}'
@@ -263,5 +264,16 @@ steps:
                 equals: {the: '{{ MESSAGE.uuid }}', is: '{{ uuid }}'}
         register: {balance: '{{ OUTPUT.balance }}'}
     - check: {equals: {the: '{{ balance }}', is: 0}}  # no gift for user without login
-    TODO
+    - run: sign_up.login  # login for user. uuid and password variables are available from sign_up.register run
+    - wait: {seconds: 0.5}
+    - kafka:  # check user balance again
+        consume: 
+            server: '{{ kafka_server }}'
+            topic: '{{ registered_users_topic }}'
+            where:
+                equals: {the: '{{ MESSAGE.uuid }}', is: '{{ uuid }}'}
+        register: {balance: '{{ OUTPUT.balance }}'}
+    - check: {equals: {the: '{{ balance }}', is: '{{ deposit }}'}}  # user has got his gift after first log in
 ```
+Here we run several steps of the main test, then we include all steps with `register` tag from `sign_up` include.
+After this we run our steps again and then run all steps with `login` taf from `sign_up`.
