@@ -13,8 +13,8 @@ Where `equals` it the operator form performing checks.
 
 ## Operators for performing results checks
 ### Terminators
-Terminators are operators which do checks and return value. They can't call other operators.
-__equal__- check if two values are equal.  
+Terminators are operators which do checks and return value. They can't call other operators.  
+__equals__- check if two values are equal.  
 long form: `the` _source_ `is` _expected_.  
 negative: `the` _source_ `is_not` _expected_.  
 ```yaml
@@ -24,7 +24,6 @@ negative: `the` _source_ `is_not` _expected_.
         - equals: {the: '{{ list[1] }}', is_not: 'b'}
         - equals: {the: '{{ list[2] > 2 }}', is_not: true}
 ```
-
 __contains__ - check if list contains value or dict contains key.  
 long form: `the` _element_ `in` _source_  
 negative: `the` _element_ `not_in` _source_
