@@ -1,5 +1,7 @@
 from os.path import join
 
+from catcher.utils.file_utils import read_file
+
 from catcher.core.runner import Runner
 from test.abs_test_class import TestClass
 from test.test_utils import check_file
@@ -125,3 +127,27 @@ class IncludeFilesTest(TestClass):
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
         runner.run_tests()
         self.assertTrue(check_file(join(self.test_dir, 'one.output'), 'baz'))
+
+    # test if variables, pass to includes are filled in
+    def test_vars_included_filled_in(self):
+        self.populate_file('main.yaml', '''---
+        include: 
+            - file: one.yaml
+              as: one
+        steps:
+            - echo: {from: '{{ RANDOM_STR }}', to: main.output, register: {uuid: '{{ OUTPUT }}'}}
+            - run: 
+                include: one
+                variables: 
+                    id: '{{ uuid }}'
+        ''')
+        self.populate_file('one.yaml', '''---
+        steps:
+            - echo: {from: '{{ id }}', to: one.output}
+        ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        runner.run_tests()
+        main = read_file(join(self.test_dir, 'main.output'))
+        one = read_file(join(self.test_dir, 'one.output'))
+        self.assertEqual(main, one)
+        self.assertTrue(one)

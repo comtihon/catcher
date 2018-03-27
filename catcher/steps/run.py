@@ -30,13 +30,14 @@ class Run(Step):
         return self._variables
 
     def action(self, includes: dict, variables: dict) -> dict:
+        filled_vars = dict([(k, fill_template_str(v, variables)) for (k, v) in self.variables.items()])
         out = fill_template_str(self.include, variables)
         test, tag = get_tag(out, self.tag)
         if test not in includes:
             error('No include registered for name ' + test)
             raise Exception('No include registered for name ' + test)
         include = includes[test]
-        variables = merge_two_dicts(include.variables, self.variables)
+        variables = merge_two_dicts(include.variables, filled_vars)
         include.variables = variables
         try:
             variables = include.run(tag=tag)
