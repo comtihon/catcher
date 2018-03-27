@@ -14,11 +14,24 @@ Inherited from `run` steps.
             body: {'id': '{{ id }}', 'action': 'fee'}
         register: {reply: '{{ OUTPUT.id }}'}
 ```
-2. `ITEM`
-3. `NOW_TS`
-3. `NOW_DT`
-3. `RANDOM_STR`
-3. `RANDOM_INT`
+2. `ITEM` - item of a list. Used in `any` and `all` checks:
+```yaml
+variables:
+    list: [{n: 1, k: 'a'}, {n: 2, k: 'a'}, {n: 3, k: 'a'}]
+steps:
+    - check: 
+        all:
+            of: '{{ list }}'
+            equals: {the: '{{ ITEM.k }}', is: 'a'}
+```
+3. `NOW_TS` - return timestamp:
+```yaml
+steps:
+  - echo: {from: '{{ NOW_TS }}', register: {now: '{{ OUTPUT }}'}}
+```
+3. `NOW_DT` - return current date in `yyyy-mm-ddTHH:MM:SS0+0000`
+3. `RANDOM_STR` - return random string in uuid format
+3. `RANDOM_INT` - return random int [-2147483648, 2147483648]
 
 ## Variables override priority
 

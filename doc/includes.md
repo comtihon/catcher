@@ -277,3 +277,47 @@ steps:
 ```
 Here we run several steps of the main test, then we include all steps with `register` tag from `sign_up` include.
 After this we run our steps again and then run all steps with `login` taf from `sign_up`.
+
+## Include variables priority:
+1. include variables override everything (inventory, variables form previous includes and variables
+set in include test file).
+```yaml
+include: 
+    - file: 'run_me_with_override.yaml'
+      variables:
+        user_email: john.doe@test.de
+```
+`{{ user_email }}` will be `john.doe@test.de` even if `user_email` is also set in inventory with other
+value, or was computed in previous include file, or is set in file `run_me_with_override.yaml`.
+2. include's file variables override variables from previous include.  
+`include1.yaml`
+```yaml
+variables:
+    foo: bar
+steps:
+    - echo: {from: '{{ foo }}'}
+```
+`include2.yaml`
+```yaml
+variables:
+    foo: baz
+steps:
+    - echo: {from: '{{ foo }}'}
+```
+`test.yaml`
+```yaml
+include:
+    - 'include1.yaml'
+    - 'include2.yaml'
+steps:
+    - echo: {from: '{{ foo }}'}
+```
+Will print you:
+```
+bar
+baz
+
+```
+`bar` - when `include1.yaml` was included and run,  
+`baz` - when `include2.yaml` was included and run,  
+nothing - when `test.yaml` was run (variables from includes don't go to test).
