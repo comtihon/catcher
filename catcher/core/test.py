@@ -1,5 +1,7 @@
 from catcher.steps import step_factory
+from catcher.steps.step import Step
 from catcher.utils.logger import debug, info
+from catcher.utils.misc import fill_template_str
 
 
 class Test:
@@ -44,14 +46,15 @@ class Test:
                     continue
             actions = step_factory.get_actions(self.path, step)
             for action_object in actions:
+                action_name = get_action_name(action, action_object, self.variables)
                 try:
                     self.variables = action_object.action(self.includes, self.variables)
-                    info('Step ' + action + ' OK')
+                    info('Step ' + action_name + ' OK')
                 except Exception as e:
                     if ignore_errors:
-                        debug('Step ' + action + ' failed, but we ignore it')
+                        debug('Step ' + action_name + ' failed, but we ignore it')
                         continue
-                    info('Step ' + action + ' failed: ' + str(e))
+                    info('Step ' + action_name + ' failed: ' + str(e))
                     raise e
         return self.variables
 
@@ -61,3 +64,9 @@ def get_or_default(key: str, body: dict or str, default: any) -> any:
         return body.get(key, default)
     else:
         return default
+
+
+def get_action_name(action_type: str, action: Step, variables: dict):
+    if action.name is not None:
+        return fill_template_str(action.name, variables)
+    return action_type

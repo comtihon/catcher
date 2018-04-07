@@ -4,14 +4,14 @@ from requests import request
 
 from catcher.steps.step import Step
 from catcher.utils.file_utils import read_file
-from catcher.utils.misc import fill_template, fill_template_str
 from catcher.utils.logger import debug
+from catcher.utils.misc import fill_template, fill_template_str
 
 
 class Http(Step):
     def __init__(self, body: dict) -> None:
         super().__init__(body)
-        [method] = [k for k in body.keys() if k != 'register' and k != 'ignore_errors']  # get/post/put...
+        method = Step.filter_predefined_keys(body)  # get/post/put...
         self._method = method.lower()
         conf = body[method]
         self._url = conf['url']

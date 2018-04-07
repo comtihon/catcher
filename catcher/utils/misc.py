@@ -19,7 +19,7 @@ def get_all_subclasses_of(clazz) -> list:
                                      for g in get_all_subclasses_of(s)]
 
 
-def try_get_object(source: str or dict):
+def try_get_object(source: str or dict or list):
     if isinstance(source, str):
         try:  # try python term '{key: "value"}'
             source = ast.literal_eval(source)

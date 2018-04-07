@@ -5,6 +5,7 @@ from catcher.steps.wait import Wait
 from catcher.steps.check import Check
 from catcher.steps.http import Http
 from catcher.steps.kafka import Kafka
+from catcher.steps.postgres import Postgres
 
 
 def get_actions(path: str, step: dict) -> [Step]:
@@ -36,4 +37,6 @@ def get_action(path: str, action, body: dict or str) -> Step:
         return Http(body)
     if action == 'kafka':
         return Kafka(body)
+    if action == 'postgres':
+        return Postgres(body)
     return None

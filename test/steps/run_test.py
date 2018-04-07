@@ -61,3 +61,26 @@ class RunTest(TestClass):
         runner.run_tests()
         self.assertTrue(not os.path.exists(join(self.test_dir, 'main1.output')))
         self.assertTrue(check_file(join(self.test_dir, 'main2.output'), 'test2'))
+
+    def test_run_named(self):
+        self.populate_file('main.yaml', '''---
+        steps:
+            - echo: 
+                from: 'user-{{ RANDOM_STR }}'
+                register: {uuid: '{{ OUTPUT }}'}
+                name: 'first'
+        ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
+
+    def test_run_named_variables(self):
+        self.populate_file('main.yaml', '''---
+        steps:
+            - echo: {from: 'user-{{ RANDOM_STR }}', register: {uuid: '{{ OUTPUT }}'}}
+            - echo: 
+                from: '{{ uuid }}'
+                to: main.output
+                name: 'Save user {{ uuid }} to main.output'
+        ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())

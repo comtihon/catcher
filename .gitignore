@@ -7,3 +7,4 @@ build
 .pytest_cache
 /.cache/
 /out/
+postgres-data

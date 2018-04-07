@@ -7,9 +7,10 @@ python:
 install:
 - pip install -e .
 - python setup.py install
-addons: 
+before_script:
+  - sudo docker-compose up -d
 script:
-- make tests
+  - make tests
 deploy:
   on:
     branch: master

@@ -19,6 +19,8 @@ def configure(log_level: str):
     if not log_level:
         raise RuntimeError('Unknown logging level ' + log_level)
     logging.basicConfig(level=level)
+    logging.getLogger("requests").setLevel(logging.WARNING)
+    logging.getLogger("pykafka").setLevel(logging.WARNING)
 
 
 def get_logger() -> Logger:

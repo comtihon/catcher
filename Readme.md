@@ -35,4 +35,4 @@ can check Kafka, Postgres (coming soon), CouchBase (coming soon), Mongodb (comin
 see [checks](doc/checks.md) for details.
 
 ## Quickstart
-<TODO> (see tests and `doc` folder for now)
+Is [here](doc/tests.md). For more information please refer to [tests](test) folder.
