@@ -7,9 +7,8 @@ python:
 install:
 - pip install -e .
 - python setup.py install
-before_script:
-  - sudo docker-compose up -d
 script:
+  - sudo docker-compose up -d
   - make tests
 deploy:
   on:
