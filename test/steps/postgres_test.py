@@ -12,7 +12,7 @@ class PostgresTest(TestClass):
 
     @property
     def conf(self):
-        return "dbname=test user=test host=localhost password=test"
+        return "dbname=test user=test host=localhost password=test port=5433"
 
     def setUp(self):
         super().setUp()
@@ -41,7 +41,7 @@ class PostgresTest(TestClass):
             user: test
             password: test
             host: localhost
-            port: 5432
+            port: 5433
         ''')
 
         self.populate_file('main.yaml', '''---
@@ -59,7 +59,7 @@ class PostgresTest(TestClass):
 
     def test_str_conf(self):
         self.populate_file('test_inventory.yml', '''
-        postgres: 'dbname=test user=test host=localhost password=test'
+        postgres: 'dbname=test user=test host=localhost password=test port=5433'
         ''')
 
         self.populate_file('main.yaml', '''---
@@ -80,7 +80,7 @@ class PostgresTest(TestClass):
                 steps:
                     - postgres:
                         request:
-                            conf: 'dbname=test user=test host=localhost password=test'
+                            conf: 'dbname=test user=test host=localhost password=test port=5433'
                             query: 'insert into test(id, num) values(3, 3);'
                 ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
@@ -97,7 +97,7 @@ class PostgresTest(TestClass):
     def test_read_with_variables(self):
         self.populate_file('main.yaml', '''---
                 variables:
-                    pg_conf: 'dbname=test user=test host=localhost password=test'
+                    pg_conf: 'dbname=test user=test host=localhost password=test port=5433'
                 steps:
                    - echo: {from: '{{ RANDOM_INT }}', register: {num: '{{ OUTPUT }}'}} 
                    - echo: {from: '{{ RANDOM_INT }}', register: {id: '{{ OUTPUT }}'}} 
