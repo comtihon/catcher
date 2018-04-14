@@ -1,18 +1,22 @@
+import os
 from os.path import join
 
 from catcher.core.include import Include
 from catcher.core.test import Test
 from catcher.utils.file_utils import read_yaml_file, get_files
-from catcher.utils.logger import warning, info
+from catcher.utils.logger import warning, info, error
 from catcher.utils.misc import merge_two_dicts
 
 
 class Runner:
-    def __init__(self, path: str, tests_path: str, inventory: str or None) -> None:
+    def __init__(self, path: str, tests_path: str, inventory: str or None, modules=None) -> None:
+        if modules is None:
+            modules = []
         self._tests_path = tests_path
         self._path = path
         self._inventory = inventory
         self._all_includes = []
+        self.__prepare_modules(modules)
 
     @property
     def tests_path(self) -> str:
@@ -29,6 +33,10 @@ class Runner:
     @property
     def all_includes(self) -> list:
         return self._all_includes
+
+    @property
+    def modules(self) -> dict:
+        return self._modules
 
     @all_includes.setter
     def all_includes(self, all_includes: list):
@@ -65,7 +73,8 @@ class Runner:
                     registered_includes,
                     variables,
                     body.get('config', {}),
-                    body.get('steps', []))
+                    body.get('steps', []),
+                    self.modules)
 
     def process_includes(self,
                          includes: list or str or dict,
@@ -107,3 +116,17 @@ class Runner:
         else:
             include_file['file'] = join(self.path, include_file['file'])
             return include_file
+
+    def __prepare_modules(self, module_paths: list):
+        indexed = {}
+        for path in module_paths:
+            if not os.path.exists(path):
+                err = 'No such path: ' + path
+                error(err)
+            else:
+                for f in os.listdir(path):
+                    mod_path = join(path, f)
+                    if f in indexed:
+                        warning('Override ' + indexed[f] + ' with ' + mod_path)
+                    indexed[f] = mod_path
+        self._modules = indexed

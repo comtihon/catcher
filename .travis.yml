@@ -4,6 +4,9 @@ python:
 - '3.4'
 - '3.5'
 - '3.6'
+before_install:
+- sudo apt-get update
+- sudo apt-get install jq
 install:
 - pip install -e .
 - python setup.py install
