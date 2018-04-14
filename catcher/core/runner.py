@@ -34,10 +34,13 @@ class Runner:
     def all_includes(self, all_includes: list):
         self._all_includes = all_includes
 
-    def run_tests(self) -> bool:
+    def run_tests(self, override_variables=None) -> bool:
+        if override_variables is None:
+            override_variables = {}
         variables = {}
         if self.inventory is not None:
             variables = read_yaml_file(self.inventory)
+        variables = merge_two_dicts(variables, override_variables)  # override inventory variables with cmd variables
         test_files = get_files(self.tests_path)
         results = []
         for file in test_files:

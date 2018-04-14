@@ -1,6 +1,6 @@
 # Variables
 ## Predefined
-Variables from inventory or `variables` block.
+Variables from inventory, `variables` block or command line `-e` argument
 ## Computed
 Registered in steps variables
 ## Inherited
@@ -34,6 +34,36 @@ steps:
 3. `RANDOM_INT` - return random int [-2147483648, 2147483648]
 
 ## Variables override priority
+
+### Variables from command line
+Variables, passed from command line override inventory variables:
+`inventory.yaml`
+```yaml
+
+foo=bar
+```
+in this case `catcher -i inventory.yaml test -e foo=baz` foo variable
+will be `baz`.
+
+### Variables in test scripts
+Variables, set in test scripts, override inventory variables and variables,
+passed from command line:
+`inventory.yaml`
+```yaml
+
+foo=bar
+```
+`test.yaml`
+```yaml
+
+variables:
+    foo=bax
+steps:
+    ...
+```
+in this case `catcher -i inventory.yaml test.yaml -e foo=baz` foo variable
+will be `bax`.
+
 
 ### Variables from run includes
 Variables, computed via `run` includes override variables declared before:
