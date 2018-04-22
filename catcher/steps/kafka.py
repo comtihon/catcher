@@ -50,10 +50,8 @@ class Kafka(Step):
         return self._file
 
     @property
-    def data(self) -> bytes or dict:
-        if isinstance(self._data, bytes) or isinstance(self._data, dict):
-            return self._data
-        return str(self._data).encode('utf-8')
+    def data(self) -> bytes or dict or str:
+        return self._data
 
     @property
     def where(self) -> dict or None:
@@ -90,10 +88,8 @@ class Kafka(Step):
 
     def produce(self, topic, variables):
         message = self.__form_body(variables)
-        if not isinstance(message, bytes):
-            message = fill_template_str(message, variables).encode('utf-8')
         with topic.get_sync_producer() as producer:
-            producer.produce(message)
+            producer.produce(message.encode('utf-8'))
 
     def __form_body(self, variables):
         data = self.data

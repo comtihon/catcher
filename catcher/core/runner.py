@@ -54,6 +54,7 @@ class Runner:
         for file in test_files:
             self.all_includes = []
             try:
+                variables['TEST_NAME'] = file
                 test = self.prepare_test(file, variables)
                 test.run()
                 results.append(True)

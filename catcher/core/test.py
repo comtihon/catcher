@@ -2,6 +2,7 @@ import traceback
 
 from catcher.steps import step_factory
 from catcher.steps.step import Step
+from catcher.steps.stop import StopException
 from catcher.utils.logger import debug, info
 from catcher.utils.misc import fill_template_str
 
@@ -43,7 +44,7 @@ class Test:
     def modules(self) -> dict:
         return self.__modules
 
-    def run(self, tag=None) -> dict:
+    def run(self, tag=None, raise_stop=False) -> dict:
         for step in self.steps:
             [action] = step.keys()
             ignore_errors = get_or_default('ignore_errors', step[action], False)
@@ -57,6 +58,12 @@ class Test:
                 try:
                     self.variables = action_object.action(self.includes, self.variables)
                     info('Step ' + action_name + ' OK')
+                except StopException as e:
+                    if raise_stop:
+                        raise e
+                    debug('Skip ' + action_name + ' due to ' + str(e))
+                    info('Step ' + action_name + ' OK')
+                    return self.variables  # stop current test
                 except Exception as e:
                     print(traceback.format_exc())
                     if ignore_errors:

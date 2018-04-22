@@ -1,6 +1,5 @@
 import os
 import stat
-import unittest
 from os.path import join
 
 from catcher.core.runner import Runner
@@ -13,8 +12,8 @@ class ExternalTest(TestClass):
 
     def test_run_external(self):
         self.write_module('math', '''#!/bin/bash
-        one=$(echo ${1} | jq -r '.data.add.the')
-        two=$(echo ${1} | jq -r '.data.add.to')
+        one=$(echo ${1} | jq -r '.add.the')
+        two=$(echo ${1} | jq -r '.add.to')
         echo $((${one} + ${two}))
         ''')
         self.populate_file('main.yaml', '''---
@@ -27,12 +26,10 @@ class ExternalTest(TestClass):
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None, modules=[self.test_dir])
         self.assertTrue(runner.run_tests())
 
-    @unittest.skip
     def test_run_external_with_vars(self):
-        self.write_module('math', '''
-        #!/bin/bash
-        one=$(echo ${1} | jq -r '.data.add.the')
-        two=$(echo ${1} | jq -r '.data.add.to')
+        self.write_module('math', '''#!/bin/bash
+        one=$(echo ${1} | jq -r '.add.the')
+        two=$(echo ${1} | jq -r '.add.to')
         echo $((${one} + ${two}))
         ''')
         self.populate_file('main.yaml', '''---

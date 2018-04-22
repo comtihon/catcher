@@ -32,6 +32,7 @@ steps:
 3. `NOW_DT` - return current date in `yyyy-mm-ddTHH:MM:SS0+0000`
 3. `RANDOM_STR` - return random string in uuid format
 3. `RANDOM_INT` - return random int [-2147483648, 2147483648]
+4. `TEST_NAME` - name of the current test.
 
 ## Variables override priority
 

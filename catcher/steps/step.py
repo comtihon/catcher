@@ -26,7 +26,7 @@ class Step:
 
     @staticmethod
     def filter_predefined_keys(data: dict):
-        [action] = [k for k in data.keys() if k != 'register' and k != 'ignore_errors' and k != 'name']
+        [action] = [k for k in data.keys() if k != 'register' and k != 'ignore_errors' and k != 'name' and k != 'tag']
         return action
 
     def process_register(self, variables, output: dict or list or str or None = None) -> dict:

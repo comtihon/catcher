@@ -1,4 +1,4 @@
-import unittest
+import json
 from os.path import join
 
 from pykafka import KafkaClient
@@ -90,6 +90,22 @@ class KafkaTest(TestClass):
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
         self.assertTrue(runner.run_tests())
         self.assertEqual('{\'user\': \'John Doe\'}', self.consume_message('test_produce_message'))
+
+    def test_produce_json(self):
+        self.populate_file('main.yaml', '''---
+            variables:
+                data: {'key1': 'value1', 'key2': [1,2,3,4]}
+            steps:
+                - kafka: 
+                    produce: 
+                        server: '127.0.0.1:9092'
+                        topic: 'test_produce_json'
+                        data: '{{ data|tojson }}'
+            ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
+        msg = self.consume_message('test_produce_json')
+        self.assertEqual({'key1': 'value1', 'key2': [1, 2, 3, 4]}, json.loads(msg))
 
     def test_skip_same_message(self):
         self.produce_message({'id': 'uuid1'}, 'test_skip_same_message')

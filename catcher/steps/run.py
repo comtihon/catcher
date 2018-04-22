@@ -1,6 +1,7 @@
 from catcher.steps.step import Step
 from catcher.utils.logger import error
 from catcher.utils.misc import merge_two_dicts, fill_template_str
+from catcher.steps.stop import StopException
 
 
 class Run(Step):
@@ -40,7 +41,9 @@ class Run(Step):
         variables = merge_two_dicts(include.variables, filled_vars)
         include.variables = variables
         try:
-            variables = include.run(tag=tag)
+            variables = include.run(tag=tag, raise_stop=True)
+        except StopException as e:
+            raise e
         except Exception as e:
             if not self.ignore_errors:
                 raise Exception('Step run ' + test + ' failed: ' + str(e))
