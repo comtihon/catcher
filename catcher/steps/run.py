@@ -38,7 +38,7 @@ class Run(Step):
             error('No include registered for name ' + test)
             raise Exception('No include registered for name ' + test)
         include = includes[test]
-        variables = merge_two_dicts(include.variables, filled_vars)
+        variables = merge_two_dicts(include.variables, merge_two_dicts(variables, filled_vars))
         include.variables = variables
         try:
             variables = include.run(tag=tag, raise_stop=True)
