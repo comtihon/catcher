@@ -67,7 +67,8 @@ class InventoryTest(TestClass):
             - echo: {from: '{{ one }}', to: 1.output}
             - echo: {from: '{{ two }}', to: 2.output}
         ''')
-        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), join(self.test_dir, 'inventory.yml'))
-        runner.run_tests({'one': 'baz', 'two': 'bax'})
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), join(self.test_dir, 'inventory.yml'),
+                        environment={'one': 'baz', 'two': 'bax'})
+        runner.run_tests()
         self.assertTrue(check_file(join(self.test_dir, '1.output'), 'baz'))
         self.assertTrue(check_file(join(self.test_dir, '2.output'), 'bax'))

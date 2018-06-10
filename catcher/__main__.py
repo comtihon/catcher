@@ -45,8 +45,8 @@ def run_tests(path: str, arguments: dict):
     inventory = arguments['--inventory']
     environment = arguments['--environment']
     modules = arguments['--modules']
-    runner = Runner(path, file_or_dir, inventory, modules)
-    return runner.run_tests(env_to_variables(environment))
+    runner = Runner(path, file_or_dir, inventory, modules, env_to_variables(environment))
+    return runner.run_tests()
 
 
 def env_to_variables(environment: list) -> dict:

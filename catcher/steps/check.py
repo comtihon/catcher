@@ -2,7 +2,8 @@ from abc import abstractmethod
 
 from catcher.steps.step import Step
 from catcher.utils.logger import debug
-from catcher.utils.misc import get_all_subclasses_of, fill_template
+from catcher.utils.misc import fill_template
+from catcher.utils.module_utils import get_all_subclasses_of
 
 
 class Operator(object):

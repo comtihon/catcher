@@ -1,22 +1,25 @@
-import os
 from os.path import join
 
 from catcher.core.include import Include
 from catcher.core.test import Test
 from catcher.utils.file_utils import read_yaml_file, get_files
-from catcher.utils.logger import warning, info, error
+from catcher.utils.logger import warning, info
 from catcher.utils.misc import merge_two_dicts
+from catcher.utils.module_utils import prepare_modules, get_external_actions
 
 
 class Runner:
-    def __init__(self, path: str, tests_path: str, inventory: str or None, modules=None) -> None:
+    def __init__(self, path: str, tests_path: str, inventory: str or None, modules=None, environment=None) -> None:
         if modules is None:
             modules = []
+        if environment is None:
+            environment = {}
+        self._environment = environment
         self._tests_path = tests_path
         self._path = path
         self._inventory = inventory
         self._all_includes = []
-        self.__prepare_modules(modules)
+        self._modules = merge_two_dicts(prepare_modules(modules), get_external_actions())
 
     @property
     def tests_path(self) -> str:
@@ -38,17 +41,18 @@ class Runner:
     def modules(self) -> dict:
         return self._modules
 
+    @property
+    def override_vars(self) -> dict:
+        return self._environment
+
     @all_includes.setter
     def all_includes(self, all_includes: list):
         self._all_includes = all_includes
 
-    def run_tests(self, override_variables=None) -> bool:
-        if override_variables is None:
-            override_variables = {}
+    def run_tests(self) -> bool:
         variables = {}
         if self.inventory is not None:
             variables = read_yaml_file(self.inventory)
-        variables = merge_two_dicts(variables, override_variables)  # override inventory variables with cmd variables
         test_files = get_files(self.tests_path)
         results = []
         for file in test_files:
@@ -75,7 +79,8 @@ class Runner:
                     variables,
                     body.get('config', {}),
                     body.get('steps', []),
-                    self.modules)
+                    self.modules,
+                    self.override_vars)
 
     def process_includes(self,
                          includes: list or str or dict,
@@ -117,17 +122,3 @@ class Runner:
         else:
             include_file['file'] = join(self.path, include_file['file'])
             return include_file
-
-    def __prepare_modules(self, module_paths: list):
-        indexed = {}
-        for path in module_paths:
-            if not os.path.exists(path):
-                err = 'No such path: ' + path
-                error(err)
-            else:
-                for f in os.listdir(path):
-                    mod_path = join(path, f)
-                    if f in indexed:
-                        warning('Override ' + indexed[f] + ' with ' + mod_path)
-                    indexed[f] = mod_path
-        self._modules = indexed

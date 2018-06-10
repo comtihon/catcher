@@ -1,4 +1,6 @@
+import inspect
 import io
+import ntpath
 import os
 import shutil
 from os.path import join
@@ -6,6 +8,10 @@ from os.path import join
 import yaml
 
 from catcher.utils.logger import error
+
+
+def get_module_filename(module) -> str:
+    return ntpath.basename(inspect.getfile(module))[:-3]
 
 
 # Get list of yaml files in dir and subdirs

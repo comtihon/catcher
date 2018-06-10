@@ -3,11 +3,10 @@ from catcher.steps.echo import Echo
 from catcher.steps.external import External
 from catcher.steps.http import Http
 from catcher.steps.kafka import Kafka
-from catcher.steps.postgres import Postgres
 from catcher.steps.run import Run
 from catcher.steps.step import Step
-from catcher.steps.wait import Wait
 from catcher.steps.stop import Stop
+from catcher.steps.wait import Wait
 
 
 def get_actions(path: str, step: dict, modules: dict) -> [Step]:
@@ -39,8 +38,6 @@ def get_action(path: str, action, body: dict or str, modules: dict) -> Step:
         return Http(body)
     if action == 'kafka':
         return Kafka(body)
-    if action == 'postgres':
-        return Postgres(body)
     if action == 'stop':
         return Stop(body)
     if action in modules:
