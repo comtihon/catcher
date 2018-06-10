@@ -30,6 +30,10 @@ review you need to register a new user and it requires you to make 10 http reque
 like to spend 10-20 minutes of your time on doing these steps one by one? Write a catcher script `register_new_user.yaml`
 and call it manually `catcher -i inventory.yaml register_new_user.yaml -e user_name=test_22.04.2018`.
 
+## Installation
+To install catcher with internal [modules](https://github.com/comtihon/catcher_modules) run `sudo pip install catcher-modules`. This will instlall [catcher](https://pypi.org/project/catcher) and [catcher-modules](https://pypi.org/project/catcher-modules) package.  
+To install just catcher run `sudo pip install catcher`.
+
 ## Why catcher?
 * don't repeat test code. Write one test and call its steps from another;
 * compute and override variables to check your data and compose new flexible requests;
