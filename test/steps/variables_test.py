@@ -9,6 +9,22 @@ class VariablesTest(TestClass):
     def __init__(self, method_name):
         super().__init__('variables_test', method_name)
 
+    # variables, passed via cmd `e` options should override all variables
+    def test_cmd_override_all(self):
+        self.populate_file('main.yaml', '''---
+        variables:
+            foo: baz
+        steps:
+            - echo: 
+                actions: 
+                    - {from: 'hello', register: {foo: 'bar'}}
+                    - {from: '{{ foo }}', to: one.output}
+            
+        ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None, environment={'foo': 'bad'})
+        runner.run_tests()
+        self.assertTrue(check_file(join(self.test_dir, 'one.output'), 'bad'))
+
     # test computed variables available later
     def test_computed_available_later(self):
         self.populate_file('main.yaml', '''---
@@ -49,4 +65,3 @@ class VariablesTest(TestClass):
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
         runner.run_tests()
         self.assertTrue(check_file(join(self.test_dir, 'one.output'), '/home/user/main.yml'))
-

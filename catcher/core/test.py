@@ -1,20 +1,22 @@
-import traceback
-
 from catcher.steps import step_factory
 from catcher.steps.step import Step
 from catcher.steps.stop import StopException
 from catcher.utils.logger import debug, info
-from catcher.utils.misc import fill_template_str
+from catcher.utils.misc import fill_template_str, merge_two_dicts
 
 
 class Test:
-    def __init__(self, path: str, includes: dict, variables: dict, config: dict, steps: list, modules: dict) -> None:
+    def __init__(self, path: str, includes: dict, variables: dict,
+                 config: dict, steps: list, modules: dict, override_vars=None) -> None:
         self._includes = includes
         self._variables = variables
         self._config = config
         self._steps = steps
         self._path = path
-        self.__modules = modules
+        self._modules = modules
+        if override_vars is None:
+            override_vars = {}
+        self._override_vars = override_vars
 
     @property
     def includes(self) -> dict:
@@ -42,7 +44,11 @@ class Test:
 
     @property
     def modules(self) -> dict:
-        return self.__modules
+        return self._modules
+
+    @property
+    def override_vars(self) -> dict:
+        return self._override_vars
 
     def run(self, tag=None, raise_stop=False) -> dict:
         for step in self.steps:
@@ -54,9 +60,11 @@ class Test:
                     continue
             actions = step_factory.get_actions(self.path, step, self.modules)
             for action_object in actions:
-                action_name = get_action_name(action, action_object, self.variables)
+                # override all variables with cmd variables
+                variables = merge_two_dicts(self.variables, self.override_vars)
+                action_name = get_action_name(action, action_object, variables)
                 try:
-                    self.variables = action_object.action(self.includes, self.variables)
+                    self.variables = action_object.action(self.includes, variables)
                     info('Step ' + action_name + ' OK')
                 except StopException as e:
                     if raise_stop:
@@ -65,7 +73,6 @@ class Test:
                     info('Step ' + action_name + ' OK')
                     return self.variables  # stop current test
                 except Exception as e:
-                    print(traceback.format_exc())
                     if ignore_errors:
                         debug('Step ' + action_name + ' failed, but we ignore it')
                         continue
