@@ -36,7 +36,7 @@ def get_external_actions() -> dict:
     where keys are filenames (same as stepnames) and values are classes implementing ExternalStep
     :return: dict of modules implementing ExternalStep from catcher_modules package
     """
-    core_modules = locate('catcher_modules')
+    core_modules = locate('catcher-modules')
     if core_modules is None:
         return {}  # catcher-modules not installed
     for importer, modname, ispkg in pkgutil.walk_packages(path=core_modules.__path__,
