@@ -31,7 +31,8 @@ def try_get_object(source: str or dict or list):
 
 
 def try_get_objects(source: str or dict or list):
-    got = try_get_object(source)
+    got = try_get_object(source)  # "'[1,2,3]'" -> '[1,2,3]' -> [1,2,3]
+    got = try_get_object(got)  # '[1,2,3]' -> [1,2,3]
     if isinstance(got, dict):
         return dict([(k, try_get_objects(v)) for k, v in got.items()])
     if isinstance(got, list):

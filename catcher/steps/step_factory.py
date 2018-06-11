@@ -1,6 +1,9 @@
+import itertools
+
 from catcher.steps.check import Check
 from catcher.steps.echo import Echo
 from catcher.steps.external import External
+from catcher.steps.forloop import ForLoop
 from catcher.steps.http import Http
 from catcher.steps.kafka import Kafka
 from catcher.steps.run import Run
@@ -40,6 +43,14 @@ def get_action(path: str, action, body: dict or str, modules: dict) -> Step:
         return Kafka(body)
     if action == 'stop':
         return Stop(body)
+    if action == 'loop':
+        loop = ForLoop(body)
+        if len(loop.do) == 1:
+            [loop_action] = loop.do.keys()
+            loop.do_action = [get_action(path, loop_action, loop.do[loop_action], modules)]
+        else:
+            loop.do_action = list(itertools.chain.from_iterable([get_actions(path, act, modules) for act in loop.do]))
+        return loop
     if action in modules:
         return External(body, modules[action])
     raise FileNotFoundError('Can\'t find module for action: ' + action)

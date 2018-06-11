@@ -80,19 +80,6 @@ kafka:
 ```
 Where `data` is the data to be produced.
 
-#### postgres - interact with [postgres](https://www.postgresql.org/)
-Format:
-```yaml
-postgres:
-    request:
-        conf: '{{ postgres }}'
-        query: 'insert into test(id, num) values(3, 3);'
-```
-Where `conf` is a postgres configuration. Can be string or dict.  
-Values: `dbname` - name of the database to connect to, `user` - database user, 
-`host` database host, `password` user's password, `port` - database port.  
-And `query` is any valid sql query.
-
 #### run - run include on demand
 Format:
 ```yaml
@@ -129,6 +116,66 @@ where `wait` can be: `days`, `hours`, `minutes`, `seconds`, `microseconds`,
 ```yaml
 wait: {minutes: 1, seconds: 30}
 ```
+
+#### loop - loop over some data
+There are two types of loop: `while` and `foreach`. While loop performs
+action while condition remains true. Foreach just iterates data structure.  
+__while__:  
+Format:
+```yaml
+loop:
+    while:
+        if: '{{ counter < 10 }}'
+        do:
+            echo: {from: '{{ counter + 1 }}', register: {counter: '{{ OUTPUT }}'}}
+        max_cycle: 100000
+```
+Where:  
+`if` is your condition. It can be in short format: `if: '{{ counter < 10 }}'` and
+long one: `if: {equals: {the: '{{ counter }}', is_not: 10000}}`. The clause
+format is the same as in [checks](checks.md).  
+`max_cycle` is the limit of reductions. Default is no limit.  
+`do` is the aciton to be performed. Can be a list of actions or single one:  
+```yaml
+- loop:
+    while:
+        if:
+            equals: {the: '{{ passed }}', is_not: True}
+        do:
+            - kafka:
+                  consume:
+                      server: '127.0.0.1:9092'
+                      group_id: 'test'
+                      topic: 'test_consume_with_timestamp'
+                      timeout: {seconds: 5}
+                      where:
+                          equals: '{{ MESSAGE.timestamp > 1000 }}'
+                  register: {token: '{{ OUTPUT.data.token }}'}
+            - http:
+                post:
+                  headers: {Content-Type: 'application/json'}
+                  url: 'http://test.com/check_my_token'
+                  body: {'token': '{{ token }}'}
+                register: {passed: '{{ OUTPUT.passed }}'}
+```
+__foreach__:  
+Format:  
+```yaml
+- loop:
+    foreach:
+        in: '{{ iterator }}'
+        do:
+            - kafka:
+                  produce:
+                      server: '127.0.0.1:9092'
+                      topic: 'test_produce_json'
+                      data: '{{ ITEM|tojson }}'
+            - echo: {from: '{{ ITEM }}', to: '{{ ITEM["filename"] }}.output'}
+```
+Where:  
+`in` iterator variable can be list of dictionary. Loop will iterate over each
+iterator's element, passing it as `ITEM`, so you can access it.  
+
 ## External
 You can easily write your own modules and plug them to catcher:  
 1. write your module
