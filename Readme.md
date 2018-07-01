@@ -43,12 +43,5 @@ To install just catcher run `sudo pip install catcher`.
 * automate your testing!
 * [modular](doc/modules.md) architecture
 
-## Variables override
-1. Test's variables override inventory's variables.
-2. Variables from include don't go to main test file.
-
-## Running checks
-see [checks](doc/checks.md) for details.
-
-## Quickstart
-Is [here](doc/tests.md). For more information please refer to [tests](test) folder.
+## Quickstart and documentation
+See the [docs](catcher-test-tool.readthedocs.io/en/latest)
