@@ -7,7 +7,72 @@ from catcher.utils.misc import fill_template_str, try_get_objects
 
 
 class ForLoop(Step):
+    """
+    :Input:
 
+    :while: perform action while the condition is true
+
+    - if: your condition. It can be in short format: `if: '{{ counter < 10 }}'` and
+long one: `if: {equals: {the: '{{ counter }}', is_not: 10000}}`. The clause
+format is the same as in [checks](checks.md)
+    - do: the aciton to be performed. Can be a list of actions or single one.
+    - max_cycle: the limit of reductions. *Optional* default is no limit.
+
+    :foreach: iterate data structure
+
+    - in: variable or static list. `ITEM` variable can be used to access each element of the data structure.
+    Data structure can be list, dict or any other python data structure which supports iteration.
+    - do: the aciton to be performed. Can be a list of actions or single one.
+
+    :Examples:
+
+    Perform a single echo wile counter is less than 10
+    ::
+        loop:
+            while:
+                if: '{{ counter < 10 }}'
+                do:
+                    echo: {from: '{{ counter + 1 }}', register: {counter: '{{ OUTPUT }}'}}
+                max_cycle: 100000
+
+    Perform to actions: consume message from kafka and send token via POST http. Do it until server
+    returns passed true in http response.
+    ::
+        loop:
+            while:
+                if:
+                    equals: {the: '{{ passed }}', is_not: True}
+                do:
+                    - kafka:
+                          consume:
+                              server: '127.0.0.1:9092'
+                              group_id: 'test'
+                              topic: 'test_consume_with_timestamp'
+                              timeout: {seconds: 5}
+                              where:
+                                  equals: '{{ MESSAGE.timestamp > 1000 }}'
+                          register: {token: '{{ OUTPUT.data.token }}'}
+                    - http:
+                        post:
+                          headers: {Content-Type: 'application/json'}
+                          url: 'http://test.com/check_my_token'
+                          body: {'token': '{{ token }}'}
+                        register: {passed: '{{ OUTPUT.passed }}'}
+
+    Iterate over `iterator` variable, produce each element to kafka as json and debug it to file.
+    ::
+        loop:
+            foreach:
+                in: '{{ iterator }}'
+                do:
+                    - kafka:
+                          produce:
+                              server: '127.0.0.1:9092'
+                              topic: 'test_produce_json'
+                              data: '{{ ITEM|tojson }}'
+                    - echo: {from: '{{ ITEM }}', to: '{{ ITEM["filename"] }}.output'}
+
+    """
     def __init__(self, body: dict) -> None:
         super().__init__(body)
         self._type = Step.filter_predefined_keys(body)  # while/foreach

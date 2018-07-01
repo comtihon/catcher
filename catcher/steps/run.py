@@ -5,6 +5,49 @@ from catcher.steps.stop import StopException
 
 
 class Run(Step):
+    """
+    Run include on demand
+
+    :Input:
+
+    :include: include name
+    :tag: include tag. *Optional* If specified - only steps with this tag will be run. Can also be set up via dot notation: `include: test.tag`.
+    :variables: Variables to override. *Optional*
+
+    :Examples:
+
+    Use short form to run `sign_up`
+    ::
+        include:
+            file: register_user.yaml
+            as: sign_up
+        steps:
+            # .... some steps
+            - run: sign_up
+            # .... some steps
+
+    Run `sign_up` with username overridden
+    ::
+        include:
+            file: register_user.yaml
+            as: sign_up
+        steps:
+            # .... some steps
+            - run:
+                include: sign_up
+                variables:
+                    username: test
+            # .... some steps
+
+    Include `sign_up` and run all steps with tag `register` from it. Use dot notation.
+    ::
+        include:
+            file: register_and_login.yaml
+            as: sign_up
+        steps:
+            - run:
+                include: sign_up.register
+    """
     def __init__(self, **keywords) -> None:
         super().__init__(keywords)
         self._variables = keywords.get('variables', {})

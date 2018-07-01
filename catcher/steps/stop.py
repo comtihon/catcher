@@ -9,6 +9,33 @@ class StopException(Exception):
 
 
 class Stop(Step):
+    """
+    Stop a test without error
+
+    :Input:
+
+    :if: condition
+
+    :Examples:
+
+    Stop execution if migration was applied.
+    ::
+        steps:
+            - postgres:
+                request:
+                    conf: '{{ migrations_postgres }}'
+                    query: "select count(*) from migration where hash = '{{ TEST_NAME }}';"
+                register: {result: '{{ OUTPUT }}'}
+                tag: check
+                name: 'check_migration_{{ TEST_NAME }}'
+            - stop:
+                if:
+                    equals: {the: '{{ result }}', is: 1}
+            - postgres:
+                request:
+                    conf: '{{ migrations_postgres }}'
+                    query: "insert into migration(id, hash) values(1, '{{ TEST_NAME }}');"
+    """
     def __init__(self, body: dict) -> None:
         super().__init__(body)
         self._end_if = body['if']

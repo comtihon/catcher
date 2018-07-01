@@ -30,6 +30,7 @@ class External(Step):
     def __call_external_script(self, variables) -> dict:
         """
         Call external script.
+
         :param variables: variables
         :return: script's output
         """
@@ -47,6 +48,7 @@ class External(Step):
     def __call_python_module(self, variables) -> dict:
         """
         Call external python module. Most likely from catcher-modules
+
         :param variables:
         :return:
         """

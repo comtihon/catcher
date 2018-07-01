@@ -12,6 +12,46 @@ from catcher.utils.logger import debug
 
 
 class Kafka(Step):
+    """
+    :Input:
+
+    :consume:  Consume message from kafka.
+
+    - server: is the kafka host. Can be multiple, comma-separated.
+    - group_id: is the consumer group id. If not specified - `catcher` will be used. *Optional*
+    - topic: the name of the topic
+    - timeout: is the consumer timeout. *Optional* (default is 1 sec)
+    - where: search for specific message clause. *Optional*
+
+    :produce: Produce message to kafka.
+
+    - server: is the kafka host. Can be multiple, comma-separated.
+    - topic: the name of the topic
+    - data: data to be produced.
+    - data_from_file: File can be used as data source. *Optional* Either `data` or `data_from_file` should present.
+
+    :Examples:
+
+    Read message with timestamp > 1000
+    ::
+        kafka:
+            consume:
+                server: '127.0.0.1:9092'
+                group_id: 'test'
+                topic: 'test_consume_with_timestamp'
+                timeout: {seconds: 5}
+                where:
+                    equals: '{{ MESSAGE.timestamp > 1000 }}'
+
+    Produce `data` variable as json message
+    ::
+        kafka:
+            produce:
+                server: '127.0.0.1:9092'
+                topic: 'test_produce_json'
+                data: '{{ data|tojson }}'
+
+    """
     def __init__(self, body: dict) -> None:
         super().__init__(body)
         method = Step.filter_predefined_keys(body)  # produce/consume

@@ -46,15 +46,25 @@ class Operator(object):
 
 
 class Equals(Operator):
-    @staticmethod
-    def to_long_form(source: any, value: any):
-        return {'the': source, 'is': value}
+    """
+    Fail if elements are not equal
 
-    def determine_source(self, body: dict):
-        if 'is' in body:
-            return body['is']
-        self.negative = True
-        return body['is_not']
+    :Input:
+    :the: value
+    :is: variable to compare
+    :is_not: inverted `is`. Only one can be used at a time.
+
+    :Examples:
+
+    Check 'bar' equals variable 'foo'
+    ::
+        check: {equals: {the: 'bar', is: '{{ foo }}'}}
+
+    Check list's third element is not greater than 2.
+    ::
+        check: {equals: {the: '{{ list[2] > 2 }}', is_not: true}}
+
+    """
 
     def operation(self, variables: dict) -> bool:
         if isinstance(self.subject, str):
@@ -73,17 +83,39 @@ class Equals(Operator):
             debug(str(source) + ' is not equal to ' + str(subject))
         return result
 
+    def determine_source(self, body: dict):
+        if 'is' in body:
+            return body['is']
+        self.negative = True
+        return body['is_not']
 
-class Contains(Operator):
     @staticmethod
     def to_long_form(source: any, value: any):
-        return {'the': source, 'in': value}
+        return {'the': source, 'is': value}
 
-    def determine_source(self, body: dict):
-        if 'in' in body:
-            return body['in']
-        self.negative = True
-        return body['not_in']
+
+class Contains(Operator):
+    """
+    Fail if list of dictionary doesn't contain the value
+
+    :Input:
+    :the: value to contain
+    :in: variable to check
+    :not_in: inverted `in`. Only one can be used at a time.
+
+    :Examples:
+
+    Check 'a' not in variable 'list'
+    ::
+        check:
+            contains: {the: 'a', not_in: '{{ list }}'}
+
+    Check variable 'dict' has key `a`.
+    ::
+        check:
+            contains: {the: 'a', in: '{{ dict }}'}
+
+    """
 
     def operation(self, variables: dict):
         body = self.subject[self.body]
@@ -96,8 +128,35 @@ class Contains(Operator):
             debug(str(subject) + ' is not in ' + str(source))
         return result
 
+    def determine_source(self, body: dict):
+        if 'in' in body:
+            return body['in']
+        self.negative = True
+        return body['not_in']
+
+    @staticmethod
+    def to_long_form(source: any, value: any):
+        return {'the': source, 'in': value}
+
 
 class And(Operator):
+    """
+    Fail if any of the conditions fails.
+
+    :Input: The list of other checks.
+
+    :Examples:
+
+    This is the same as `1 in list and list[1] != 'b' and list[2] > 2'
+    ::
+        check:
+            and:
+                - contains: {the: 1, in: '{{ list }}'}
+                - equals: {the: '{{ list[1] }}', is_not: 'b'}
+                - equals: {the: '{{ list[2] > 2 }}', is_not: true}
+
+    """
+
     @property
     def end(self) -> bool:
         return False
@@ -112,12 +171,47 @@ class And(Operator):
 
 
 class Or(And):
+    """
+    Fail if all conditions fail.
+
+    :Input: The list of other checks.
+
+    :Examples:
+
+    This is the same as `1 in list or list[1] != 'b' or list[2] > 2'
+    ::
+        check:
+            or:
+                - contains: {the: 1, in: '{{ list }}'}
+                - equals: {the: '{{ list[1] }}', is_not: 'b'}
+                - equals: {the: '{{ list[2] > 2 }}', is_not: true}
+
+    """
+
     @property
     def end(self):
         return True
 
 
 class All(Operator):
+    """
+    Fail if any check on the iterable fail.
+
+    :Input:
+    :of: The source to check. Can be list or dictionary.
+    :<check>: Check to perform on each element of the iterable.
+
+    :Examples:
+
+    Pass if all elements of `var` has `k` == `a`
+    ::
+        check:
+            all:
+                of: '{{ var }}'
+                equals: {the: '{{ ITEM.k }}', is: 'a'}
+
+    """
+
     def operator(self, data):
         return all(data)
 
@@ -147,11 +241,45 @@ class All(Operator):
 
 
 class Any(All):
+    """
+    Fail if all checks on the iterable fail.
+
+    :Input:
+    :of: The source to check. Can be list or dictionary.
+    :<check>: Check to perform on each element of the iterable.
+
+    :Examples:
+
+    Fail if `var` doesn't contain element with `k` == `a`
+    ::
+        check:
+            any:
+                of: '{{ var }}'
+                equals: {the: '{{ ITEM.k }}', is: 'a'}
+
+    """
+
     def operator(self, data):
         return any(data)
 
 
 class Check(Step):
+    """
+    Run check and fail if it was not successful.
+
+    There are two types of checks: terminators and nodes. Terminators like `equals` or `contains`
+    just perform checks while nodes contain like `all`, `any`, `or` and others contain other checks.
+
+    Check has a short form
+    ::
+        check: '{{ variable }}'
+    which equals
+    ::
+        check:
+            equals: {the: '{{ variable }}', is: true}
+
+    """
+
     def __init__(self, body: dict) -> None:
         super().__init__(body)
         self._subject = body

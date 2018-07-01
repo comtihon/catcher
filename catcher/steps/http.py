@@ -9,6 +9,35 @@ from catcher.utils.misc import fill_template, fill_template_str
 
 
 class Http(Step):
+    """
+    :Input:
+
+    :<method>: http method. See https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html for details
+
+    - headers: Dictionary with custom headers. *Optional*
+    - url: url to call
+    - response_code: Code to await. *Optional* default is 200.
+    - body: body to send (only for methods which support it).
+    - body_from_file: File can be used as data source. *Optional* Either `body` or `body_from_file` should present.
+
+    :Examples:
+
+    Post data to server with custom header
+    ::
+        http:
+          post:
+            headers: {Content-Type: 'application/json', Authorization: '{{ token }}'}
+            url: 'http://test.com?user_id={{ user_id }}'
+            body: {'foo': bar}
+
+    Post file to remote server
+    ::
+        http:
+          post:
+            url: 'http://test.com'
+            body_from_file: "data/answers.json"
+
+    """
     def __init__(self, body: dict) -> None:
         super().__init__(body)
         method = Step.filter_predefined_keys(body)  # get/post/put...

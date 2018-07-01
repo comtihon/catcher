@@ -5,6 +5,29 @@ from catcher.utils.misc import fill_template
 
 
 class Echo(Step):
+    """
+    :Input:
+
+    :from: data source. Can be variable or constant string
+    :to: output to file. *Optional* If not set - stdout will be used.
+
+    Has short from which just prints variable to stdout.
+
+    :Examples:
+
+    Use short form to print variable to stdout
+    ::
+        echo: '{{ var }}'
+
+    Print constant + variable to file
+    ::
+        echo: {from: 'constant and {{ var }}', to: debug.output}
+
+    Use echo to register new variable
+    ::
+        echo: {from: '{{ RANDOM_STR }}@test.com', register: {user_email: '{{ OUTPUT }}'}}
+
+    """
     def __init__(self, path: str, body: dict) -> None:
         super().__init__(body)
         if isinstance(body, dict):
