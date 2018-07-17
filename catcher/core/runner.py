@@ -9,7 +9,7 @@ from catcher.utils.module_utils import prepare_modules, get_external_actions
 
 
 class Runner:
-    def __init__(self, path: str, tests_path: str, inventory: str or None, modules=None, environment=None) -> None:
+    def __init__(self, path: str, tests_path: str, inventory: str or None, modules=None, additional_external_modules=None, environment=None) -> None:
         if modules is None:
             modules = []
         if environment is None:
@@ -19,7 +19,7 @@ class Runner:
         self._path = path
         self._inventory = inventory
         self._all_includes = []
-        self._modules = merge_two_dicts(prepare_modules(modules), get_external_actions())
+        self._modules = merge_two_dicts(prepare_modules(modules), merge_two_dicts(get_external_actions(), additional_external_modules))
 
     @property
     def tests_path(self) -> str:
