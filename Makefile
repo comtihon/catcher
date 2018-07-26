@@ -1,11 +1,14 @@
+PYTHON = $(shell which python3 || echo python)
+PIP = $(shell which pip3 || echo pip)
+
 make:
-	python setup.py bdist_wheel
+	@$(PYTHON) setup.py bdist_wheel
 
 install: make
-	sudo pip install dist/catcher-*
+	sudo $(PIP) install dist/catcher-*
 
 tests:
-	python -m pytest --capture=sys --ignore=postgres-data
+	@$(PYTHON) -m pytest --capture=sys --ignore=postgres-data
 
 deploy: make
 	twine upload dist/*

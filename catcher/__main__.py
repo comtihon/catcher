@@ -11,7 +11,7 @@ Options:
   -l LEVEL --log-level LEVEL         set log level. Options: debug, info, warning, error, critical [default: info]
   -i INVENTORY --inventory INVENTORY inventory file with environment configuration
   -e VARIABLE --environment VARIABLE set variable (will override inventory).
-  -m MODULES --modules MODULES       specify directories to search for catcher modules
+  -m MODULES --modules MODULES       specify directories or python packages to search for external modules
 """
 import os
 import sys
@@ -22,6 +22,7 @@ from catcher import APPVSN
 from catcher.core.runner import Runner
 from catcher.utils import logger
 from catcher.utils.logger import warning
+from catcher.utils.module_utils import load_external_actions
 
 
 # TODO variables from cmd
@@ -45,11 +46,12 @@ def run_tests(path: str, arguments: dict):
     inventory = arguments['--inventory']
     environment = arguments['--environment']
     modules = arguments['--modules']
-    runner = Runner(path, file_or_dir, inventory, modules, env_to_variables(environment))
+    __load_modules(modules)
+    runner = Runner(path, file_or_dir, inventory, modules, __env_to_variables(environment))
     return runner.run_tests()
 
 
-def env_to_variables(environment: list) -> dict:
+def __env_to_variables(environment: list) -> dict:
     variables = {}
     for env in environment:
         if '=' not in env:
@@ -58,6 +60,13 @@ def env_to_variables(environment: list) -> dict:
             [k, v] = env.split('=')
             variables[k] = v
     return variables
+
+
+def __load_modules(modules):
+    """Load catcher core modules, carcher-modules extensions (if available) and try to load all modules from cmd args """
+    load_external_actions('catcher.steps')
+    load_external_actions('catcher-modules')
+    [load_external_actions(m) for m in modules]
 
 
 if __name__ == "__main__":

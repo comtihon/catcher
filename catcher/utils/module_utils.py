@@ -4,21 +4,20 @@ import pkgutil
 from os.path import join
 from pydoc import locate
 
-from catcher.steps.external_step import ExternalStep
-from catcher.utils.file_utils import get_module_filename
 from catcher.utils.logger import warning, error
 
 
-def prepare_modules(module_paths: list) -> dict:
+def prepare_modules(module_paths: list, available: dict) -> dict:
     """
     Scan all paths for external modules and form key-value dict.
-    :param module_paths:
+    :param module_paths: list of external modules (either python packages or third-party scripts)
+    :param available: dict of all registered python modules (can contain python modules from module_paths)
     :return: dict of external modules, where keys are filenames (same as stepnames)
      and values are the paths
     """
     indexed = {}
     for path in module_paths:
-        if not os.path.exists(path):
+        if not os.path.exists(path) and path not in available:
             err = 'No such path: ' + path
             error(err)
         else:
@@ -30,24 +29,17 @@ def prepare_modules(module_paths: list) -> dict:
     return indexed
 
 
-def get_external_actions() -> dict:
+def load_external_actions(package: str):
     """
-    Scan catcher_modules package for all additional modules (if installed) and form a dict
-    where keys are filenames (same as stepnames) and values are classes implementing ExternalStep
-    :return: dict of modules implementing ExternalStep from catcher_modules package
+    Load all classes from a package
     """
-    core_modules = locate('catcher-modules')
+    core_modules = locate(package)
     if core_modules is None:
-        return {}  # catcher-modules not installed
+        return  # package not installed
     for importer, modname, ispkg in pkgutil.walk_packages(path=core_modules.__path__,
                                                           prefix=core_modules.__name__ + '.',
                                                           onerror=lambda x: None):
         importlib.import_module(modname)
-    external = get_all_subclasses_of(ExternalStep)
-    found = {}
-    for module in external:
-        found[get_module_filename(module)] = module
-    return found
 
 
 def get_all_subclasses_of(clazz) -> list:

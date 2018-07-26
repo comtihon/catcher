@@ -4,7 +4,7 @@ from pykafka import KafkaClient, SimpleConsumer
 from pykafka.common import OffsetType
 
 from catcher.steps.check import Operator
-from catcher.steps.step import Step
+from catcher.steps.step import Step, update_variables
 from catcher.utils.file_utils import read_file
 from catcher.utils.misc import try_get_object, fill_template_str
 from catcher.utils.time_utils import to_seconds
@@ -52,56 +52,29 @@ class Kafka(Step):
                 data: '{{ data|tojson }}'
 
     """
-    def __init__(self, body: dict) -> None:
+    def __init__(self, group_id='catcher', server='127.0.0.1:9092', **body: dict) -> None:
         super().__init__(body)
         method = Step.filter_predefined_keys(body)  # produce/consume
-        self._method = method.lower()
+        self.method = method.lower()
         conf = body[method]
-        self._group_id = conf.get('group_id', 'catcher')
-        self._server = conf['server']
-        self._topic = conf['topic']
+        self.group_id = group_id
+        self.server = server
+        self.topic = conf['topic']
         timeout = conf.get('timeout', {'seconds': 1})
-        self._timeout = to_seconds(timeout)
-        self._where = conf.get('where', None)
-        self._data = None
+        self.timeout = to_seconds(timeout)
+        self.where = conf.get('where', None)
+        self.data = None
         if self.method != 'consume':
-            self._data = conf.get('data', None)
+            self.data = conf.get('data', None)
             if self.data is None:
-                self._file = conf['data_from_file']
+                self.file = conf['data_from_file']
 
-    @property
-    def group_id(self):
-        return self._group_id
+    @classmethod
+    def construct_step(cls, body, *params, **kwargs):
+        return cls(**body)
 
-    @property
-    def server(self):
-        return self._server
-
-    @property
-    def method(self):
-        return self._method
-
-    @property
-    def topic(self):
-        return self._topic
-
-    @property
-    def file(self) -> str:
-        return self._file
-
-    @property
-    def data(self) -> bytes or dict or str:
-        return self._data
-
-    @property
-    def where(self) -> dict or None:
-        return self._where
-
-    @property
-    def timeout(self) -> int:
-        return self._timeout
-
-    def action(self, includes: dict, variables: dict) -> dict:
+    @update_variables
+    def action(self, includes: dict, variables: dict) -> tuple:
         client = KafkaClient(hosts=fill_template_str(self.server, variables))
         topic = client.topics[fill_template_str(self.topic, variables).encode('utf-8')]
         out = {}
@@ -113,7 +86,7 @@ class Kafka(Step):
             self.produce(topic, variables)
         else:
             raise AttributeError('unknown method: ' + self.method)
-        return self.process_register(variables, out)
+        return variables, out
 
     def consume(self, topic, variables: dict) -> dict:
         consumer = topic.get_simple_consumer(consumer_group=self.group_id.encode('utf-8'),

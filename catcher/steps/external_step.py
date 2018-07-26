@@ -1,7 +1,9 @@
-from abc import abstractmethod, ABC
+from abc import abstractmethod
+
+from catcher.steps.step import MetaStep
 
 
-class ExternalStep(ABC):
+class ExternalStep(object, metaclass=MetaStep):
     """
     Implement this step in case you are adding external python module to
     catcher-modules project

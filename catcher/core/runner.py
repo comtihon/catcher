@@ -1,53 +1,24 @@
+import traceback
 from os.path import join
 
-from catcher.core.include import Include
-from catcher.core.test import Test
+from catcher.core.test import Test, Include
+from catcher.steps import step
 from catcher.utils.file_utils import read_yaml_file, get_files
 from catcher.utils.logger import warning, info
 from catcher.utils.misc import merge_two_dicts
-from catcher.utils.module_utils import prepare_modules, get_external_actions
+from catcher.utils.module_utils import prepare_modules
 
 
 class Runner:
-    def __init__(self, path: str, tests_path: str, inventory: str or None, modules=None, additional_external_modules=None, environment=None) -> None:
+    def __init__(self, path: str, tests_path: str, inventory: str or None, modules=None, environment=None) -> None:
         if modules is None:
             modules = []
-        if environment is None:
-            environment = {}
-        self._environment = environment
-        self._tests_path = tests_path
-        self._path = path
-        self._inventory = inventory
-        self._all_includes = []
-        self._modules = merge_two_dicts(prepare_modules(modules), merge_two_dicts(get_external_actions(), additional_external_modules))
-
-    @property
-    def tests_path(self) -> str:
-        return self._tests_path
-
-    @property
-    def path(self) -> str:
-        return self._path
-
-    @property
-    def inventory(self) -> str or None:
-        return self._inventory
-
-    @property
-    def all_includes(self) -> list:
-        return self._all_includes
-
-    @property
-    def modules(self) -> dict:
-        return self._modules
-
-    @property
-    def override_vars(self) -> dict:
-        return self._environment
-
-    @all_includes.setter
-    def all_includes(self, all_includes: list):
-        self._all_includes = all_includes
+        self.environment = environment if environment is not None else {}
+        self.tests_path = tests_path
+        self.path = path
+        self.inventory = inventory
+        self.all_includes = []
+        self.modules = merge_two_dicts(prepare_modules(modules, step.registered_steps), step.registered_steps)
 
     def run_tests(self) -> bool:
         variables = {}
@@ -66,6 +37,7 @@ class Runner:
             except Exception as e:
                 warning('Test ' + file + ' failed: ' + str(e))
                 results.append(False)
+                traceback.print_exc()
         return all(results)
 
     def prepare_test(self, file: str, variables: dict, override_vars: None or dict = None) -> Test:
@@ -80,7 +52,7 @@ class Runner:
                     body.get('config', {}),
                     body.get('steps', []),
                     self.modules,
-                    self.override_vars)
+                    self.environment)
 
     def process_includes(self,
                          includes: list or str or dict,

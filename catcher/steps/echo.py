@@ -1,5 +1,6 @@
 from os.path import join
-from catcher.steps.step import Step
+
+from catcher.steps.step import Step, update_variables
 from catcher.utils.logger import info
 from catcher.utils.misc import fill_template
 
@@ -28,31 +29,25 @@ class Echo(Step):
         echo: {from: '{{ RANDOM_STR }}@test.com', register: {user_email: '{{ OUTPUT }}'}}
 
     """
-    def __init__(self, path: str, body: dict) -> None:
+
+    def __init__(self, body: dict, path: str = None) -> None:
         super().__init__(body)
         if isinstance(body, dict):
-            self._export_from = body['from']
-            self._export_to = body.get('to', None)
+            self.source = body['from']
+            self.dst = body.get('to', None)
         elif isinstance(body, str):
-            self._export_from = body
-            self._export_to = None
+            self.source = body
+            self.dst = None
         else:
             raise ValueError('Incorrect arguments for echo.')
-        self._path = path
+        self.path = path
 
-    @property
-    def source(self) -> str:
-        return self._export_from
+    @classmethod
+    def construct_step(cls, body, *params, **kwargs):
+        return cls(body, *params)
 
-    @property
-    def dst(self) -> str or None:
-        return self._export_to
-
-    @property
-    def path(self):
-        return self._path
-
-    def action(self, includes: dict, variables: dict) -> dict:
+    @update_variables
+    def action(self, includes: dict, variables: dict) -> tuple:
         out = fill_template(self.source, variables)
         if self.dst is None:
             info(out)
@@ -60,4 +55,4 @@ class Echo(Step):
             dst = fill_template(self.dst, variables)
             with open(join(self.path, dst), 'w') as f:
                 f.write(str(out))
-        return self.process_register(variables, out)
+        return variables, out

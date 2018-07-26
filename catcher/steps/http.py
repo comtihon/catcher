@@ -2,7 +2,7 @@ import json
 
 from requests import request
 
-from catcher.steps.step import Step
+from catcher.steps.step import Step, update_variables
 from catcher.utils.file_utils import read_file
 from catcher.utils.logger import debug
 from catcher.utils.misc import fill_template, fill_template_str
@@ -38,45 +38,27 @@ class Http(Step):
             body_from_file: "data/answers.json"
 
     """
-    def __init__(self, body: dict) -> None:
+
+    def __init__(self, response_code=200, **body) -> None:
         super().__init__(body)
         method = Step.filter_predefined_keys(body)  # get/post/put...
-        self._method = method.lower()
+        self.method = method.lower()
         conf = body[method]
-        self._url = conf['url']
-        self._headers = conf.get('headers', {})
-        self._body = None
-        self._code = conf.get('response_code', 200)
+        self.url = conf['url']
+        self.headers = conf.get('headers', {})
+        self.body = None
+        self.code = response_code
         if self.method != 'get':
-            self._body = conf.get('body', None)
+            self.body = conf.get('body', None)
             if self.body is None:
-                self._file = conf['body_from_file']
+                self.file = conf['body_from_file']
 
-    @property
-    def method(self) -> str:
-        return self._method
+    @classmethod
+    def construct_step(cls, body, *params, **kwargs):
+        return cls(**body)
 
-    @property
-    def body(self) -> any:
-        return self._body
-
-    @property
-    def file(self) -> str:
-        return self._file
-
-    @property
-    def url(self) -> str:
-        return self._url
-
-    @property
-    def headers(self) -> dict:
-        return self._headers
-
-    @property
-    def code(self) -> int:
-        return self._code
-
-    def action(self, includes: dict, variables: dict) -> dict:
+    @update_variables
+    def action(self, includes: dict, variables: dict) -> tuple:
         url = fill_template(self.url, variables)
         headers = dict(
             [(fill_template_str(k, variables), fill_template_str(v, variables)) for k, v in self.headers.items()])
@@ -95,7 +77,7 @@ class Http(Step):
             response = r.json()
         except ValueError:
             response = r.text
-        return self.process_register(variables, response)
+        return variables, response
 
     def __form_body(self, variables) -> str or dict:
         if self.method == 'get':
