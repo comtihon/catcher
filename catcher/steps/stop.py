@@ -1,6 +1,6 @@
 from catcher.steps.check import Operator
 
-from catcher.steps.step import Step
+from catcher.steps.step import Step, update_variables
 
 
 class StopException(Exception):
@@ -44,9 +44,10 @@ class Stop(Step):
     def construct_step(cls, body, *params, **kwargs):
         return cls(body)
 
+    @update_variables
     def action(self, includes: dict, variables: dict) -> dict:
         operator = Operator.find_operator(self.end_if)
         if operator.operation(variables):
             raise StopException(str(self.end_if) + ' fired')
         else:
-            return self.process_register(variables)
+            return variables

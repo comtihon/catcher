@@ -1,4 +1,4 @@
-from catcher.steps.step import Step
+from catcher.steps.step import Step, update_variables
 from catcher.utils.logger import error
 from catcher.utils.misc import merge_two_dicts, fill_template_str
 from catcher.steps.stop import StopException
@@ -62,6 +62,7 @@ class Run(Step):
         args = body if not isinstance(body, str) else {'include': body}
         return cls(**args)
 
+    @update_variables
     def action(self, includes: dict, variables: dict) -> dict:
         filled_vars = dict([(k, fill_template_str(v, variables)) for (k, v) in self.variables.items()])
         out = fill_template_str(self.include, variables)
@@ -79,7 +80,7 @@ class Run(Step):
         except Exception as e:
             if not self.ignore_errors:
                 raise Exception('Step run ' + test + ' failed: ' + str(e))
-        return self.process_register(variables)
+        return variables
 
 
 def get_tag(include: str, tag: str or None) -> str or None:

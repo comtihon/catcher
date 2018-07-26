@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from functools import wraps
 
 from catcher.utils.misc import try_get_object, merge_two_dicts, fill_template
 
@@ -96,7 +97,7 @@ class Step(object, metaclass=MetaStep):
             self.name = body.get('name', None)
 
     @abstractmethod
-    def action(self, includes: dict, variables: dict) -> dict:
+    def action(self, includes: dict, variables: dict) -> dict or tuple:
         pass
 
     @staticmethod
@@ -118,3 +119,15 @@ class Step(object, metaclass=MetaStep):
                     out = fill_template(self.register[key], variables)
                 variables[key] = out
         return variables
+
+
+def update_variables(func):
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        result = func(self, *args, **kwargs)
+        if isinstance(result, tuple):
+            return self.process_register(result[0], result[1])
+        else:
+            return self.process_register(result)
+
+    return wrapper

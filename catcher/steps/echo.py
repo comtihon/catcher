@@ -1,6 +1,6 @@
 from os.path import join
 
-from catcher.steps.step import Step
+from catcher.steps.step import Step, update_variables
 from catcher.utils.logger import info
 from catcher.utils.misc import fill_template
 
@@ -46,7 +46,8 @@ class Echo(Step):
     def construct_step(cls, body, *params, **kwargs):
         return cls(body, *params)
 
-    def action(self, includes: dict, variables: dict) -> dict:
+    @update_variables
+    def action(self, includes: dict, variables: dict) -> tuple:
         out = fill_template(self.source, variables)
         if self.dst is None:
             info(out)
@@ -54,4 +55,4 @@ class Echo(Step):
             dst = fill_template(self.dst, variables)
             with open(join(self.path, dst), 'w') as f:
                 f.write(str(out))
-        return self.process_register(variables, out)
+        return variables, out

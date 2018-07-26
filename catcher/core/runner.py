@@ -1,8 +1,7 @@
 import traceback
 from os.path import join
 
-from catcher.core.include import Include
-from catcher.core.test import Test
+from catcher.core.test import Test, Include
 from catcher.steps import step
 from catcher.utils.file_utils import read_yaml_file, get_files
 from catcher.utils.logger import warning, info

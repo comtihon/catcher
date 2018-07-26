@@ -3,7 +3,7 @@ import itertools
 import json
 
 from catcher.steps.check import Operator
-from catcher.steps.step import Step
+from catcher.steps.step import Step, update_variables
 from catcher.utils.misc import fill_template_str, try_get_objects
 
 
@@ -100,6 +100,7 @@ format is the same as in [checks](checks.md)
     def construct_step(cls, body, *params, **kwargs):
         return cls(body, **kwargs)
 
+    @update_variables
     def action(self, includes: dict, variables: dict) -> dict:
         output = variables
         if self.type == 'while':

@@ -1,54 +1,46 @@
-from catcher.steps import step_factory
 from catcher.steps.step import Step
 from catcher.steps.stop import StopException
 from catcher.utils.logger import debug, info
 from catcher.utils.misc import fill_template_str, merge_two_dicts
+from core import step_factory
+
+
+class Include:
+    """
+    Include another testcase in include section:
+    ::
+        include:
+            - file: simple_file.yaml
+              run_on_include: false
+            - other_simple_file.yaml
+    each include file has it's own Include object and attached Test
+    """
+
+    def __init__(self, **keywords) -> None:
+        if 'file' not in keywords:
+            raise RuntimeError('Can\'t include unknown file.')
+        self.file = keywords['file']
+        self.variables = keywords.get('variables', {})
+        self.alias = keywords.get('as', None)
+        self.run_on_include = keywords.get('run_on_include', self.alias is None)
+        self.ignore_errors = keywords.get('ignore_errors', False)
+        self.test = None
 
 
 class Test:
+    """
+    Testcase. Contains variables, includes and steps to run.
+    """
+
     def __init__(self, path: str, includes: dict, variables: dict,
                  config: dict, steps: list, modules: dict, override_vars=None) -> None:
-        self._includes = includes
-        self._variables = variables
-        self._config = config
-        self._steps = steps
-        self._path = path
-        self._modules = modules
-        if override_vars is None:
-            override_vars = {}
-        self._override_vars = override_vars
-
-    @property
-    def includes(self) -> dict:
-        return self._includes
-
-    @property
-    def variables(self) -> dict:
-        return self._variables
-
-    @variables.setter
-    def variables(self, variables):
-        self._variables = variables
-
-    @property
-    def config(self) -> dict:
-        return self._config
-
-    @property
-    def steps(self) -> list:
-        return self._steps
-
-    @property
-    def path(self) -> str:
-        return self._path
-
-    @property
-    def modules(self) -> dict:
-        return self._modules
-
-    @property
-    def override_vars(self) -> dict:
-        return self._override_vars
+        self.includes = includes
+        self.variables = variables
+        self.config = config
+        self.steps = steps
+        self.path = path
+        self.modules = modules
+        self.override_vars = override_vars if override_vars is not None else {}
 
     def run(self, tag=None, raise_stop=False) -> dict:
         for step in self.steps:

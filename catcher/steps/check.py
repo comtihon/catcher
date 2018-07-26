@@ -1,6 +1,6 @@
 from abc import abstractmethod
 
-from catcher.steps.step import Step
+from catcher.steps.step import Step, update_variables
 from catcher.utils.logger import debug
 from catcher.utils.misc import fill_template
 from catcher.utils.module_utils import get_all_subclasses_of
@@ -8,24 +8,12 @@ from catcher.utils.module_utils import get_all_subclasses_of
 
 class Operator(object):
     def __init__(self, body: dict, negative=False) -> None:
-        self._subject = body
-        self._negative = negative
-
-    @property
-    def negative(self) -> bool:
-        return self._negative
-
-    @negative.setter
-    def negative(self, new_value: bool):
-        self._negative = new_value
+        self.subject = body
+        self.negative = negative
 
     @property
     def body(self) -> any:
         return self.__class__.__name__.lower()
-
-    @property
-    def subject(self) -> dict:
-        return self._subject
 
     @abstractmethod
     def operation(self, variables: dict) -> bool:
@@ -288,8 +276,9 @@ class Check(Step):
     def construct_step(cls, body, *params, **kwargs):
         return cls(body)
 
+    @update_variables
     def action(self, includes: dict, variables: dict) -> dict:
         operator = Operator.find_operator(self.subject)
         if not operator.operation(variables):
             raise RuntimeError('operation ' + str(self.subject) + ' failed')
-        return self.process_register(variables)
+        return variables
