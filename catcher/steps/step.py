@@ -98,6 +98,31 @@ class Step(object, metaclass=MetaStep):
 
     @abstractmethod
     def action(self, includes: dict, variables: dict) -> dict or tuple:
+        """
+        Perform an action.
+
+        :param includes: Script includes.
+        :param variables: Script variables.
+        :return: step output
+
+        For code above
+        ::
+            postgres:
+                request:
+                    conf:
+                        dbname: test
+                        user: test
+                        password: test
+                        host: localhost
+                        port: 5433
+                    query: 'select count(*) from test'
+            register: {documents: '{{ OUTPUT }}'}
+        in_data will be
+        ::
+            {'request' : {'conf': {'dbname': 'test', 'user': 'test', 'password': 'test', 'host': 'localhost', 'port': 5433},
+                          'query': 'select count(*) from test'}
+            }
+        """
         pass
 
     @staticmethod

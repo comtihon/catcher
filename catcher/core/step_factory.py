@@ -17,7 +17,7 @@ def get_actions(path: str, step: dict, modules: dict) -> [Step]:
 def get_action(path: str, action, body: dict or str, modules: dict) -> Step:
     module = modules.get(action, None)
     if module is not None:
-        if isinstance(module, str):  # external module
+        if isinstance(module, str):  # external module (some third party script)
             return External(body, module)
         else:   # python module
             return module.construct_step(body,

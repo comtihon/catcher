@@ -1,21 +1,39 @@
+import json
 from abc import abstractmethod
 
-from catcher.steps.step import MetaStep
+from catcher.steps.step import Step
+from catcher.utils.misc import fill_template_str, try_get_objects
 
 
-class ExternalStep(object, metaclass=MetaStep):
+class ExternalStep(Step):
     """
     Implement this step in case you are adding external python module to
     catcher-modules project
     """
 
+    def __init__(self, body: dict or str, *params, **kwargs) -> None:
+        super().__init__(body, *params, **kwargs)
+        method = Step.filter_predefined_keys(body)
+        self.data = {method: body[method]}
+
+    def simple_input(self, variables):
+        """
+        Use this method to get simple input as python object, with all
+        templates filled in
+        :param variables:
+        :return: python object
+        """
+        json_args = fill_template_str(json.dumps(self.data), variables)
+        return try_get_objects(json_args)
+
     @abstractmethod
-    def action(self, in_data: dict) -> any:
+    def action(self, includes: dict, variables: dict) -> dict or tuple:
         """
         Perform an action.
 
-        :param in_data: Script input.
-        :return: step output
+        :param includes: Script includes.
+        :param variables: Script variables.
+        :return: variables and step's output. Output is optional.
 
         For code above
         ::
