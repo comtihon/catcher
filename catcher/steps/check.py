@@ -282,11 +282,11 @@ class Check(Step):
 
     def __init__(self, body: dict) -> None:
         super().__init__(body)
-        self._subject = body
+        self.subject = body
 
-    @property
-    def subject(self) -> dict:
-        return self._subject
+    @classmethod
+    def construct_step(cls, body, *params, **kwargs):
+        return cls(body)
 
     def action(self, includes: dict, variables: dict) -> dict:
         operator = Operator.find_operator(self.subject)

@@ -27,11 +27,11 @@ class Wait(Step):
 
     def __init__(self, body: dict) -> None:
         super().__init__(body)
-        self._delay = to_seconds(body)
+        self.delay = to_seconds(body)
 
-    @property
-    def delay(self) -> int:
-        return self._delay
+    @classmethod
+    def construct_step(cls, body, *params, **kwargs):
+        return cls(**body)
 
     def action(self, includes: dict, variables: dict) -> dict:
         sleep(self.delay)

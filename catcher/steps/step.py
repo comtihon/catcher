@@ -2,8 +2,22 @@ from abc import abstractmethod
 
 from catcher.utils.misc import try_get_object, merge_two_dicts, fill_template
 
+registered_steps = {}
 
-class Step:
+
+def register_class(target_class):
+    registered_steps[target_class.__name__.lower()] = target_class
+
+
+class MetaStep(type):
+    def __new__(mcs, name, bases, class_dict):
+        cls = type.__new__(mcs, name, bases, class_dict)
+        if cls.__name__ != 'Step' or cls.__name__ != 'ExternalStep':
+            register_class(cls)
+        return cls
+
+
+class Step(object, metaclass=MetaStep):
     """
     Abstract class for all Steps. Operates with common properties, available for all steps.
 
@@ -73,30 +87,26 @@ class Step:
         http: {get: {url: 'http://test.com', response_code: 200}, ignore_errors: true}
     """
 
-    def __init__(self, body: dict or str) -> None:
+    def __init__(self, body: dict or str, *params, **kwargs) -> None:
         if isinstance(body, str):
-            self._register = None
-            self._name = None
+            self.register = None
+            self.name = None
         else:
-            self._register = body.get('register', None)
-            self._name = body.get('name', None)
+            self.register = body.get('register', None)
+            self.name = body.get('name', None)
 
     @abstractmethod
     def action(self, includes: dict, variables: dict) -> dict:
         pass
 
-    @property
-    def register(self) -> dict or None:
-        return self._register
-
-    @property
-    def name(self) -> str or None:
-        return self._name
-
     @staticmethod
     def filter_predefined_keys(data: dict):
         [action] = [k for k in data.keys() if k != 'register' and k != 'ignore_errors' and k != 'name' and k != 'tag']
         return action
+
+    @classmethod
+    def construct_step(cls, body, *params, **kwargs):
+        return cls(body, *params, **kwargs)
 
     def process_register(self, variables, output: dict or list or str or None = None) -> dict:
         if self.register is not None:

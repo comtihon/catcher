@@ -52,54 +52,26 @@ class Kafka(Step):
                 data: '{{ data|tojson }}'
 
     """
-    def __init__(self, body: dict) -> None:
+    def __init__(self, group_id='catcher', server='127.0.0.1:9092', **body: dict) -> None:
         super().__init__(body)
         method = Step.filter_predefined_keys(body)  # produce/consume
-        self._method = method.lower()
+        self.method = method.lower()
         conf = body[method]
-        self._group_id = conf.get('group_id', 'catcher')
-        self._server = conf['server']
-        self._topic = conf['topic']
+        self.group_id = group_id
+        self.server = server
+        self.topic = conf['topic']
         timeout = conf.get('timeout', {'seconds': 1})
-        self._timeout = to_seconds(timeout)
-        self._where = conf.get('where', None)
-        self._data = None
+        self.timeout = to_seconds(timeout)
+        self.where = conf.get('where', None)
+        self.data = None
         if self.method != 'consume':
-            self._data = conf.get('data', None)
+            self.data = conf.get('data', None)
             if self.data is None:
-                self._file = conf['data_from_file']
+                self.file = conf['data_from_file']
 
-    @property
-    def group_id(self):
-        return self._group_id
-
-    @property
-    def server(self):
-        return self._server
-
-    @property
-    def method(self):
-        return self._method
-
-    @property
-    def topic(self):
-        return self._topic
-
-    @property
-    def file(self) -> str:
-        return self._file
-
-    @property
-    def data(self) -> bytes or dict or str:
-        return self._data
-
-    @property
-    def where(self) -> dict or None:
-        return self._where
-
-    @property
-    def timeout(self) -> int:
-        return self._timeout
+    @classmethod
+    def construct_step(cls, body, *params, **kwargs):
+        return cls(**body)
 
     def action(self, includes: dict, variables: dict) -> dict:
         client = KafkaClient(hosts=fill_template_str(self.server, variables))

@@ -1,4 +1,5 @@
 import collections
+import itertools
 import json
 
 from catcher.steps.check import Operator
@@ -6,7 +7,7 @@ from catcher.steps.step import Step
 from catcher.utils.misc import fill_template_str, try_get_objects
 
 
-class ForLoop(Step):
+class Loop(Step):
     """
     :Input:
 
@@ -73,54 +74,31 @@ format is the same as in [checks](checks.md)
                     - echo: {from: '{{ ITEM }}', to: '{{ ITEM["filename"] }}.output'}
 
     """
-    def __init__(self, body: dict) -> None:
+
+    def __init__(self, body: dict, get_action=None, get_actions=None) -> None:
         super().__init__(body)
-        self._type = Step.filter_predefined_keys(body)  # while/foreach
-        self._max_cycle = body[self._type].get('max_cycle')
-        self._do = body[self._type]['do']
-        if self._type == 'while':
+        self.type = Step.filter_predefined_keys(body)  # while/foreach
+        do = body[self.type]['do']
+        if len(do) == 1:
+            [loop_action] = do.keys()
+            self.do_action = [get_action((loop_action, do[loop_action]))]
+        else:
+            self.do_action = list(itertools.chain.from_iterable([get_actions(act) for act in do]))
+        self.max_cycle = body[self.type].get('max_cycle')
+        if self.type == 'while':
             if_clause = body['while']['if']
             if isinstance(if_clause, str):
-                self._if = {'equals': if_clause}
+                self.if_clause = {'equals': if_clause}
             else:
-                self._if = if_clause
-        elif self._type == 'foreach':
-            self._in = body['foreach']['in']
+                self.if_clause = if_clause
+        elif self.type == 'foreach':
+            self.in_var = body['foreach']['in']
         else:
             raise ValueError('Wrong configuration for step: ' + str(body))
-        self._do_action = None
 
-    @property
-    def type(self) -> str:
-        return self._type
-
-    @property
-    def max_cycle(self) -> int or None:
-        return self._max_cycle
-
-    @max_cycle.setter
-    def max_cycle(self, new_value):
-        self._max_cycle = new_value
-
-    @property
-    def do(self) -> dict or list:
-        return self._do
-
-    @property
-    def do_action(self) -> [Step]:
-        return self._do_action
-
-    @do_action.setter
-    def do_action(self, action: list):
-        self._do_action = action
-
-    @property
-    def if_clause(self) -> dict or None:
-        return self._if
-
-    @property
-    def in_var(self) -> str or None:
-        return self._in
+    @classmethod
+    def construct_step(cls, body, *params, **kwargs):
+        return cls(body, **kwargs)
 
     def action(self, includes: dict, variables: dict) -> dict:
         output = variables

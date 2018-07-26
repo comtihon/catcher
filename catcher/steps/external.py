@@ -10,16 +10,8 @@ class External(Step):
     def __init__(self, body: dict, module) -> None:
         super().__init__(body)
         method = Step.filter_predefined_keys(body)
-        self._data = {method: body[method]}
-        self._module = module
-
-    @property
-    def module(self):
-        return self._module
-
-    @property
-    def data(self) -> any:
-        return self._data
+        self.data = {method: body[method]}
+        self.module = module
 
     def action(self, includes: dict, variables: dict) -> dict:
         if isinstance(self.module, str):

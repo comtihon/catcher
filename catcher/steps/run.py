@@ -50,28 +50,17 @@ class Run(Step):
     """
     def __init__(self, **keywords) -> None:
         super().__init__(keywords)
-        self._variables = keywords.get('variables', {})
-        self._ignore_errors = keywords.get('ignore_errors', False)
-        self._include = keywords.get('include', None)
-        self._tag = keywords.get('tag', None)
+        self.variables = keywords.get('variables', {})
+        self.ignore_errors = keywords.get('ignore_errors', False)
+        self.include = keywords.get('include', None)
+        self.tag = keywords.get('tag', None)
         if self.include is None:
-            self._include = keywords['run']
+            self.include = keywords['run']
 
-    @property
-    def include(self):
-        return self._include
-
-    @property
-    def tag(self):
-        return self._tag
-
-    @property
-    def ignore_errors(self) -> bool:
-        return self._ignore_errors
-
-    @property
-    def variables(self) -> dict:
-        return self._variables
+    @classmethod
+    def construct_step(cls, body, *params, **kwargs):
+        args = body if not isinstance(body, str) else {'include': body}
+        return cls(**args)
 
     def action(self, includes: dict, variables: dict) -> dict:
         filled_vars = dict([(k, fill_template_str(v, variables)) for (k, v) in self.variables.items()])
