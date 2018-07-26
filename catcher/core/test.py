@@ -2,7 +2,7 @@ from catcher.steps.step import Step
 from catcher.steps.stop import StopException
 from catcher.utils.logger import debug, info
 from catcher.utils.misc import fill_template_str, merge_two_dicts
-from core import step_factory
+from catcher.core import step_factory
 
 
 class Include:
