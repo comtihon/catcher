@@ -76,14 +76,6 @@ catcher.steps.step module
     :undoc-members:
     :show-inheritance:
 
-catcher.steps.step\_factory module
-----------------------------------
-
-.. automodule:: catcher.steps.step_factory
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 catcher.steps.stop module
 -------------------------
 

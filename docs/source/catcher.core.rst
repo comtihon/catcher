@@ -4,14 +4,6 @@ catcher.core package
 Submodules
 ----------
 
-catcher.core.include module
----------------------------
-
-.. automodule:: catcher.core.include
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 catcher.core.runner module
 --------------------------
 
@@ -27,6 +19,15 @@ catcher.core.test module
     :members:
     :undoc-members:
     :show-inheritance:
+
+catcher.core.step\_factory module
+---------------------------------
+
+.. automodule:: catcher.core.step_factory
+:members:
+        :undoc-members:
+        :show-inheritance:
+
 
 
 Module contents
