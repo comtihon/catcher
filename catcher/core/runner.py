@@ -1,4 +1,3 @@
-import traceback
 from os.path import join
 
 from catcher.core.test import Test, Include
@@ -37,7 +36,6 @@ class Runner:
             except Exception as e:
                 warning('Test ' + file + ' failed: ' + str(e))
                 results.append(False)
-                traceback.print_exc()
         return all(results)
 
     def prepare_test(self, file: str, variables: dict, override_vars: None or dict = None) -> Test:
