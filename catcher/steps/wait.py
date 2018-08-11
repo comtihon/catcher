@@ -22,6 +22,7 @@ class Wait(Step):
 
     Wait for 1 minute 30 seconds
     ::
+
         wait: {minutes: 1, seconds: 30}
     """
 

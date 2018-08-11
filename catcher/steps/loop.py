@@ -14,21 +14,22 @@ class Loop(Step):
     :while: perform action while the condition is true
 
     - if: your condition. It can be in short format: `if: '{{ counter < 10 }}'` and
-long one: `if: {equals: {the: '{{ counter }}', is_not: 10000}}`. The clause
-format is the same as in [checks](checks.md)
+            long one: `if: {equals: {the: '{{ counter }}', is_not: 10000}}`. The clause
+            format is the same as in [checks](checks.md)
     - do: the aciton to be performed. Can be a list of actions or single one.
     - max_cycle: the limit of reductions. *Optional* default is no limit.
 
     :foreach: iterate data structure
 
     - in: variable or static list. `ITEM` variable can be used to access each element of the data structure.
-    Data structure can be list, dict or any other python data structure which supports iteration.
+            Data structure can be list, dict or any other python data structure which supports iteration.
     - do: the aciton to be performed. Can be a list of actions or single one.
 
     :Examples:
 
     Perform a single echo wile counter is less than 10
     ::
+
         loop:
             while:
                 if: '{{ counter < 10 }}'
@@ -39,6 +40,7 @@ format is the same as in [checks](checks.md)
     Perform to actions: consume message from kafka and send token via POST http. Do it until server
     returns passed true in http response.
     ::
+
         loop:
             while:
                 if:
@@ -62,6 +64,7 @@ format is the same as in [checks](checks.md)
 
     Iterate over `iterator` variable, produce each element to kafka as json and debug it to file.
     ::
+
         loop:
             foreach:
                 in: '{{ iterator }}'

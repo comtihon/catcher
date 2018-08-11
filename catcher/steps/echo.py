@@ -18,14 +18,17 @@ class Echo(Step):
 
     Use short form to print variable to stdout
     ::
+
         echo: '{{ var }}'
 
     Print constant + variable to file
     ::
+
         echo: {from: 'constant and {{ var }}', to: debug.output}
 
     Use echo to register new variable
     ::
+
         echo: {from: '{{ RANDOM_STR }}@test.com', register: {user_email: '{{ OUTPUT }}'}}
 
     """

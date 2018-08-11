@@ -37,6 +37,7 @@ class ExternalStep(Step):
 
         For code above
         ::
+
             postgres:
                 request:
                     conf:
@@ -47,10 +48,13 @@ class ExternalStep(Step):
                         port: 5433
                     query: 'select count(*) from test'
             register: {documents: '{{ OUTPUT }}'}
+
         in_data will be
         ::
+
             {'request' : {'conf': {'dbname': 'test', 'user': 'test', 'password': 'test', 'host': 'localhost', 'port': 5433},
                           'query': 'select count(*) from test'}
             }
+
         """
         pass

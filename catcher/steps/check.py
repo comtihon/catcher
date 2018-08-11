@@ -46,10 +46,12 @@ class Equals(Operator):
 
     Check 'bar' equals variable 'foo'
     ::
+
         check: {equals: {the: 'bar', is: '{{ foo }}'}}
 
     Check list's third element is not greater than 2.
     ::
+
         check: {equals: {the: '{{ list[2] > 2 }}', is_not: true}}
 
     """
@@ -95,11 +97,13 @@ class Contains(Operator):
 
     Check 'a' not in variable 'list'
     ::
+
         check:
             contains: {the: 'a', not_in: '{{ list }}'}
 
     Check variable 'dict' has key `a`.
     ::
+
         check:
             contains: {the: 'a', in: '{{ dict }}'}
 
@@ -135,8 +139,9 @@ class And(Operator):
 
     :Examples:
 
-    This is the same as `1 in list and list[1] != 'b' and list[2] > 2'
+    This is the same as `1 in list and list[1] != 'b' and list[2] > 2`
     ::
+
         check:
             and:
                 - contains: {the: 1, in: '{{ list }}'}
@@ -166,8 +171,9 @@ class Or(And):
 
     :Examples:
 
-    This is the same as `1 in list or list[1] != 'b' or list[2] > 2'
+    This is the same as `1 in list or list[1] != 'b' or list[2] > 2`
     ::
+
         check:
             or:
                 - contains: {the: 1, in: '{{ list }}'}
@@ -193,6 +199,7 @@ class All(Operator):
 
     Pass if all elements of `var` has `k` == `a`
     ::
+
         check:
             all:
                 of: '{{ var }}'
@@ -240,6 +247,7 @@ class Any(All):
 
     Fail if `var` doesn't contain element with `k` == `a`
     ::
+
         check:
             any:
                 of: '{{ var }}'
@@ -260,9 +268,12 @@ class Check(Step):
 
     Check has a short form
     ::
+
         check: '{{ variable }}'
+
     which equals
     ::
+
         check:
             equals: {the: '{{ variable }}', is: true}
 

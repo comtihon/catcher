@@ -20,6 +20,7 @@ class Stop(Step):
 
     Stop execution if migration was applied.
     ::
+
         steps:
             - postgres:
                 request:

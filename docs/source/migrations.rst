@@ -1,15 +1,16 @@
-Use Catcher as universal migration tool
-=======================================
+Universal migrations
+====================
 Imagine you have several microservices and you've developed a new feature. To deploy
-this feature to any environment you should manually run several actions:  
+this feature to any environment you should manually run several actions:
+
 1. load <new_template.pdf> to s3.
 2. run sql migration on service1's postgres
 3. run n1ql migration on service2's couchbase
 4. notify all services of new template via kafka
 
-Of course, you can move this steps to different microservices, f.e. step 2 will be in service1
-migration, step 3 in service 2 migration etc...  
-But it will lead to splitting migration or code duplication and can lead to errors.  
+| Of course, you can move this steps to different microservices, f.e. step 2 will be in service1
+  migration, step 3 in service 2 migration etc...
+| But it will lead to splitting migration or code duplication and can lead to errors.
 
 Migration
 ---------
@@ -36,6 +37,7 @@ Migration
                 query: "insert into migration(id, hash) values(1, '{{ TEST_NAME }}');"
             tag: commit
             name: 'commit_migration_{{ TEST_NAME }}'
+
 `migrations/migration1.yaml`::
 
     ---
@@ -72,14 +74,16 @@ Migration
                 data: '{"type":"TEMPLATE","action":"RELOAD","path":"{{ template_path}} }'
             name: 'notify all about new template {{ new_template }}'
       - run: migrate.commit
+
 This will run all steps between `migrate.check` and `migrate.commit` once.
 
 Rollbacks
 ---------
-To use rollbacks you have to change your migrations. Above, the optimistic way of using 
-migrations was described. You just create your migrations, put them in `migrations` folder
-and run via `catcher -i inventory migrations -m modules`.  
-To use rollbacks you will have to write you migration with tag `up` and `down` on every step.
+| To use rollbacks you have to change your migrations. Above, the optimistic way of using
+  migrations was described. You just create your migrations, put them in `migrations` folder
+  and run via `catcher -i inventory migrations -m modules`.
+| To use rollbacks you will have to write you migration with tag `up` and `down` on every step.
+
 `migration1.yaml`::
 
     ---
@@ -106,6 +110,7 @@ To use rollbacks you will have to write you migration with tag `up` and `down` o
         # ... other steps up and down
         - run: migrate.commit
           tag: up
+
 Then you will have to create main migration file::
 
     ---
@@ -116,7 +121,8 @@ Then you will have to create main migration file::
           as: migration1
     steps:
       - run: migration1.up
-Main migration file will collect all your migrations and you will run them via
-`catcher -i inventory main_migration.yaml -m modules`.  
-To run rollbacks you will have to create the same rollback file where you will run
-only `down` tags of the test.
+
+| Main migration file will collect all your migrations and you will run them via
+  `catcher -i inventory main_migration.yaml -m modules`.
+| To run rollbacks you will have to create the same rollback file where you will run
+  only `down` tags of the test.

@@ -18,6 +18,7 @@ class Run(Step):
 
     Use short form to run `sign_up`
     ::
+
         include:
             file: register_user.yaml
             as: sign_up
@@ -28,6 +29,7 @@ class Run(Step):
 
     Run `sign_up` with username overridden
     ::
+
         include:
             file: register_user.yaml
             as: sign_up
@@ -41,6 +43,7 @@ class Run(Step):
 
     Include `sign_up` and run all steps with tag `register` from it. Use dot notation.
     ::
+
         include:
             file: register_and_login.yaml
             as: sign_up

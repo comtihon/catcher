@@ -4,6 +4,11 @@
    :maxdepth: 2
    :caption: Contents:
 
+   source/microservices
+   source/migrations
+   source/modules
+   source/tests
+
 Indices and tables
 ==================
 

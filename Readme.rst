@@ -7,8 +7,6 @@
 .. image:: https://img.shields.io/pypi/wheel/catcher.svg
     :target: https://pypi.python.org/pypi/catcher
 
-.. |br| raw:: html
-
 Microservices automated test tool
 =================================
 Support your team with a good Catcher!  
@@ -46,17 +44,17 @@ in one place. See more in [migrations](doc/migrations.md)
 
 Complex business actions - How it works?
 ----------------------------------------
-If in your company you need to perform some complex business actions - use catcher to automate them. |br|
-F.e. before business review you need to register a new user and it requires you to make 10 http request and send 2 kafka messages. |br|
-Do you really like to spend 10-20 minutes of your time on doing these steps one by one? |br|
-Write a catcher script `register_new_user.yaml` and call it manually: |br|
+If in your company you need to perform some complex business actions - use catcher to automate them. |
+F.e. before business review you need to register a new user and it requires you to make 10 http request and send 2 kafka messages. |
+Do you really like to spend 10-20 minutes of your time on doing these steps one by one? |
+Write a catcher script `register_new_user.yaml` and call it manually: |
 `catcher -i inventory.yaml register_new_user.yaml -e user_name=test_22.04.2018`.
 
 
 Installation
 ------------
-To install catcher with internal `modules`_ run `sudo pip install catcher-modules`. |br|
-This will install `catcher`_ and `catcher-modules`_ package. |br|
+To install catcher with internal `modules`_ run `sudo pip install catcher-modules`. |
+This will install `catcher`_ and `catcher-modules`_ package. |
 To install just catcher run `sudo pip install catcher`.
 
 .. _catcher: https://pypi.org/project/catcher

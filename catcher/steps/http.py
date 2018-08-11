@@ -24,6 +24,7 @@ class Http(Step):
 
     Post data to server with custom header
     ::
+
         http:
           post:
             headers: {Content-Type: 'application/json', Authorization: '{{ token }}'}
@@ -32,6 +33,7 @@ class Http(Step):
 
     Post file to remote server
     ::
+
         http:
           post:
             url: 'http://test.com'

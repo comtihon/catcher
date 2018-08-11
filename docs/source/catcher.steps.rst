@@ -36,10 +36,10 @@ catcher.steps.external\_step module
     :undoc-members:
     :show-inheritance:
 
-catcher.steps.forloop module
-----------------------------
+catcher.steps.loop module
+-------------------------
 
-.. automodule:: catcher.steps.forloop
+.. automodule:: catcher.steps.loop
     :members:
     :undoc-members:
     :show-inheritance:
@@ -48,14 +48,6 @@ catcher.steps.http module
 -------------------------
 
 .. automodule:: catcher.steps.http
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-catcher.steps.kafka module
---------------------------
-
-.. automodule:: catcher.steps.kafka
     :members:
     :undoc-members:
     :show-inheritance:

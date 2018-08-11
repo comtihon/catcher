@@ -24,6 +24,7 @@ Syntax
         - simple_form.yaml
         - file: long_form.yaml
             variables: {user_email: 'override@email.org'}
+
 **Important**: in array form computed variables from one include is available in the next one:
 F.e. if `simple_form.yaml` registers variable `foo` = 123, `long_form.yaml` can access it.
 * include with alias - include can be `run` by alias::
@@ -44,6 +45,7 @@ will use your test's variables other then include ones. To override variables us
          include: sign_up
          variables:
             email: 'foo@baz.bar'
+
 * include with alias and autorun - include will run by alias and on autorun::
 
     include:
@@ -57,6 +59,7 @@ will use your test's variables other then include ones. To override variables us
         - run:
             include: clean
         # .... some steps
+
 **Important**: variables in `include` will not be same as in `run` step. But you can supply it with variables::
 
     include:
@@ -71,6 +74,7 @@ will use your test's variables other then include ones. To override variables us
             include: clean
             variables:
         # .... some steps
+
 Variables, computed in `run` step are available for all other steps after it.
 
 * partly include (simple form) - include only part of the test's steps::
@@ -81,6 +85,7 @@ Variables, computed in `run` step are available for all other steps after it.
     steps:
         - run:
             include: sign_up.register
+
 * partly include (long form) - include only part of the test's steps (alias can contain dot)::
 
     include:
@@ -111,6 +116,7 @@ Imagine you have this `register_user.yaml` test::
                   url: '{{ user_service_url }}/data'
                   headers: {Content-Type: 'application/json;charset=UTF-8'}
                   body: {id: '{{ id }}', data: {gender: 'M', age: 22}}
+
 And also you have `deposit_all_new_users.yaml` test, which requires at least one
 new user to be registered. To solve this problem - include `register_user.yaml` and it
 will be run before the main test::
@@ -215,6 +221,7 @@ First, let's change `register_and_login.yaml` to look like this::
             register: {token: '{{ OUTPUT.data.token }}'}  # register token for another test's usage
             tag: login
         - echo: {from: 'Registered: {{ email }} with credentials {{ login }} : {{ password }}'}
+
 We tagged important steps and can use it in test `deposit_only_new_logged_users.yaml` below::
 
     include:
@@ -263,6 +270,7 @@ We tagged important steps and can use it in test `deposit_only_new_logged_users.
                     equals: {the: '{{ MESSAGE.uuid }}', is: '{{ uuid }}'}
             register: {balance: '{{ OUTPUT.balance }}'}
         - check: {equals: {the: '{{ balance }}', is: '{{ deposit }}'}}  # user has got his gift after first log in
+
 Here we run several steps of the main test, then we include all steps with `register` tag from `sign_up` include.
 After this we run our steps again and then run all steps with `login` taf from `sign_up`.
 
@@ -275,6 +283,7 @@ set in include test file)::
         - file: 'run_me_with_override.yaml'
           variables:
             user_email: john.doe@test.de
+
 `{{ user_email }}` will be `john.doe@test.de` even if `user_email` is also set in inventory with other
 value, or was computed in previous include file, or is set in file `run_me_with_override.yaml`.
 2. include's file variables override variables from previous include.
@@ -284,12 +293,14 @@ value, or was computed in previous include file, or is set in file `run_me_with_
         foo: bar
     steps:
         - echo: {from: '{{ foo }}'}
+
 `include2.yaml`::
 
     variables:
         foo: baz
     steps:
         - echo: {from: '{{ foo }}'}
+
 `test.yaml`::
 
     include:
@@ -297,11 +308,11 @@ value, or was computed in previous include file, or is set in file `run_me_with_
         - 'include2.yaml'
     steps:
         - echo: {from: '{{ foo }}'}
+
 Will print you::
 
     bar
     baz
-
 
 `bar` - when `include1.yaml` was included and run,
 `baz` - when `include2.yaml` was included and run,

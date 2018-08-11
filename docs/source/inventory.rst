@@ -12,6 +12,7 @@ Here is `dev_inventory.yaml`::
     bank_admin_service: 'http://bank_admin.dev.host.de'
     admin_user: 'Admin'
     admin_pass: 'qwerty'
+
 And here is the test using it::
 
 

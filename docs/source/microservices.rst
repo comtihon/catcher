@@ -1,5 +1,5 @@
-Catcher for testing microservices
-=================================
+Testing microservices
+=====================
 Imagine you have a Metrics for IOT, with microservice architecture::
 
                                      Metrics And Events
@@ -12,17 +12,19 @@ Imagine you have a Metrics for IOT, with microservice architecture::
                                            Warning                      -------------> Sensor Statistics
                                            counters
 
-`Metrics` service collect metrics from devices and sends to the `Receiver`. `Receiver` aggregates metrics and sends them
-to `Kafka`. `Processor` reads metrics from `Kafka`, process them and puts generated events back to `Kafka`. It also 
-uses `Redis` for warning counters storage.  
-`Saver` microservice saves all metrics and generated events to `Postgres`. Finally `Assessor` takes events and statistics
-from `Postgres` and renders it to user or external services.
+| `Metrics` service collect metrics from devices and sends to the `Receiver`.
+| `Receiver` aggregates metrics and sends them to `Kafka`.
+| `Processor` reads metrics from `Kafka`, process them and puts generated events back to `Kafka`.
+  It also uses `Redis` for warning counters storage.
+| `Saver` microservice saves all metrics and generated events to `Postgres`.
+| Finally `Assessor` takes events and statistics from `Postgres` and renders it to user or external services.
 
 How to test?
 ------------
-Each input request pass through the 9 services. Error can be in any of them. And full coverage of one service with unit
-or functional tests won't help you, because bug can be everywhere. In deploy configuration, wrong protocol in microservices
-communication, etc...  
+| Each input request pass through the 9 services. Error can be in any of them. And full coverage of one service with unit
+  or functional tests won't help you, because bug can be everywhere. In deploy configuration, wrong protocol in microservices
+  communication, etc...
+
 Catcher will help you::
 
     ---
@@ -91,4 +93,5 @@ Catcher will help you::
               - equals: '{{ metrics|length == 2 }}'
               - contains: {the: '{{ metric1 }}', in: '{{ metrics }}'}
               - contains: {the: '{{ metric2 }}', in: '{{ metrics }}'}
+
 With this Catcher test scenario you can always be sure, that every component of your system is working properly.

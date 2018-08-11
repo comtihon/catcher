@@ -20,12 +20,14 @@ It is not so useful. Lets add two real steps::
             request:
               conf: 'dbname=test user=test host=localhost password=test'
               query: 'select * from test where id=1'
+
 But it is still not useful, as we need to check the test's result.
 
 Use variables
 -------------
 Use defined variables to reduce the number of hard coded values. You can set them up in :doc:`inventory`. or
 in the test.
+
 Inventory `test_inventory.yaml`::
 
     ---
@@ -35,6 +37,7 @@ Inventory `test_inventory.yaml`::
         user: 'test'
         host: 'localhost'
         password: 'test'
+
 and test::
 
     ---
@@ -73,6 +76,7 @@ Let's register postgres read result and compare it with expected one::
             register: {document: '{{ OUTPUT }}'}
         - check:
             equals: {the: '{{ document[1] }}', is: 'foo'}
+
 Here we've registered the whole output of postgres query command into the `document` variable and
 access it in `check` step later. In `check equals` step we access second column, which has `foo` value (first one is id).
 With `register` step you can register part of output::
@@ -85,7 +89,9 @@ With `register` step you can register part of output::
             register: {foo: '{{ OUTPUT }}[1]'}
         - check:
             equals: {the: '{{ foo }}', is: 'foo'}
+
 and you can also register multiple variables::
+
     # same steps as below
         - postgres:
             request:
@@ -113,6 +119,7 @@ You can compact similar steps in one with `actions`::
             conf: '{{ pg_conf }}'
             query: 'select * from test where id={{ id }};'
           register: {document: '{{ OUTPUT }}'}
+
 to::
 
     ---
@@ -155,6 +162,7 @@ When you run your test you will see something like this::
     INFO:catcher:Step postgres OK
     INFO:catcher:Step postgres OK
     INFO:catcher:Step check OK
+
 Which is not so useful if you have lots of steps. Name them::
 
     ---
@@ -175,6 +183,7 @@ Which is not so useful if you have lots of steps. Name them::
         - check:
             equals: {the: '{{ document[1] }}', is: 'foo'}
             name: 'check data equality'
+
 And you will see::
 
     INFO:catcher:Step load data to service 127.0.0.1/save_data OK

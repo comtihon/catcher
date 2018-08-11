@@ -8,11 +8,13 @@ from catcher.core import step_factory
 class Include:
     """
     Include another testcase in include section:
+
     ::
         include:
             - file: simple_file.yaml
               run_on_include: false
             - other_simple_file.yaml
+
     each include file has it's own Include object and attached Test
     """
 

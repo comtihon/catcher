@@ -18,6 +18,7 @@ Built-in
             url: 'http://test.com'
             body: {'id': '{{ id }}', 'action': 'fee'}
         register: {reply: '{{ OUTPUT.id }}'}
+
 2. `ITEM` - item of a list. Used in `any` and `all` checks and `foreach` loops ::
 
     variables:
@@ -27,9 +28,12 @@ Built-in
             all:
                 of: '{{ list }}'
                 equals: {the: '{{ ITEM.k }}', is: 'a'}
+
 3. `NOW_TS` - return timestamp::
+
     steps:
       - echo: {from: '{{ NOW_TS }}', register: {now: '{{ OUTPUT }}'}}
+
 3. `NOW_DT` - return current date in `yyyy-mm-ddTHH:MM:SS0+0000`
 3. `RANDOM_STR` - return random string in uuid format
 3. `RANDOM_INT` - return random int [-2147483648, 2147483648]
@@ -44,6 +48,7 @@ Variables, passed from command line override inventory variables.
 `inventory.yaml`::
 
     foo=bar
+
 in this case `catcher -i inventory.yaml test -e foo=baz` foo variable
 will be `baz`.
 
@@ -61,6 +66,7 @@ passed from command line.
         foo=bax
     steps:
         ...
+
 in this case `catcher -i inventory.yaml test.yaml -e foo=baz` foo variable
 will be `bax`.
 

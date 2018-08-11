@@ -1,16 +1,21 @@
-Catcher Modular system
-======================
+Modules
+=======
 
-Catcher has a flexible modular system. If built-in modules functionality is not enough you can use your own modules.
-Read :doc:`tests` for more info about running and naming steps, registering and using variables.
-## Built-in
-There are build in modules, shipped with catcher. You can learn about their syntax in :doc:`catcher.steps`.
+| Catcher has a flexible modular system. If built-in modules functionality is not enough you can use your own modules.
+| Read :doc:`tests` for more info about running and naming steps, registering and using variables.
 
-## Additional
-There are additional catcher modules available in this repository: https://github.com/comtihon/catcher_modules
+Built-in
+--------
+There are build in modules, shipped with catcher. You can learn about their usage in :doc:`internal_modules`.
 
-## External
+Additional
+----------
+There are additional catcher modules available in this repository: `Catcher-Modules <https://github.com/comtihon/catcher_modules>`_
+
+External
+--------
 You can easily write your own modules and plug them to catcher:
+
 1. write your module
 2. use it in your test script
 3. tell catcher where it is
@@ -34,11 +39,11 @@ Then in test script you will write::
            add: {the: '{{ one }}', to: '{{ two }}'}
            register: {sum: '{{ OUTPUT }}'}
 
-To run it just tell the Catcher where your script is (it should be executable!):
-`catcher your_test.yaml -m path/to/your/module`
-Catcher will find your `math` module (by the step name) in `path/to/your/module` directory
-and call it with `{"add": {"the": "1","to": "2"}}` argument. Your file's stdout will be the
-step's `OUTPUT`.
+| To run it just tell the Catcher where your script is (it should be executable!):
+| `catcher your_test.yaml -m path/to/your/module`
+| Catcher will find your `math` module (by the step name) in `path/to/your/module` directory
+  and call it with `{"add": {"the": "1","to": "2"}}` argument. Your file's stdout will be the
+  step's `OUTPUT`.
 
 
 .. toctree::

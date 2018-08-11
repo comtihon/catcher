@@ -28,11 +28,12 @@ class Step(object, metaclass=MetaStep):
     :tag: Tag this step to be called via `run` with tag. *Optional*
 
     :actions: Each step can have one ore multiple actions. In case of one action `actions` list is
-    not necessary and you can use short form. Also - in case of several actions each should have its
-    own properties like `register`, `tag` etc...
+                not necessary and you can use short form. Also - in case of several actions each should have its
+                own properties like `register`, `tag` etc...
 
     One action - short form.
     ::
+
          http:
              post:  # register client and get id
                   url: '{{ user_service_url }}/sign_up'
@@ -40,6 +41,7 @@ class Step(object, metaclass=MetaStep):
 
     Multiple actions.
     ::
+
         http:
             actions:
               - post:  # register client and get id
@@ -53,10 +55,12 @@ class Step(object, metaclass=MetaStep):
 
     Register new variable after `echo` step finishes.
     ::
+
         echo: {from: '{{ RANDOM_STR }}@test.com', register: {user_email: '{{ OUTPUT }}'}}
 
     Tag both http actions with `sign_up`
     ::
+
         http:
             actions:
               - post:  # register client and get id
@@ -75,17 +79,20 @@ class Step(object, metaclass=MetaStep):
 
     Use custom name for the step
     ::
-      http:
-         post:  # register client and get id
-              url: '{{ user_service_url }}/sign_up'
-              headers: {Content-Type: 'application/json'}
-              body: {email: '{{ email }}', name: '{{ user }}'}
-              response_code: 201
-         name: 'Register {{ user }} on remote server'
+
+         http:
+             post:  # register client and get id
+                  url: '{{ user_service_url }}/sign_up'
+                  headers: {Content-Type: 'application/json'}
+                  body: {email: '{{ email }}', name: '{{ user }}'}
+                  response_code: 201
+             name: 'Register {{ user }} on remote server'
 
     Ignore errors and continue to another step
     ::
+
         http: {get: {url: 'http://test.com', response_code: 200}, ignore_errors: true}
+
     """
 
     def __init__(self, body: dict or str, *params, **kwargs) -> None:
@@ -107,6 +114,7 @@ class Step(object, metaclass=MetaStep):
 
         For code above
         ::
+
             postgres:
                 request:
                     conf:
@@ -117,11 +125,14 @@ class Step(object, metaclass=MetaStep):
                         port: 5433
                     query: 'select count(*) from test'
             register: {documents: '{{ OUTPUT }}'}
+
         in_data will be
         ::
+
             {'request' : {'conf': {'dbname': 'test', 'user': 'test', 'password': 'test', 'host': 'localhost', 'port': 5433},
                           'query': 'select count(*) from test'}
             }
+
         """
         pass
 

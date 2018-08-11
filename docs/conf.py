@@ -46,13 +46,14 @@ release = ''
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    'alabaster',
     'sphinx.ext.autodoc',
     'sphinx.ext.doctest',
     'sphinx.ext.intersphinx',
     'sphinx.ext.todo',
     'sphinx.ext.coverage',
     'sphinx.ext.viewcode',
-    'sphinx.ext.githubpages',
+    'sphinx.ext.githubpages'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -122,7 +123,7 @@ html_sidebars = {
         'about.html',
         'navigation.html',
         'relations.html',
-        'searchbox.html',
+        'searchbox.html'
     ]
 }
 
