@@ -119,7 +119,7 @@ html_static_path = ['_static']
 # html_sidebars = {}
 html_sidebars = {
     "**": [
-        "_build/microservices.html",
+        "microservices.html",
         "migrations.html"
     ]
 }
