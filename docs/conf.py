@@ -117,12 +117,6 @@ html_static_path = ['_static']
 # 'searchbox.html']``.
 #
 # html_sidebars = {}
-html_sidebars = {
-    "**": [
-        "microservices.html",
-        "migrations.html"
-    ]
-}
 
 # -- Options for HTMLHelp output ---------------------------------------------
 
