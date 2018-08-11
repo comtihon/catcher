@@ -2,7 +2,7 @@ Catcher Modular system
 ======================
 
 Catcher has a flexible modular system. If built-in modules functionality is not enough you can use your own modules.
-Read [tests](tests.md) for more info about running and naming steps, registering and using variables.
+Read :doc:`tests` for more info about running and naming steps, registering and using variables.
 ## Built-in
 There are build in modules, shipped with catcher. You can learn about their syntax in :doc:`catcher.steps`.
 
