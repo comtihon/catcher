@@ -1,6 +1,6 @@
 from os.path import join
 
-from catcher.utils.file_utils import ensure_dir, read_yaml_file, get_files
+from catcher.utils.file_utils import ensure_dir, get_files, read_source_file
 from test.abs_test_class import TestClass
 
 
@@ -27,7 +27,7 @@ class UtilsTest(TestClass):
     def test_read_yaml_simple(self):
         self.__populate_files(['test_file.yaml'])
         file = join(self.test_dir, 'test_file.yaml')
-        result = read_yaml_file(file)
+        result = read_source_file(file)
         self.assertEqual(self.yaml_parsed, result)
 
     # find file, when launched via `catcher /path/to/file.yaml`

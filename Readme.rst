@@ -25,7 +25,7 @@ Testing - How it works?
 -----------------------
 
 1. You implement new business requirements, touching one ore more services (external and internal)
-2. You write `tests`_ file in `YAML`_ format where you describe data movement in your system
+2. You write `tests`_ file in `YAML`_ or `JSON`_ formats where you describe data movement in your system
 3. You run your tests in any environment (from dev to prod) just changing `inventory`_ files.
 4. Bob (your colleague) implements his own business logic, which requires your test (or part of it) to be run.
 5. Bob writes his test in YAML and includes your test (or certain steps) to be run before or during his test.
@@ -33,7 +33,8 @@ Testing - How it works?
 7. Your business logic is tested automatically and you will know if some of your services interact incorrectly.
 8. Profit.
 
-.. _YAML: https://de.wikipedia.org/wiki/YAML
+.. _YAML: https://wikipedia.org/wiki/YAML
+.. _JSON: https://www.json.org/
 .. _inventory: https://catcher-test-tool.readthedocs.io/en/latest/source/inventory.html
 .. _tests: https://catcher-test-tool.readthedocs.io/en/latest/source/tests.html
 

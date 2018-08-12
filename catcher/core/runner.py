@@ -2,7 +2,7 @@ from os.path import join
 
 from catcher.core.test import Test, Include
 from catcher.steps import step
-from catcher.utils.file_utils import read_yaml_file, get_files
+from catcher.utils.file_utils import get_files, read_source_file
 from catcher.utils.logger import warning, info
 from catcher.utils.misc import merge_two_dicts
 from catcher.utils.module_utils import prepare_modules
@@ -22,7 +22,7 @@ class Runner:
     def run_tests(self) -> bool:
         variables = {}
         if self.inventory is not None:
-            variables = read_yaml_file(self.inventory)
+            variables = read_source_file(self.inventory)
         test_files = get_files(self.tests_path)
         results = []
         for file in test_files:
@@ -39,7 +39,7 @@ class Runner:
         return all(results)
 
     def prepare_test(self, file: str, variables: dict, override_vars: None or dict = None) -> Test:
-        body = read_yaml_file(file)
+        body = read_source_file(file)
         registered_includes = self.process_includes(body.get('include', []), variables)
         variables = merge_two_dicts(variables, body.get('variables', {}))  # override variables with test's variables
         if override_vars:  # TODO warn when overriding inventory vars?

@@ -1,5 +1,6 @@
 import inspect
 import io
+import json
 import ntpath
 import os
 import shutil
@@ -24,7 +25,7 @@ def get_files(path: str) -> list:
     if os.path.isdir(path):
         for f in os.listdir(path):
             path_in_dir = join(path, f)
-            if os.path.isfile(path_in_dir) and path_in_dir.endswith('yaml'):
+            if os.path.isfile(path_in_dir) and (path_in_dir.endswith('yaml') or path_in_dir.endswith('yml')):
                 file.append(path_in_dir)
             elif os.path.isdir(path_in_dir):
                 file += get_files(path_in_dir)
@@ -33,18 +34,15 @@ def get_files(path: str) -> list:
     return file
 
 
-def read_yaml_file(file: str) -> dict or None:
+def read_source_file(file: str) -> dict:
     if not os.path.exists(file):
         err = 'No such file: ' + file
         error(err)
         raise FileNotFoundError(err)
-    with open(file, 'r') as stream:
-        try:
-            return yaml.load(stream)
-        except yaml.YAMLError as exc:
-            err = 'Wrong YAML format for file ' + file + ' : ' + str(exc)
-            error(err)
-            raise yaml.YAMLError(err)
+    if file.lower().endswith('json'):
+        return _read_json_file(file)
+    else:
+        return _read_yaml_file(file)
 
 
 def read_file(file: str) -> str:
@@ -70,3 +68,23 @@ def remove_dir(path: str):
 def ensure_dir(path: str):
     if not os.path.exists(path):
         os.makedirs(path)
+
+
+def _read_yaml_file(file: str) -> dict:
+    with open(file, 'r') as stream:
+        try:
+            return yaml.load(stream)
+        except yaml.YAMLError as exc:
+            err = 'Wrong YAML format for file ' + file + ' : ' + str(exc)
+            error(err)
+            raise yaml.YAMLError(err)
+
+
+def _read_json_file(file: str) -> dict:
+    with open(file, 'r') as stream:
+        try:
+            return json.load(stream)
+        except yaml.YAMLError as exc:
+            err = 'Wrong YAML format for file ' + file + ' : ' + str(exc)
+            error(err)
+            raise yaml.YAMLError(err)
