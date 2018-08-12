@@ -1,5 +1,5 @@
-Includes philosophy
-===================
+Includes
+========
 Ideally, every test needs to be done from scratch. If you are testing two user's interaction
 you should first register to new users, and then run your tests. But putting user registration
 code in every test is bulky.
@@ -25,8 +25,9 @@ Syntax
         - file: long_form.yaml
             variables: {user_email: 'override@email.org'}
 
-**Important**: in array form computed variables from one include is available in the next one:
-F.e. if `simple_form.yaml` registers variable `foo` = 123, `long_form.yaml` can access it.
+| **Important**: in array form computed variables from one include is available in the next one:
+| F.e. if `simple_form.yaml` registers variable `foo` = 123, `long_form.yaml` can access it.
+
 * include with alias - include can be `run` by alias::
 
     include:
@@ -99,6 +100,7 @@ Variables, computed in `run` step are available for all other steps after it.
 
 Simple run on include
 ---------------------
+
 Imagine you have this `register_user.yaml` test::
 
     ---
@@ -144,6 +146,7 @@ includes.
 
 Run on action
 -------------
+
 What if you need to run action only after a specific actions of your test?
 Imagine you have `deposit_user.yaml` and you need to run `register_and_login` after several steps of your test::
 
@@ -184,6 +187,7 @@ Imagine you have `deposit_user.yaml` and you need to run `register_and_login` af
 
 Run parts on action
 -------------------
+
 And now imagine you, in your test need to run only a part of `register_and_login.yaml` steps. How that is possible?
 First, let's change `register_and_login.yaml` to look like this::
 
@@ -276,6 +280,7 @@ After this we run our steps again and then run all steps with `login` taf from `
 
 Include variables priority:
 ---------------------------
+
 1. include variables override everything (inventory, variables form previous includes and variables
 set in include test file)::
 
@@ -286,6 +291,7 @@ set in include test file)::
 
 `{{ user_email }}` will be `john.doe@test.de` even if `user_email` is also set in inventory with other
 value, or was computed in previous include file, or is set in file `run_me_with_override.yaml`.
+
 2. include's file variables override variables from previous include.
 `include1.yaml`::
 
@@ -314,6 +320,6 @@ Will print you::
     bar
     baz
 
-`bar` - when `include1.yaml` was included and run,
-`baz` - when `include2.yaml` was included and run,
-nothing - when `test.yaml` was run (variables from includes don't go to test).
+| `bar` - when `include1.yaml` was included and run,
+| `baz` - when `include2.yaml` was included and run,
+| nothing - when `test.yaml` was run (variables from includes don't go to test).

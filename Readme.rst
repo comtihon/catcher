@@ -25,8 +25,8 @@ Testing - How it works?
 -----------------------
 
 1. You implement new business requirements, touching one ore more services (external and internal)
-2. You write [test](doc/tests.md) file in `YAML`_ format where you describe data movement in your system
-3. You run your tests in any environment (from dev to prod) just changing [inventory](doc/inventory.md) files.
+2. You write `tests`_ file in `YAML`_ format where you describe data movement in your system
+3. You run your tests in any environment (from dev to prod) just changing `inventory`_ files.
 4. Bob (your colleague) implements his own business logic, which requires your test (or part of it) to be run.
 5. Bob writes his test in YAML and includes your test (or certain steps) to be run before or during his test.
 6. John (your devOps) decides to automate tests and makes CI run all tests on every microservice deploy.
@@ -34,28 +34,33 @@ Testing - How it works?
 8. Profit.
 
 .. _YAML: https://de.wikipedia.org/wiki/YAML
+.. _inventory: https://catcher-test-tool.readthedocs.io/en/latest/source/inventory.html
+.. _tests: https://catcher-test-tool.readthedocs.io/en/latest/source/tests.html
+
 
 Migration - How it works?
 -------------------------
 Every new feature in microservices require several migration steps in more than one service. But it is much better to
 create one migration script for all services (kafka, aws, databases) to prevent code duplication and keep all instructions
-in one place. See more in [migrations](doc/migrations.md)
+in one place. See more in `migrations`_
+
+.. _migrations: https://catcher-test-tool.readthedocs.io/en/latest/source/migrations.html
 
 
 Complex business actions - How it works?
 ----------------------------------------
-If in your company you need to perform some complex business actions - use catcher to automate them. |
-F.e. before business review you need to register a new user and it requires you to make 10 http request and send 2 kafka messages. |
-Do you really like to spend 10-20 minutes of your time on doing these steps one by one? |
-Write a catcher script `register_new_user.yaml` and call it manually: |
-`catcher -i inventory.yaml register_new_user.yaml -e user_name=test_22.04.2018`.
+| If in your company you need to perform some complex business actions - use catcher to automate them.
+| F.e. before business review you need to register a new user and it requires you to make 10 http request and send 2 kafka messages.
+| Do you really like to spend 10-20 minutes of your time on doing these steps one by one?
+| Write a catcher script `register_new_user.yaml` and call it manually:
+| `catcher -i inventory.yaml register_new_user.yaml -e user_name=test_22.04.2018`.
 
 
 Installation
 ------------
-To install catcher with internal `modules`_ run `sudo pip install catcher-modules`. |
-This will install `catcher`_ and `catcher-modules`_ package. |
-To install just catcher run `sudo pip install catcher`.
+| To install catcher with internal `modules`_ run `sudo pip install catcher-modules`.
+| This will install `catcher`_ and `catcher-modules`_ package.
+| To install just catcher run `sudo pip install catcher`.
 
 .. _catcher: https://pypi.org/project/catcher
 .. _modules: https://github.com/comtihon/catcher_modules
@@ -67,14 +72,16 @@ Why catcher?
 
 * don't repeat test code. Write one test and call its steps from another;
 * compute and override variables to check your data and compose new flexible requests;
-* apply [checks](doc/checks.md) to the steps results;
+* apply :meth:`catcher.steps.check` to the steps results;
 * write test for development, change inventory and test stage/uat/prod after deploy;
-* test all your [microservices](doc/microservices.md) with ease;
+* test all your `microservices`_ with ease;
 * automate your testing!
-* [modular](doc/modules.md) architecture
+* `modular`_ architecture
 
 Quickstart and documentation
 ----------------------------
 See `readthedocs`_.
 
-.. _readthedocs: https://catcher-modules.readthedocs.io/en/latest/
+.. _readthedocs: https://catcher-test-tool.readthedocs.io/en/latest/
+.. _microservices: https://catcher-test-tool.readthedocs.io/en/latest/source/microservices.html
+.. _modular: https://catcher-test-tool.readthedocs.io/en/latest/source/modules.html

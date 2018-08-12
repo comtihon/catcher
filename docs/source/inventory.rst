@@ -1,9 +1,12 @@
 Inventories
 ===========
-Inventory file is a file where you set up most common variables, like hosts, credentials and urls.
-You can run your tests without inventories, but they are recommended if you have multiple environments to test.
+
+| Inventory file is a file where you set up most common variables, like hosts, credentials and urls.
+| You can run your tests without inventories, but they are recommended if you have multiple environments to test.
+
 Example
 -------
+
 Here is `dev_inventory.yaml`::
 
     ---

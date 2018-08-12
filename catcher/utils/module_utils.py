@@ -1,6 +1,8 @@
 import importlib
+import ntpath
 import os
 import pkgutil
+from importlib import util
 from os.path import join
 from pydoc import locate
 
@@ -32,15 +34,29 @@ def load_external_actions(package: str):
     """
     Load all classes from a package
     """
-    core_modules = locate(package)
-    if core_modules is None:
-        return  # package not installed
-    for importer, modname, ispkg in pkgutil.walk_packages(path=core_modules.__path__,
-                                                          prefix=core_modules.__name__ + '.',
-                                                          onerror=lambda x: None):
-        importlib.import_module(modname)
+    if package.endswith('.py'):
+        __load_python_package_by_path(package)
+    else:
+        __load_python_package_installed(package)
 
 
 def get_all_subclasses_of(clazz) -> list:
     return clazz.__subclasses__() + [g for s in clazz.__subclasses__()
                                      for g in get_all_subclasses_of(s)]
+
+
+def __load_python_package_by_path(path: str):
+    name = ntpath.basename(path)
+    spec = util.spec_from_file_location(name, path)
+    module = util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+
+def __load_python_package_installed(package: str):
+    modules = locate(package)
+    if modules is None:
+        return  # package not installed
+    for importer, modname, ispkg in pkgutil.walk_packages(path=modules.__path__,
+                                                          prefix=modules.__name__ + '.',
+                                                          onerror=lambda x: None):
+        importlib.import_module(modname)

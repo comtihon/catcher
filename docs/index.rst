@@ -8,6 +8,9 @@
    source/migrations
    source/modules
    source/tests
+   source/variables
+   source/inventory
+   source/includes
 
 Indices and tables
 ==================

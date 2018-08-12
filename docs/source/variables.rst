@@ -1,14 +1,20 @@
 Variables
 =========
+
 Predefined
 ----------
 Variables from inventory, `variables` block or command line `-e` argument
+
 Computed
 --------
-Registered in steps variables
+
+| Registered in steps variables via `register: {var_name: var_value}`.
+| `var_value` can be a variable itself like: `register: {email: '{{ user }}@test.com'}`
+
 Inherited
 ---------
-Inherited from `run` steps.
+Inherited from `run` steps. Every run include adds its variables to test scope.
+
 Built-in
 --------
 1. `OUTPUT` - operation's output. Can be used for new variables registration::
