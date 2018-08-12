@@ -2,9 +2,11 @@ import importlib
 import ntpath
 import os
 import pkgutil
-from importlib import util
+import types
+from importlib import util, machinery
 from os.path import join
 from pydoc import locate
+from types import ModuleType
 
 from catcher.utils.logger import warning, error
 
@@ -47,9 +49,9 @@ def get_all_subclasses_of(clazz) -> list:
 
 def __load_python_package_by_path(path: str):
     name = ntpath.basename(path)
-    spec = util.spec_from_file_location(name, path)
-    module = util.module_from_spec(spec)
-    spec.loader.exec_module(module)
+    loader = importlib.machinery.SourceFileLoader(name, path)
+    mod = ModuleType(loader.name)
+    loader.exec_module(mod)
 
 
 def __load_python_package_installed(package: str):
