@@ -67,7 +67,7 @@ def __load_modules(modules):
     Load catcher core modules, carcher-modules extensions (if available) and try to load all modules from cmd args
     """
     load_external_actions('catcher.steps')
-    load_external_actions('catcher-modules')
+    load_external_actions('catcher_modules')
     [load_external_actions(m) for m in modules]
 
 

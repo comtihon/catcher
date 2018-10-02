@@ -59,14 +59,37 @@ Complex business actions - How it works?
 
 Installation
 ------------
-| To install catcher with internal `modules`_ run `sudo pip install catcher-modules`.
+| To install catcher with all internal `modules`_ run `sudo pip install catcher-modules[all]`.
 | This will install `catcher`_ and `catcher-modules`_ package.
 | To install just catcher run `sudo pip install catcher`.
+| To install specific catcher-module use `pip install catcher-modules[kafka]`. See `catcher-modules-index`_ for all
+  available modules.
 
 .. _catcher: https://pypi.org/project/catcher
 .. _modules: https://github.com/comtihon/catcher_modules
 .. _catcher-modules: https://pypi.org/project/catcher-modules
+.. _catcher-modules-index: https://catcher-modules.readthedocs.io/en/latest/source/catcher_modules.html#module-catcher_modules
 
+Usage
+-----
+* Write catcher script (see `tests`_). F.e.::
+
+    ---
+    steps:
+    - http: {get: {url: 'http://my_cache_service.com/save?key=foo&value=bar'}}
+    - redis:
+        request:
+            get:
+                - foo
+        register: {foo: '{{ OUTPUT }}'}
+    - check:
+        equals: {the: '{{ foo }}', is: 'bar'}
+* Run catcher `catcher my_test_file.yml`.
+
+| You can also specify `inventory`_ with `-i` to test against different environments, custom `module`_ paths with `-m`
+  to include your own modules. Run `catcher -h` to get full list of available options.
+
+.. _module: https://catcher-test-tool.readthedocs.io/en/latest/source/modules.html
 
 Why catcher?
 ------------
