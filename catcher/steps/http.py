@@ -19,6 +19,7 @@ class Http(Step):
     - response_code: Code to await. *Optional* default is 200.
     - body: body to send (only for methods which support it).
     - body_from_file: File can be used as data source. *Optional* Either `body` or `body_from_file` should present.
+    - verify: Verify SSL Certificate in case of https. *Optional*. Default is true.
 
     :Examples:
 
@@ -39,6 +40,15 @@ class Http(Step):
             url: 'http://test.com'
             body_from_file: "data/answers.json"
 
+    SSL without verification
+    ::
+
+        http:
+          post:
+            url: 'https://my_server.de'
+            body: {'user':'test'}
+            verify: false
+
     """
 
     def __init__(self, response_code=200, **body) -> None:
@@ -49,6 +59,7 @@ class Http(Step):
         self.url = conf['url']
         self.headers = conf.get('headers', {})
         self.body = None
+        self.verify = conf.get('verify', True)
         self.code = response_code
         if self.method != 'get':
             self.body = conf.get('body', None)
@@ -67,11 +78,11 @@ class Http(Step):
         body = self.__form_body(variables)
         debug('http ' + str(self.method) + ' ' + str(url) + ', ' + str(headers) + ', ' + str(body))
         if body is None:
-            r = request(self.method, url, headers=headers)
+            r = request(self.method, url, headers=headers, verify=self.verify)
         elif isinstance(body, dict):
-            r = request(self.method, url, headers=headers, json=body)
+            r = request(self.method, url, headers=headers, json=body, verify=self.verify)
         else:
-            r = request(self.method, url, headers=headers, data=body)
+            r = request(self.method, url, headers=headers, data=body, verify=self.verify)
         debug(r.text)
         if r.status_code != self.code:
             raise RuntimeError('Code mismatch: ' + str(r.status_code) + ' vs ' + str(self.code))
