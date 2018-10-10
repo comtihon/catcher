@@ -1,9 +1,10 @@
+import ast
 import os
 from os.path import join
 
 from catcher.core.runner import Runner
 from test.abs_test_class import TestClass
-from test.test_utils import check_file
+from test.test_utils import check_file, read_file
 
 
 class InventoryTest(TestClass):
@@ -103,5 +104,5 @@ class InventoryTest(TestClass):
         ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), join(self.test_dir, 'inventory.yml'))
         self.assertTrue(runner.run_tests())
-        self.assertTrue(check_file(join(self.test_dir, 'database_conf.output'),
-                                   '''{'username': 'user', 'password': '********'}'''))
+        content = ast.literal_eval(read_file(join(self.test_dir, 'database_conf.output')))
+        self.assertEquals(content, {'username': 'user', 'password': '********'})

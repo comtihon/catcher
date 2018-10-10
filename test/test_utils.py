@@ -10,3 +10,8 @@ def check_file(file: str, expected: str) -> bool:
             print('Got ' + content + ' instead of expected ' + expected)
             return False
         return True
+
+
+def read_file(file: str) -> str:
+    with open(file, 'r') as f:
+        return f.read()
