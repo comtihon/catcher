@@ -14,9 +14,7 @@ def merge_two_dicts(x, y):
         return y
     if not y:
         return x
-    z = x.copy()  # start with x's keys and values
-    z.update(y)  # modifies z with y's keys and values & returns None
-    return z
+    return {**x, **y}
 
 
 def try_get_object(source: str or dict or list):
