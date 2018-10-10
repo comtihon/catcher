@@ -45,6 +45,47 @@ Built-in
 3. `RANDOM_INT` - return random int [-2147483648, 2147483648]
 4. `TEST_NAME` - name of the current test.
 
+Environment variables
+---------------------
+
+| There is a full support for environment variables in inventory files and partly support in steps itself.
+| In steps you can just access them ::
+
+    steps:
+        - check: {equals: {the: '{{ FOO }}', is: '1'}}
+
+| If you run `export FOO=1` before - this step will pass.
+| There is a limitation (only for steps) - variables should be accessed directly.
+| It means, this not work ::
+
+    variables:
+        foo: '{{ FOO }}'
+    steps:
+        - check: {equals: {the: '{{ foo }}', is: '1'}}
+
+| Because here there are 2 steps:
+
+1. replace foo with `{{ FOO }}`
+2. replace `{{ FOO }}` with value from environment.
+
+| However, there is no such limitation in inventory.
+
+inventory.yml ::
+
+    example_host: http://example.com
+    database_conf:
+            host: '{{ DB_HOST }}'
+            dbname: '{{ DB_NAME }}'
+            user: '{{ DB_USER }}'
+            password: '{{ DB_PASSWORD }}'
+
+test.yml ::
+
+    postgres:
+    request:
+        conf: '{{ database_conf }}'
+        query: 'select count(*) from test'
+
 Variables override priority
 ===========================
 
@@ -104,3 +145,16 @@ Variables, computed via `run` includes override variables declared before.
         - run: compute_fee
         - check: {equals: {the: '{{ deposit }}', is: 50}}  # deposit is 50, computed from compute_fee run
         - check: {equals: {the: '{{ uuid }}', is_not: 'test_user'}}  # uuid is random, got from compute_fee run
+
+Environment variables
+---------------------
+| All other variables override environmental variables from steps.
+| export FOO=bar
+test.yml::
+
+    variables:
+            FOO: baz
+    steps:
+        - check: {equals: {the: '{{ FOO }}', is: 'baz'}}
+
+I recommend to use lowercase for your variables and uppercase for environmental.

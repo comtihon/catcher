@@ -99,6 +99,7 @@ class InventoryTest(TestClass):
         self.populate_file('main.yaml', '''---
         steps:
            - echo: {from: '{{ database_conf }}', to: database_conf.output}
+           - check: {equals: {the: '{{ database_conf.username }}', is: 'user'}}
         ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), join(self.test_dir, 'inventory.yml'))
         self.assertTrue(runner.run_tests())

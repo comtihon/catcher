@@ -86,7 +86,6 @@ class VariablesTest(TestClass):
             FOO: 2
         steps:
             - check: {equals: {the: '{{ FOO }}', is: '2'}}
-
         ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
         self.assertTrue(runner.run_tests())
