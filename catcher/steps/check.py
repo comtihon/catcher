@@ -1,6 +1,6 @@
 from abc import abstractmethod
 
-from catcher.steps.step import Step, update_variables
+from catcher.steps.step import Step, update_variables, SERVICE_KEYS
 from catcher.utils.logger import debug
 from catcher.utils.misc import fill_template
 from catcher.utils.module_utils import get_all_subclasses_of
@@ -279,13 +279,9 @@ class Check(Step):
 
     """
 
-    def __init__(self, body: dict) -> None:
-        super().__init__(body)
-        self.subject = body
-
-    @classmethod
-    def construct_step(cls, body, *params, **kwargs):
-        return cls(body)
+    def __init__(self, _body=None, **kwargs: dict) -> None:
+        super().__init__(**kwargs)
+        self.subject = _body if _body else [{k: v} for k, v in kwargs.items() if k not in SERVICE_KEYS][0]
 
     @update_variables
     def action(self, includes: dict, variables: dict) -> dict:

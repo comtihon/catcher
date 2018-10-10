@@ -78,30 +78,26 @@ class Loop(Step):
 
     """
 
-    def __init__(self, body: dict, get_action=None, get_actions=None) -> None:
-        super().__init__(body)
-        self.type = Step.filter_predefined_keys(body)  # while/foreach
-        do = body[self.type]['do']
+    def __init__(self, _get_action=None, _get_actions=None, **kwargs):
+        super().__init__(**kwargs)
+        self.type = Step.filter_predefined_keys(kwargs)  # while/foreach
+        do = kwargs[self.type]['do']
         if len(do) == 1:
             [loop_action] = do.keys()
-            self.do_action = [get_action((loop_action, do[loop_action]))]
+            self.do_action = [_get_action((loop_action, do[loop_action]))]
         else:
-            self.do_action = list(itertools.chain.from_iterable([get_actions(act) for act in do]))
-        self.max_cycle = body[self.type].get('max_cycle')
+            self.do_action = list(itertools.chain.from_iterable([_get_actions(act) for act in do]))
+        self.max_cycle = kwargs[self.type].get('max_cycle')
         if self.type == 'while':
-            if_clause = body['while']['if']
+            if_clause = kwargs['while']['if']
             if isinstance(if_clause, str):
                 self.if_clause = {'equals': if_clause}
             else:
                 self.if_clause = if_clause
         elif self.type == 'foreach':
-            self.in_var = body['foreach']['in']
+            self.in_var = kwargs['foreach']['in']
         else:
-            raise ValueError('Wrong configuration for step: ' + str(body))
-
-    @classmethod
-    def construct_step(cls, body, *params, **kwargs):
-        return cls(body, **kwargs)
+            raise ValueError('Wrong configuration for step: ' + str(kwargs))
 
     @update_variables
     def action(self, includes: dict, variables: dict) -> dict:

@@ -18,6 +18,9 @@ class MetaStep(type):
         return cls
 
 
+SERVICE_KEYS = ['register', 'ignore_errors', 'name', 'tag', '_path', '_get_actions', '_get_action']
+
+
 class Step(object, metaclass=MetaStep):
     """
     Abstract class for all Steps. Operates with common properties, available for all steps.
@@ -95,13 +98,9 @@ class Step(object, metaclass=MetaStep):
 
     """
 
-    def __init__(self, body: dict or str, *params, **kwargs) -> None:
-        if isinstance(body, str):
-            self.register = None
-            self.name = None
-        else:
-            self.register = body.get('register', None)
-            self.name = body.get('name', None)
+    def __init__(self, register=None, name=None, **kwargs) -> None:
+        self.register = register
+        self.name = name
 
     @abstractmethod
     def action(self, includes: dict, variables: dict) -> dict or tuple:
@@ -137,13 +136,9 @@ class Step(object, metaclass=MetaStep):
         pass
 
     @staticmethod
-    def filter_predefined_keys(data: dict):
-        [action] = [k for k in data.keys() if k != 'register' and k != 'ignore_errors' and k != 'name' and k != 'tag']
+    def filter_predefined_keys(kwargs: dict):
+        [action] = [k for k in kwargs.keys() if k != 'register' and k not in SERVICE_KEYS and not k.startswith('_')]
         return action
-
-    @classmethod
-    def construct_step(cls, body, *params, **kwargs):
-        return cls(body, *params, **kwargs)
 
     def process_register(self, variables, output: dict or list or str or None = None) -> dict:
         if self.register is not None:

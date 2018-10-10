@@ -11,10 +11,10 @@ class ExternalStep(Step):
     catcher-modules project
     """
 
-    def __init__(self, body: dict or str, *params, **kwargs) -> None:
-        super().__init__(body, *params, **kwargs)
-        method = Step.filter_predefined_keys(body)
-        self.data = {method: body[method]}
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
+        method = Step.filter_predefined_keys(kwargs)
+        self.data = {method: kwargs[method]}
 
     def simple_input(self, variables):
         """

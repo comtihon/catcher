@@ -33,21 +33,13 @@ class Echo(Step):
 
     """
 
-    def __init__(self, body: dict, path: str = None) -> None:
-        super().__init__(body)
-        if isinstance(body, dict):
-            self.source = body['from']
-            self.dst = body.get('to', None)
-        elif isinstance(body, str):
-            self.source = body
-            self.dst = None
-        else:
+    def __init__(self, _path: str = None, _body=None, to=None, **kwargs) -> None:
+        super().__init__(**kwargs)
+        self.source = _body if _body else kwargs['from']
+        self.dst = to
+        self.path = _path
+        if self.source is None:
             raise ValueError('Incorrect arguments for echo.')
-        self.path = path
-
-    @classmethod
-    def construct_step(cls, body, *params, **kwargs):
-        return cls(body, *params)
 
     @update_variables
     def action(self, includes: dict, variables: dict) -> tuple:

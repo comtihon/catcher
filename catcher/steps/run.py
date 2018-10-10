@@ -51,19 +51,18 @@ class Run(Step):
             - run:
                 include: sign_up.register
     """
-    def __init__(self, **keywords) -> None:
-        super().__init__(keywords)
-        self.variables = keywords.get('variables', {})
-        self.ignore_errors = keywords.get('ignore_errors', False)
-        self.include = keywords.get('include', None)
-        self.tag = keywords.get('tag', None)
-        if self.include is None:
-            self.include = keywords['run']
 
-    @classmethod
-    def construct_step(cls, body, *params, **kwargs):
-        args = body if not isinstance(body, str) else {'include': body}
-        return cls(**args)
+    def __init__(self, ignore_errors=False, _body=None, run=None, include=None, tag=None, variables=None, **keywords):
+        super().__init__(keywords)
+        self.variables = {} if variables is None else variables
+        self.ignore_errors = ignore_errors
+        self.include = include
+        self.tag = tag
+        if self.include is None:
+            if run and isinstance(run, str):
+                self.include = run
+            else:
+                self.include = _body
 
     @update_variables
     def action(self, includes: dict, variables: dict) -> dict:

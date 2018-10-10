@@ -7,11 +7,11 @@ from catcher.utils.misc import fill_template_str
 
 
 class External(Step):
-    def __init__(self, body: dict, module: str) -> None:
-        super().__init__(body)
-        method = Step.filter_predefined_keys(body)
-        self.data = {method: body[method]}
-        self.module = module
+    def __init__(self, _module: str = None, **kwargs) -> None:
+        super().__init__(**kwargs)
+        method = Step.filter_predefined_keys(kwargs)
+        self.data = {method: kwargs[method]}
+        self.module = _module
 
     @update_variables
     def action(self, includes: dict, variables: dict) -> tuple:
@@ -32,4 +32,3 @@ class External(Step):
             out = p.stdout.read().decode()
             warning(out)
             raise Exception('Execution failed.')
-

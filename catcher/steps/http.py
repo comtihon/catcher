@@ -51,11 +51,11 @@ class Http(Step):
 
     """
 
-    def __init__(self, response_code=200, **body) -> None:
-        super().__init__(body)
-        method = Step.filter_predefined_keys(body)  # get/post/put...
+    def __init__(self, response_code=200, **kwargs) -> None:
+        super().__init__(**kwargs)
+        method = Step.filter_predefined_keys(kwargs)  # get/post/put...
         self.method = method.lower()
-        conf = body[method]
+        conf = kwargs[method]
         self.url = conf['url']
         self.headers = conf.get('headers', {})
         self.body = None
@@ -65,10 +65,6 @@ class Http(Step):
             self.body = conf.get('body', None)
             if self.body is None:
                 self.file = conf['body_from_file']
-
-    @classmethod
-    def construct_step(cls, body, *params, **kwargs):
-        return cls(**body)
 
     @update_variables
     def action(self, includes: dict, variables: dict) -> tuple:

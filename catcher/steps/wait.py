@@ -26,13 +26,9 @@ class Wait(Step):
         wait: {minutes: 1, seconds: 30}
     """
 
-    def __init__(self, body: dict) -> None:
-        super().__init__(body)
-        self.delay = to_seconds(body)
-
-    @classmethod
-    def construct_step(cls, body, *params, **kwargs):
-        return cls(**body)
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
+        self.delay = to_seconds(kwargs)
 
     @update_variables
     def action(self, includes: dict, variables: dict) -> dict:
