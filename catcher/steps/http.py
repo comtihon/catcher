@@ -60,6 +60,9 @@ class Http(Step):
         self.headers = conf.get('headers', {})
         self.body = None
         self.verify = conf.get('verify', True)
+        if not self.verify:
+            import urllib3
+            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
         self.code = response_code
         if self.method != 'get':
             self.body = conf.get('body', None)
