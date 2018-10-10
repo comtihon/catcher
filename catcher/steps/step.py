@@ -18,7 +18,7 @@ class MetaStep(type):
         return cls
 
 
-SERVICE_KEYS = ['register', 'ignore_errors', 'name', 'tag', '_path', '_get_actions', '_get_action']
+SERVICE_KEYS = ['register', 'ignore_errors', 'name', 'tag']
 
 
 class Step(object, metaclass=MetaStep):
@@ -137,7 +137,7 @@ class Step(object, metaclass=MetaStep):
 
     @staticmethod
     def filter_predefined_keys(kwargs: dict):
-        [action] = [k for k in kwargs.keys() if k != 'register' and k not in SERVICE_KEYS and not k.startswith('_')]
+        [action] = [k for k in kwargs.keys() if k not in SERVICE_KEYS and not k.startswith('_')]
         return action
 
     def process_register(self, variables, output: dict or list or str or None = None) -> dict:

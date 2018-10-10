@@ -281,7 +281,11 @@ class Check(Step):
 
     def __init__(self, _body=None, **kwargs: dict) -> None:
         super().__init__(**kwargs)
-        self.subject = _body if _body else [{k: v} for k, v in kwargs.items() if k not in SERVICE_KEYS][0]
+        if _body:
+            self.subject = _body
+        else:
+            [subject] = [{k: v} for k, v in kwargs.items() if k not in SERVICE_KEYS and not k.startswith('_')]
+            self.subject = subject
 
     @update_variables
     def action(self, includes: dict, variables: dict) -> dict:
