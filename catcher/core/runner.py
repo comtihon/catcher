@@ -4,7 +4,7 @@ from catcher.core.test import Test, Include
 from catcher.steps import step
 from catcher.utils.file_utils import get_files, read_source_file
 from catcher.utils.logger import warning, info
-from catcher.utils.misc import merge_two_dicts
+from catcher.utils.misc import merge_two_dicts, try_get_object, fill_template_str
 from catcher.utils.module_utils import prepare_modules
 
 
@@ -23,6 +23,7 @@ class Runner:
         variables = {}
         if self.inventory is not None:
             variables = read_source_file(self.inventory)
+            variables = try_get_object(fill_template_str(variables, {}))  # fill env vars
         test_files = get_files(self.tests_path)
         results = []
         for file in test_files:

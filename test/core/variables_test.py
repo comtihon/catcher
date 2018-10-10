@@ -1,3 +1,4 @@
+import os
 from os.path import join
 
 from catcher.core.runner import Runner
@@ -65,3 +66,40 @@ class VariablesTest(TestClass):
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
         runner.run_tests()
         self.assertTrue(check_file(join(self.test_dir, 'one.output'), '/home/user/main.yml'))
+
+    # test if env vars included from inventory
+    def test_env_vars_included(self):
+        os.environ['FOO'] = '1'
+        self.populate_file('main.yaml', '''---
+        steps:
+            - check: {equals: {the: '{{ FOO }}', is: '1'}}
+
+        ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
+
+    # env var should be overridden with any other var
+    def test_var_override_env(self):
+        os.environ['FOO'] = '1'
+        self.populate_file('main.yaml', '''---
+        variables:
+            FOO: 2
+        steps:
+            - check: {equals: {the: '{{ FOO }}', is: '2'}}
+
+        ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
+
+    # env var can't be set in vars
+    def test_env_var_in_vars(self):
+        os.environ['FOO'] = '1'
+        self.populate_file('main.yaml', '''---
+                variables:
+                    foo: '{{ FOO }}'
+                steps:
+                    - check: {equals: {the: '{{ foo }}', is: '1'}}
+
+                ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertFalse(runner.run_tests())

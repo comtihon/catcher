@@ -1,3 +1,4 @@
+import os
 from os.path import join
 
 from catcher.core.runner import Runner
@@ -72,3 +73,34 @@ class InventoryTest(TestClass):
         runner.run_tests()
         self.assertTrue(check_file(join(self.test_dir, '1.output'), 'baz'))
         self.assertTrue(check_file(join(self.test_dir, '2.output'), 'bax'))
+
+    # env var can be set in vars
+    def test_env_var_in_inventory(self):
+        os.environ['FOO'] = '1'
+        self.populate_file('inventory.yml', '''---
+        foo: '{{ FOO }}'
+        ''')
+        self.populate_file('main.yaml', '''---
+        steps:
+            - check: {equals: {the: '{{ foo }}', is: '1'}}
+        ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), join(self.test_dir, 'inventory.yml'))
+        self.assertTrue(runner.run_tests())
+
+    # env var can be set inside other vars
+    def test_env_vars_complex(self):
+        os.environ['USER'] = 'user'
+        os.environ['PASSWORD'] = '********'
+        self.populate_file('inventory.yml', '''---
+        database_conf:
+            username: '{{ USER }}'
+            password: '{{ PASSWORD }}'
+        ''')
+        self.populate_file('main.yaml', '''---
+        steps:
+           - echo: {from: '{{ database_conf }}', to: database_conf.output}
+        ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), join(self.test_dir, 'inventory.yml'))
+        self.assertTrue(runner.run_tests())
+        self.assertTrue(check_file(join(self.test_dir, 'database_conf.output'),
+                                   '''{'username': 'user', 'password': '********'}'''))
