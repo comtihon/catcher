@@ -98,9 +98,10 @@ class Step(object, metaclass=MetaStep):
 
     """
 
-    def __init__(self, register=None, name=None, **kwargs) -> None:
+    def __init__(self, register=None, name=None, ignore_errors=False, **kwargs) -> None:
         self.register = register
         self.name = name
+        self.ignore_errors = ignore_errors
 
     @abstractmethod
     def action(self, includes: dict, variables: dict) -> dict or tuple:

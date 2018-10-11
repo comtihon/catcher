@@ -154,6 +154,23 @@ You can ignore a step's errors and continue the test::
                 query: 'select * from test where id={{ id }}'
               register: {document: '{{ OUTPUT }}'}
 
+It is extremely useful, when you need to wait for some resource to be initialised::
+
+    loop:
+      name: 'Wait for postgres to be ready'
+      while:
+        if: '{{ ready != 1 }}'
+        do:
+        - wait: {seconds: 1}
+        - postgres:
+            name: 'check db'
+            request:
+              conf: '{{ postgres_conf }}'
+              query: "select 1"
+            ignore_errors: true
+            register: {ready: '{{ OUTPUT }}'}
+        max_cycle: 120  # 2 minutes
+
 Name your steps
 ---------------
 When you run your test you will see something like this::

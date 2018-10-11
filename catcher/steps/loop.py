@@ -4,6 +4,7 @@ import json
 
 from catcher.steps.check import Operator
 from catcher.steps.step import Step, update_variables
+from catcher.utils.logger import debug
 from catcher.utils.misc import fill_template_str, try_get_objects
 
 
@@ -123,5 +124,11 @@ class Loop(Step):
     def __run_actions(self, includes, variables: dict) -> dict:
         output = variables
         for action in self.do_action:
-            output = action.action(includes, output)
+            try:
+                output = action.action(includes, output)
+            except Exception as e:
+                if action.ignore_errors:
+                    debug(f'{fill_template_str(action.name, variables)} got {e} but we ignore it')
+                    break
+                raise e
         return output

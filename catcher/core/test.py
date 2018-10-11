@@ -18,14 +18,14 @@ class Include:
     each include file has it's own Include object and attached Test
     """
 
-    def __init__(self, **keywords) -> None:
+    def __init__(self, ignore_errors=False, **keywords) -> None:
         if 'file' not in keywords:
             raise RuntimeError('Can\'t include unknown file.')
         self.file = keywords['file']
         self.variables = keywords.get('variables', {})
         self.alias = keywords.get('as', None)
         self.run_on_include = keywords.get('run_on_include', self.alias is None)
-        self.ignore_errors = keywords.get('ignore_errors', False)
+        self.ignore_errors = ignore_errors
         self.test = None
 
 
