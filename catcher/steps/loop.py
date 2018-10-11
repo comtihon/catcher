@@ -128,7 +128,7 @@ class Loop(Step):
                 output = action.action(includes, output)
             except Exception as e:
                 if action.ignore_errors:
-                    debug(f'{fill_template_str(action.name, variables)} got {e} but we ignore it')
+                    debug('{} got {} but we ignore it'.format(fill_template_str(action.name, variables), e))
                     break
                 raise e
         return output
