@@ -83,7 +83,9 @@ class Loop(Step):
         super().__init__(**kwargs)
         self.type = Step.filter_predefined_keys(kwargs)  # while/foreach
         do = kwargs[self.type]['do']
-        if len(do) == 1:
+        if len(do) == 1:  # just action
+            if isinstance(do, list):  # list with single action
+                do = do[0]
             [loop_action] = do.keys()
             self.do_action = [_get_action((loop_action, do[loop_action]))]
         else:
