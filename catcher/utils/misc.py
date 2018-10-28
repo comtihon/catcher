@@ -39,9 +39,11 @@ def try_get_objects(source: str or dict or list):
     return got
 
 
-def fill_template(source: any, variables: dict) -> any:
+def fill_template(source: any, variables: dict, isjson=False) -> any:
     if isinstance(source, str):
         source = render(source, inject_builtins(variables))
+        if isjson:  # do not parse json string back to objects
+            return source
         try:
             source = ast.literal_eval(source)
         except (ValueError, SyntaxError):

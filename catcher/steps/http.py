@@ -49,6 +49,14 @@ class Http(Step):
             body: {'user':'test'}
             verify: false
 
+    Json body from a variable:
+    ::
+
+        http:
+          post:
+            url: 'http://test.com?user_id={{ user_id }}'
+            body: '{{ var |tojson }}'
+
     """
 
     def __init__(self, response_code=200, **kwargs) -> None:
@@ -74,13 +82,18 @@ class Http(Step):
         url = fill_template(self.url, variables)
         headers = dict(
             [(fill_template_str(k, variables), fill_template_str(v, variables)) for k, v in self.headers.items()])
-        body = self.__form_body(variables)
+        isjson, body = self.__form_body(variables)
         debug('http ' + str(self.method) + ' ' + str(url) + ', ' + str(headers) + ', ' + str(body))
-        if body is None:
+        if body is None:  # get request (or any other without body)
             r = request(self.method, url, headers=headers, verify=self.verify)
-        elif isinstance(body, dict):
-            r = request(self.method, url, headers=headers, json=body, verify=self.verify)
-        else:
+        elif isjson or isinstance(body, dict):  # body in json
+            if 'content-type' not in headers and 'Content-Type' not in headers:
+                headers['content-type'] = 'application/json'
+            if isinstance(body, dict):  # json body formed manually via python dict
+                r = request(self.method, url, headers=headers, json=body, verify=self.verify)
+            else:  # string, already in json
+                r = request(self.method, url, headers=headers, data=body, verify=self.verify)
+        else:  # raw body
             r = request(self.method, url, headers=headers, data=body, verify=self.verify)
         debug(r.text)
         if r.status_code != self.code:
@@ -93,10 +106,11 @@ class Http(Step):
 
     def __form_body(self, variables) -> str or dict:
         if self.method == 'get':
-            return None
+            return False, None
         body = self.body
         if body is None:
             body = read_file(fill_template_str(self.file, variables))
         if isinstance(body, dict):  # dump body to json to be able fill templates in
             body = json.dumps(body)
-        return fill_template(body, variables)
+        isjson = 'tojson' in body
+        return isjson, fill_template(body, variables, isjson=isjson)
