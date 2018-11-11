@@ -2,7 +2,7 @@ from abc import abstractmethod
 
 from catcher.steps.step import Step, update_variables, SERVICE_KEYS
 from catcher.utils.logger import debug
-from catcher.utils.misc import fill_template
+from catcher.utils.misc import fill_template, fill_template_str
 from catcher.utils.module_utils import get_all_subclasses_of
 
 
@@ -291,5 +291,5 @@ class Check(Step):
     def action(self, includes: dict, variables: dict) -> dict:
         operator = Operator.find_operator(self.subject)
         if not operator.operation(variables):
-            raise RuntimeError('operation ' + str(self.subject) + ' failed')
+            raise RuntimeError('operation ' + fill_template_str(self.subject, variables) + ' failed')
         return variables
