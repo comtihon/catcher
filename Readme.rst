@@ -9,8 +9,10 @@
 
 Microservices automated test tool
 =================================
-Support your team with a good Catcher!  
+Support your team with a good Catcher!
 
+.. image:: https://github.com/comtihon/catcher/blob/master/docs/logo_big.png
+   :scale: 50 %
 
 What is catcher?
 ----------------
@@ -84,6 +86,7 @@ Usage
         register: {foo: '{{ OUTPUT }}'}
     - check:
         equals: {the: '{{ foo }}', is: 'bar'}
+
 * Run catcher `catcher my_test_file.yml`.
 
 | You can also specify `inventory`_ with `-i` to test against different environments, custom `module`_ paths with `-m`
