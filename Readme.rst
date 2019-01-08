@@ -11,7 +11,7 @@ Microservices automated test tool
 =================================
 Support your team with a good Catcher!
 
-.. image:: docs/_static/logo_big.png
+.. image:: https://raw.githubusercontent.com/comtihon/catcher/master/docs/_static/logo_big.png
    :scale: 50 %
 
 What is catcher?
