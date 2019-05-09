@@ -171,6 +171,21 @@ It is extremely useful, when you need to wait for some resource to be initialise
             register: {ready: '{{ OUTPUT }}'}
         max_cycle: 120  # 2 minutes
 
+New in `1.17.0` - you can now use `Wait.for` instead::
+
+    ---
+    steps:
+        - wait:
+            seconds: 30
+            for:
+                postgres:
+                    request:
+                        conf: '{{ postgres_conf }}'
+                        query: 'select 1;'
+        - other_steps
+
+ In this case `other_steps` will be executed only when `select 1;` is true or after 30 seconds.
+
 Name your steps
 ---------------
 When you run your test you will see something like this::
@@ -206,3 +221,4 @@ And you will see::
     INFO:catcher:Step load data to service 127.0.0.1/save_data OK
     INFO:catcher:Step check data in postgres OK
     INFO:catcher:Step check data equality OK
+
