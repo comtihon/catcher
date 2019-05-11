@@ -107,3 +107,14 @@ class HttpTest(TestClass):
             ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
         self.assertTrue(runner.run_tests())
+
+    def test_should_fail(self):
+        self.populate_file('main.yaml', '''---
+                    steps:
+                        - http: 
+                            get: 
+                                url: 'http://undefined'
+                                should_fail: true
+                    ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())

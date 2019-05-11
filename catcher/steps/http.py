@@ -1,5 +1,7 @@
 import json
+from typing import Union
 
+import requests
 from requests import request
 
 from catcher.steps.step import Step, update_variables
@@ -20,6 +22,7 @@ class Http(Step):
     - body: body to send (only for methods which support it).
     - body_from_file: File can be used as data source. *Optional* Either `body` or `body_from_file` should present.
     - verify: Verify SSL Certificate in case of https. *Optional*. Default is true.
+    - should_fail: true, if this request should fail, f.e. to test connection refused. Will fail the test if no errors.
 
     :Examples:
 
@@ -57,6 +60,18 @@ class Http(Step):
             url: 'http://test.com?user_id={{ user_id }}'
             body: '{{ var |tojson }}'
 
+
+    Test disconnected service:
+    ::
+
+        steps:
+        - docker:
+            disconnect:
+                hash: '{{ my_container }}'
+        - http:
+            get:
+                url: '{{ my_container_url }}'
+                should_fail: true
     """
 
     def __init__(self, response_code=200, **kwargs) -> None:
@@ -68,6 +83,7 @@ class Http(Step):
         self.headers = conf.get('headers', {})
         self.body = None
         self.verify = conf.get('verify', True)
+        self._should_fail = conf.get('should_fail', False)
         if not self.verify:
             import urllib3
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -78,23 +94,17 @@ class Http(Step):
                 self.file = conf['body_from_file']
 
     @update_variables
-    def action(self, includes: dict, variables: dict) -> tuple:
+    def action(self, includes: dict, variables: dict) -> Union[tuple, dict]:
         url = fill_template(self.url, variables)
-        headers = dict(
-            [(fill_template_str(k, variables), fill_template_str(v, variables)) for k, v in self.headers.items()])
-        isjson, body = self.__form_body(variables)
-        debug('http ' + str(self.method) + ' ' + str(url) + ', ' + str(headers) + ', ' + str(body))
-        if body is None:  # get request (or any other without body)
-            r = request(self.method, url, headers=headers, verify=self.verify)
-        elif isjson or isinstance(body, dict):  # body in json
-            if 'content-type' not in headers and 'Content-Type' not in headers:
-                headers['content-type'] = 'application/json'
-            if isinstance(body, dict):  # json body formed manually via python dict
-                r = request(self.method, url, headers=headers, json=body, verify=self.verify)
-            else:  # string, already in json
-                r = request(self.method, url, headers=headers, data=body, verify=self.verify)
-        else:  # raw body
-            r = request(self.method, url, headers=headers, data=body, verify=self.verify)
+        r = None
+        try:
+            r = request(self.method, url, **self._form_request(url, variables))
+            if self._should_fail:  # fail expected
+                raise RuntimeError('Request expected to fail, but it doesn\'t')
+        except requests.exceptions.ConnectionError as e:
+            debug(str(e))
+            if self._should_fail:  # fail expected
+                return variables
         debug(r.text)
         if r.status_code != self.code:
             raise RuntimeError('Code mismatch: ' + str(r.status_code) + ' vs ' + str(self.code))
@@ -103,6 +113,23 @@ class Http(Step):
         except ValueError:
             response = r.text
         return variables, response
+
+    def _form_request(self, url, variables: dict) -> dict:
+        headers = dict([(fill_template_str(k, variables), fill_template_str(v, variables))
+                        for k, v in self.headers.items()])
+        rq = dict(verify=self.verify, headers=headers)
+        isjson, body = self.__form_body(variables)
+        debug('http ' + str(self.method) + ' ' + str(url) + ', ' + str(headers) + ', ' + str(body))
+        if isjson or isinstance(body, dict):  # contains tojson or dict supplied
+            if 'content-type' not in headers and 'Content-Type' not in headers:  # add json content type if missing
+                headers['content-type'] = 'application/json'
+            if isinstance(body, dict):  # json body formed manually via python dict
+                rq['json'] = body
+            else:  # string, already in json
+                rq['data'] = body
+        else:  # raw body (or body is None)
+            rq['data'] = body
+        return rq
 
     def __form_body(self, variables) -> str or dict:
         if self.method == 'get':
