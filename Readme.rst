@@ -72,6 +72,11 @@ Installation
 .. _catcher-modules: https://pypi.org/project/catcher-modules
 .. _catcher-modules-index: https://catcher-modules.readthedocs.io/en/latest/source/catcher_modules.html#module-catcher_modules
 
+New in `1.19.0`:
+
+| To have `docker-compose` support install `catcher[compose]` instead.
+| This will make catcher run `docker-compose up` in your resources directory, if docker-compose file was found.
+
 Usage
 -----
 * Write catcher script (see `tests`_). F.e.::
@@ -81,8 +86,7 @@ Usage
     - http: {get: {url: 'http://my_cache_service.com/save?key=foo&value=bar'}}
     - redis:
         request:
-            get:
-                - foo
+            get: 'foo'
         register: {foo: '{{ OUTPUT }}'}
     - check:
         equals: {the: '{{ foo }}', is: 'bar'}

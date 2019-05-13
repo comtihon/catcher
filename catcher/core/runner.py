@@ -1,6 +1,7 @@
 from os.path import join
 
 from catcher.core.test import Test, Include
+from catcher.modules.compose import DockerCompose
 from catcher.steps import step
 from catcher.utils.file_utils import get_files, read_source_file
 from catcher.utils.logger import warning, info
@@ -9,7 +10,13 @@ from catcher.utils.module_utils import prepare_modules
 
 
 class Runner:
-    def __init__(self, path: str, tests_path: str, inventory: str or None, modules=None, environment=None) -> None:
+    def __init__(self,
+                 path: str,
+                 tests_path: str,
+                 inventory: str or None,
+                 modules=None,
+                 environment=None,
+                 resources=None) -> None:
         if modules is None:
             modules = []
         self.environment = environment if environment is not None else {}
@@ -18,26 +25,31 @@ class Runner:
         self.inventory = inventory
         self.all_includes = []
         self.modules = merge_two_dicts(prepare_modules(modules, step.registered_steps), step.registered_steps)
+        self._compose = DockerCompose(resources)
 
     def run_tests(self) -> bool:
-        variables = {}
-        if self.inventory is not None:
-            variables = read_source_file(self.inventory)
-            variables = try_get_object(fill_template_str(variables, {}))  # fill env vars
-        test_files = get_files(self.tests_path)
-        results = []
-        for file in test_files:
-            self.all_includes = []
-            try:
-                variables['TEST_NAME'] = file
-                test = self.prepare_test(file, variables)
-                test.run()
-                results.append(True)
-                info('Test ' + file + ' passed.')
-            except Exception as e:
-                warning('Test ' + file + ' failed: ' + str(e))
-                results.append(False)
-        return all(results)
+        try:
+            self._compose.up()
+            variables = {}
+            if self.inventory is not None:
+                variables = read_source_file(self.inventory)
+                variables = try_get_object(fill_template_str(variables, {}))  # fill env vars
+            test_files = get_files(self.tests_path)
+            results = []
+            for file in test_files:
+                self.all_includes = []
+                try:
+                    variables['TEST_NAME'] = file
+                    test = self.prepare_test(file, variables)
+                    test.run()
+                    results.append(True)
+                    info('Test ' + file + ' passed.')
+                except Exception as e:
+                    warning('Test ' + file + ' failed: ' + str(e))
+                    results.append(False)
+            return all(results)
+        finally:
+            self._compose.down()
 
     def prepare_test(self, file: str, variables: dict, override_vars: None or dict = None) -> Test:
         body = read_source_file(file)

@@ -1,7 +1,7 @@
 """Catcher - Microservices automated test tool.
 
 Usage:
-  catcher [-i INVENTORY] <tests> [-l LEVEL] [-e VARS...] [-m MODS...]
+  catcher [-i INVENTORY] <tests> [-l LEVEL] [-e VARS...] [-m MODS...] [-r RES]
   catcher -v | --version
   catcher -h | --help
 
@@ -12,6 +12,7 @@ Options:
   -i INVENTORY --inventory INVENTORY inventory file with environment configuration
   -e VARIABLE --environment VARIABLE set variable (will override inventory).
   -m MODULES --modules MODULES       specify directories or python packages to search for external modules
+  -r RESOURCES --resources RESOURCES set the resources dir [default: ./resources]
 """
 import os
 import sys
@@ -46,8 +47,12 @@ def run_tests(path: str, arguments: dict):
     inventory = arguments['--inventory']
     environment = arguments['--environment']
     modules = arguments['--modules']
+    resources = arguments['--resources']
     __load_modules(modules)
-    runner = Runner(path, file_or_dir, inventory, modules, __env_to_variables(environment))
+    runner = Runner(path, file_or_dir, inventory,
+                    modules=modules,
+                    environment=__env_to_variables(environment),
+                    resources=resources)
     return runner.run_tests()
 
 

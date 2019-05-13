@@ -2,8 +2,7 @@ import importlib
 import ntpath
 import os
 import pkgutil
-import types
-from importlib import util, machinery
+from importlib import machinery
 from os.path import join
 from pydoc import locate
 from types import ModuleType
@@ -45,6 +44,14 @@ def load_external_actions(package: str):
 def get_all_subclasses_of(clazz) -> list:
     return clazz.__subclasses__() + [g for s in clazz.__subclasses__()
                                      for g in get_all_subclasses_of(s)]
+
+
+def is_package_installed(package: str) -> bool:
+    try:
+        importlib.import_module(package)
+        return True
+    except ImportError:
+        return False
 
 
 def __load_python_package_by_path(path: str):

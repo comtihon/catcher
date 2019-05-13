@@ -9,6 +9,7 @@ Subpackages
     catcher.core
     catcher.steps
     catcher.utils
+    catcher.modules
 
 Module contents
 ---------------
