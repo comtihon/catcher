@@ -2,7 +2,7 @@ docopt==0.6.*
 mock==3.0.*
 pytest==4.4.*
 requests==2.21.*
-urllib3==1.24.*
+urllib3==1.25.*
 requests_mock==1.6.*
 PyYAML==5.*
 Jinja2==2.10.*
