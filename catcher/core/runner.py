@@ -30,8 +30,9 @@ class Runner:
     def run_tests(self) -> bool:
         try:
             self._compose.up()
-            variables = {}
+            variables = {'CURRENT_DIR': self.path}
             if self.inventory is not None:
+                variables['INVENTORY'] = self.inventory
                 variables = read_source_file(self.inventory)
                 variables = try_get_object(fill_template_str(variables, {}))  # fill env vars
             test_files = get_files(self.tests_path)
