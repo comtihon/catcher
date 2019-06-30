@@ -12,7 +12,7 @@ from catcher.utils.logger import error
 
 
 def get_module_filename(module) -> str:
-    return ntpath.basename(inspect.getfile(module))[:-3]
+    return ntpath.basename(inspect.getfile(module)).split('.')[0]
 
 
 # Get list of yaml files in dir and subdirs
