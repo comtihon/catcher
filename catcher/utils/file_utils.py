@@ -73,7 +73,7 @@ def ensure_dir(path: str):
 def _read_yaml_file(file: str) -> dict:
     with open(file, 'r') as stream:
         try:
-            return yaml.load(stream)
+            return yaml.load(stream) or {}
         except yaml.YAMLError as exc:
             err = 'Wrong YAML format for file ' + file + ' : ' + str(exc)
             error(err)
@@ -83,7 +83,7 @@ def _read_yaml_file(file: str) -> dict:
 def _read_json_file(file: str) -> dict:
     with open(file, 'r') as stream:
         try:
-            return json.load(stream)
+            return json.load(stream) or {}
         except yaml.YAMLError as exc:
             err = 'Wrong YAML format for file ' + file + ' : ' + str(exc)
             error(err)
