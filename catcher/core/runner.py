@@ -26,6 +26,7 @@ class Runner:
         self.all_includes = []
         self.modules = merge_two_dicts(prepare_modules(modules, step.registered_steps), step.registered_steps)
         self._compose = DockerCompose(resources)
+        self.resources = resources
 
     def run_tests(self) -> bool:
         try:
@@ -36,6 +37,7 @@ class Runner:
                 variables['INVENTORY'] = get_filename(self.inventory)
                 variables = try_get_object(fill_template_str(variables, {}))  # fill env vars
             variables['CURRENT_DIR'] = self.path
+            variables['RESOURCES_DIR'] = self.resources or f'{self.path}/resources'
             test_files = get_files(self.tests_path)
             results = []
             for file in test_files:
