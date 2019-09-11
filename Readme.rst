@@ -6,6 +6,8 @@
     :target: https://pypi.python.org/pypi/catcher
 .. image:: https://img.shields.io/pypi/wheel/catcher.svg
     :target: https://pypi.python.org/pypi/catcher
+.. image:: https://patrolavia.github.io/telegram-badge/chat.png
+    :target: https://t.me/catcher_e2e
 
 Microservices automated test tool
 =================================
