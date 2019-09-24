@@ -110,6 +110,7 @@ Why catcher?
 * test all your `microservices`_ with ease;
 * automate your testing!
 * `modular`_ architecture
+* perfect for big data pipelines testing with `prepare-expect`_
 
 Quickstart and documentation
 ----------------------------
@@ -118,3 +119,4 @@ See `readthedocs`_.
 .. _readthedocs: https://catcher-test-tool.readthedocs.io/en/latest/
 .. _microservices: https://catcher-test-tool.readthedocs.io/en/latest/source/microservices.html
 .. _modular: https://catcher-test-tool.readthedocs.io/en/latest/source/modules.html
+.. _prepare-expect: https://catcher-modules.readthedocs.io/en/latest/source/prepare_expect.html
