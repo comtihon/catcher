@@ -3,7 +3,7 @@ from os.path import join
 from catcher.core.test import Test, Include
 from catcher.modules.compose import DockerCompose
 from catcher.steps import step
-from catcher.utils.file_utils import get_files, read_source_file
+from catcher.utils.file_utils import get_files, read_source_file, get_filename
 from catcher.utils.logger import warning, info
 from catcher.utils.misc import merge_two_dicts, try_get_object, fill_template_str
 from catcher.utils.module_utils import prepare_modules
@@ -26,6 +26,7 @@ class Runner:
         self.all_includes = []
         self.modules = merge_two_dicts(prepare_modules(modules, step.registered_steps), step.registered_steps)
         self._compose = DockerCompose(resources)
+        self.resources = resources
 
     def run_tests(self) -> bool:
         try:
@@ -33,7 +34,10 @@ class Runner:
             variables = {}
             if self.inventory is not None:
                 variables = read_source_file(self.inventory)
+                variables['INVENTORY'] = get_filename(self.inventory)
                 variables = try_get_object(fill_template_str(variables, {}))  # fill env vars
+            variables['CURRENT_DIR'] = self.path
+            variables['RESOURCES_DIR'] = self.resources or self.path + '/resources'
             test_files = get_files(self.tests_path)
             results = []
             for file in test_files:

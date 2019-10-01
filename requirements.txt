@@ -1,9 +1,9 @@
 docopt==0.6.*
 mock==3.0.*
-pytest==4.4.*
+pytest==5.2.*
 requests==2.22.*
 urllib3==1.24.*
-requests_mock==1.6.*
+requests_mock==1.7.*
 PyYAML==5.*
 Jinja2==2.10.*
-uuid==1.30.*
+uuid==1.30
