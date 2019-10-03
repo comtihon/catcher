@@ -12,7 +12,11 @@ from catcher.utils.logger import error
 
 
 def get_module_filename(module) -> str:
-    return ntpath.basename(inspect.getfile(module))[:-3]
+    return get_filename(inspect.getfile(module))
+
+
+def get_filename(filename: str) -> str:
+    return ntpath.basename(filename).split('.')[0]
 
 
 # Get list of yaml files in dir and subdirs
@@ -73,7 +77,7 @@ def ensure_dir(path: str):
 def _read_yaml_file(file: str) -> dict:
     with open(file, 'r') as stream:
         try:
-            return yaml.load(stream)
+            return yaml.load(stream) or {}
         except yaml.YAMLError as exc:
             err = 'Wrong YAML format for file ' + file + ' : ' + str(exc)
             error(err)
@@ -83,7 +87,7 @@ def _read_yaml_file(file: str) -> dict:
 def _read_json_file(file: str) -> dict:
     with open(file, 'r') as stream:
         try:
-            return json.load(stream)
+            return json.load(stream) or {}
         except yaml.YAMLError as exc:
             err = 'Wrong YAML format for file ' + file + ' : ' + str(exc)
             error(err)
