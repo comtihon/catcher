@@ -1,3 +1,5 @@
+import traceback
+
 from catcher.steps.step import Step
 from catcher.steps.stop import StopException
 from catcher.utils.logger import debug, info
@@ -71,6 +73,7 @@ class Test:
                         debug('Step ' + action_name + ' failed, but we ignore it')
                         continue
                     info('Step ' + action_name + ' failed: ' + str(e))
+                    debug(traceback.format_exc())
                     raise e
         return self.variables
 
