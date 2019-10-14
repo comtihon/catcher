@@ -1,5 +1,7 @@
 import traceback
 
+from catcher.utils import logger
+
 from catcher.steps.step import Step
 from catcher.steps.stop import StopException
 from catcher.utils.logger import debug, info
@@ -60,20 +62,26 @@ class Test:
                 variables = merge_two_dicts(self.variables, self.override_vars)
                 action_name = get_action_name(action, action_object, variables)
                 try:
+                    logger.log_storage.new_step(step, variables)
                     self.variables = action_object.action(self.includes, variables)
+                    logger.log_storage.step_end(step, self.variables)
                     info('Step ' + action_name + ' OK')
-                except StopException as e:
-                    if raise_stop:
+                except StopException as e:  # stop a test without error
+                    if raise_stop:  # or raise error if configured
+                        logger.log_storage.step_end(step, variables, success=False, output=str(e))
                         raise e
                     debug('Skip ' + action_name + ' due to ' + str(e))
                     info('Step ' + action_name + ' OK')
+                    logger.log_storage.step_end(step, self.variables, success=True, output=str(e))
                     return self.variables  # stop current test
                 except Exception as e:
                     if ignore_errors:
                         debug('Step ' + action_name + ' failed, but we ignore it')
+                        logger.log_storage.step_end(step, variables, success=True)
                         continue
                     info('Step ' + action_name + ' failed: ' + str(e))
                     debug(traceback.format_exc())
+                    logger.log_storage.step_end(step, variables, success=False, output=str(e))
                     raise e
         return self.variables
 

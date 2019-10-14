@@ -1,12 +1,14 @@
 from os.path import join
 
+from catcher.utils import logger
 from catcher.core.test import Test, Include
 from catcher.modules.compose import DockerCompose
 from catcher.steps import step
 from catcher.utils.file_utils import get_files, read_source_file, get_filename
-from catcher.utils.logger import warning, info
-from catcher.utils.misc import merge_two_dicts, try_get_object, fill_template_str
+from catcher.utils.logger import warning, info, debug
+from catcher.utils.misc import merge_two_dicts, try_get_object, fill_template_str, report_override
 from catcher.utils.module_utils import prepare_modules
+from modules.log_storage import LogStorage
 
 
 class Runner:
@@ -16,10 +18,13 @@ class Runner:
                  inventory: str or None,
                  modules=None,
                  environment=None,
-                 resources=None) -> None:
+                 system_environment=None,
+                 resources=None,
+                 output_format=None) -> None:
         if modules is None:
             modules = []
         self.environment = environment if environment is not None else {}
+        self.system_vars = system_environment if system_environment is not None else {}
         self.tests_path = tests_path
         self.path = path
         self.inventory = inventory
@@ -27,11 +32,17 @@ class Runner:
         self.modules = merge_two_dicts(prepare_modules(modules, step.registered_steps), step.registered_steps)
         self._compose = DockerCompose(resources)
         self.resources = resources
+        if output_format:
+            logger.log_storage = LogStorage(output_format)
 
     def run_tests(self) -> bool:
         try:
             self._compose.up()
-            variables = {}
+            if self.system_vars:
+                debug('Use system variables: ' + str(list(self.system_vars.keys())))
+                variables = self.system_vars
+            else:
+                variables = {}
             if self.inventory is not None:
                 variables = read_source_file(self.inventory)
                 variables['INVENTORY'] = get_filename(self.inventory)
@@ -44,22 +55,29 @@ class Runner:
                 self.all_includes = []
                 try:
                     variables['TEST_NAME'] = file
+                    logger.log_storage.test_start(file)
                     test = self.prepare_test(file, variables)
                     test.run()
                     results.append(True)
                     info('Test ' + file + ' passed.')
+                    logger.log_storage.test_end(file, True)
                 except Exception as e:
                     warning('Test ' + file + ' failed: ' + str(e))
                     results.append(False)
+                    logger.log_storage.test_end(file, False, str(e))
             return all(results)
         finally:
+            logger.log_storage.write_report(self.path)
             self._compose.down()
 
     def prepare_test(self, file: str, variables: dict, override_vars: None or dict = None) -> Test:
         body = read_source_file(file)
         registered_includes = self.process_includes(body.get('include', []), variables)
         variables = merge_two_dicts(variables, body.get('variables', {}))  # override variables with test's variables
-        if override_vars:  # TODO warn when overriding inventory vars?
+        if override_vars:
+            override_keys = report_override(variables, override_vars)
+            if override_keys:
+                debug('Overriding these variables: ' + str(override_keys))
             variables = merge_two_dicts(variables, override_vars)
         return Test(self.path,
                     registered_includes,
@@ -92,8 +110,14 @@ class Runner:
             includes[include.alias] = include.test
         if include.run_on_include:
             try:
-                return include.test.run()
+                debug('Run include: ' + str(include.test))
+                logger.log_storage.test_start(merge_two_dicts(include.test.variables, include.test.override_vars),
+                                              test_type='include')
+                res = include.test.run()
+                logger.log_storage.test_end(include.test.path, True, res, test_type='include')
+                return res
             except Exception as e:
+                logger.log_storage.test_end(include.test.path, False, str(e), test_type='include')
                 if not include.ignore_errors:
                     raise Exception('Include ' + include.file + ' failed: ' + str(e))
         return include.test.variables

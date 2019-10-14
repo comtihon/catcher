@@ -84,3 +84,13 @@ class RunTest(TestClass):
         ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
         self.assertTrue(runner.run_tests())
+
+    def test_run_system_variables(self):
+        os.environ["SECRET_PASSWORD"] = "123"
+        self.populate_file('main.yaml', '''---
+        steps:
+            - echo: {from: '{{ SECRET_PASSWORD }}', to: sys_env.output}
+        ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        runner.run_tests()
+        self.assertTrue(check_file(join(self.test_dir, 'sys_env.output'), '123'))

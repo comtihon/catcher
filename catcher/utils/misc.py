@@ -17,6 +17,12 @@ def merge_two_dicts(x, y):
     return {**x, **y}
 
 
+def report_override(variables: dict, override: dict):
+    existing = set(variables)
+    replace = set(override)
+    return list(existing.intersection(replace))
+
+
 def try_get_object(source: str or dict or list):
     if isinstance(source, str):
         try:  # try python term '{key: "value"}'
