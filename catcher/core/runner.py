@@ -1,3 +1,4 @@
+from copy import deepcopy
 from os.path import join
 
 from catcher.utils import logger
@@ -55,8 +56,8 @@ class Runner:
                 self.all_includes = []
                 try:
                     variables['TEST_NAME'] = file
-                    logger.log_storage.test_start(file)
                     test = self.prepare_test(file, variables)
+                    logger.log_storage.test_start(file)
                     test.run()
                     results.append(True)
                     info('Test ' + file + ' passed.')
@@ -81,7 +82,7 @@ class Runner:
             variables = merge_two_dicts(variables, override_vars)
         return Test(self.path,
                     registered_includes,
-                    variables,
+                    deepcopy(variables),  # each test has independent variables
                     body.get('config', {}),
                     body.get('steps', []),
                     self.modules,
@@ -110,9 +111,8 @@ class Runner:
             includes[include.alias] = include.test
         if include.run_on_include:
             try:
+                logger.log_storage.test_start(include_file['file'], test_type='include')
                 debug('Run include: ' + str(include.test))
-                logger.log_storage.test_start(merge_two_dicts(include.test.variables, include.test.override_vars),
-                                              test_type='include')
                 res = include.test.run()
                 logger.log_storage.test_end(include.test.path, True, res, test_type='include')
                 return res

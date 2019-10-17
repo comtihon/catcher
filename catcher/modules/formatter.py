@@ -17,7 +17,7 @@ class Formatter(ABC):
 class JsonFormatter(Formatter):
     def format(self, path: str, data: list):
         import json
-        with open(join('report_' + str(time.time()) + '.json'), 'w') as fp:
+        with open(join(path, 'report_' + str(time.time()) + '.json'), 'w') as fp:
             json.dump(data, fp)
 
 

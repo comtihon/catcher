@@ -64,8 +64,8 @@ class Test:
                 try:
                     logger.log_storage.new_step(step, variables)
                     self.variables = action_object.action(self.includes, variables)
-                    logger.log_storage.step_end(step, self.variables)
                     info('Step ' + action_name + ' OK')
+                    logger.log_storage.step_end(step, self.variables)
                 except StopException as e:  # stop a test without error
                     if raise_stop:  # or raise error if configured
                         logger.log_storage.step_end(step, variables, success=False, output=str(e))
@@ -84,6 +84,9 @@ class Test:
                     logger.log_storage.step_end(step, variables, success=False, output=str(e))
                     raise e
         return self.variables
+
+    def __repr__(self) -> str:
+        return str(self.steps)
 
 
 def get_or_default(key: str, body: dict or str, default: any) -> any:
