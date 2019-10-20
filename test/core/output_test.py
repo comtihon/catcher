@@ -159,7 +159,73 @@ class OutputTest(TestClass):
             self.assertEqual('OK', report['status'])
 
     def test_run_multiple_includes(self):
-        pass
+        self.populate_file('main.yaml', '''---
+                        include: 
+                            - one.yaml
+                            - two.yaml
+                        steps:
+                            - echo: 'hello'
+                        ''')
+        self.populate_file('one.yaml', '''---
+                        variables:
+                            foo: bar
+                        steps:
+                            - echo: {from: '{{ foo }}', to: one.output}
+                        ''')
+        self.populate_file('two.yaml', '''---
+                            variables:
+                                foo: bar
+                            steps:
+                                - echo: {from: '{{ foo }}', to: two.output}
+                            ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None, output_format='json')
+        self.assertTrue(runner.run_tests())
+        reports = [f for f in listdir(self.test_dir) if isfile(join(self.test_dir, f)) and f.startswith('report')]
+        self.assertEqual(1, len(reports))
+        with open(join(self.test_dir, reports[0]), 'r') as fp:
+            obj = json.load(fp)
+            self.assertEqual(3, len(obj))
+            report = obj[0]
+            self.assertEqual('include', report['type'])
+            self.assertEqual(join(self.test_dir, 'one.yaml'), report['file'])
+            report = obj[1]
+            self.assertEqual('include', report['type'])
+            self.assertEqual(join(self.test_dir, 'two.yaml'), report['file'])
+            report = obj[2]
+            self.assertEqual('test', report['type'])
+            self.assertEqual(join(self.test_dir, 'main.yaml'), report['file'])
 
     def test_run_with_include_named(self):
-        pass
+        self.populate_file('main.yaml', '''---
+                include: 
+                    file: simple_file.yaml
+                    as: simple
+                    run_on_include: false
+                steps:
+                    - echo: 'hello'
+                    - run: 'simple'
+                    - echo: 'world'
+                ''')
+        self.populate_file('simple_file.yaml', '''---
+                variables:
+                    foo: bar
+                steps:
+                    - echo: {from: '{{ foo }}', to: foo.output}
+                ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None, output_format='json')
+        self.assertTrue(runner.run_tests())
+        reports = [f for f in listdir(self.test_dir) if isfile(join(self.test_dir, f)) and f.startswith('report')]
+        self.assertEqual(1, len(reports))
+        with open(join(self.test_dir, reports[0]), 'r') as fp:
+            obj = json.load(fp)
+            self.assertEqual(1, len(obj))
+            output = obj[0]['output']
+            steps = [o for o in output if 'step' in o]
+            self.assertEqual('echo', list(steps[0]['step'].keys())[0])
+            self.assertEqual('echo', list(steps[1]['step'].keys())[0])
+            self.assertEqual('run', list(steps[2]['step'].keys())[0])
+            self.assertEqual('echo', list(steps[3]['step'].keys())[0])
+            self.assertEqual('echo', list(steps[4]['step'].keys())[0])
+            self.assertEqual('run', list(steps[5]['step'].keys())[0])
+            self.assertEqual('echo', list(steps[6]['step'].keys())[0])
+            self.assertEqual('echo', list(steps[7]['step'].keys())[0])

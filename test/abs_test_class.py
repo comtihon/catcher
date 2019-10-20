@@ -5,6 +5,7 @@ from os.path import join
 import test
 from catcher.utils import logger
 from catcher.utils.file_utils import ensure_empty, remove_dir
+from catcher.modules.log_storage import EmptyLogStorage
 
 
 class TestClass(unittest.TestCase):
@@ -13,6 +14,7 @@ class TestClass(unittest.TestCase):
         self._test_name = test_name
         self._test_dir = test.get_test_dir(test_name)
         logger.configure('debug')
+        logger.log_storage = EmptyLogStorage('empty')
 
     @property
     def test_name(self):

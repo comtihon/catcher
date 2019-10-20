@@ -29,12 +29,12 @@ class LogStorage:
 
     def new_step(self, step, variables):
         self._current_test['output'] += [{'time': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                                          'step': self.clean_step_def(step), 'variables': deepcopy(variables)}]
+                                          'step': self.clean_step_def(step), 'variables': self.clean_vars(variables)}]
 
     def step_end(self, step, variables, output: str = None, success: bool = True):
         self._current_test['output'] += [{'time': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                                           'step': self.clean_step_def(step),
-                                          'variables': deepcopy(variables), 'success': success, 'output': output}]
+                                          'variables': self.clean_vars(variables), 'success': success, 'output': output}]
 
     def output(self, level, output):
         if self._current_test:
@@ -59,6 +59,11 @@ class LogStorage:
             if k.startswith('_'):
                 del step_def[k]
         return {step_name: step_def}
+
+    @staticmethod
+    def clean_vars(variables: dict):
+        """ Clean _get_action(s) non-json serializable functions """
+        return deepcopy({k: v for k, v in variables.items() if not callable(v)})
 
 
 class EmptyLogStorage(LogStorage):

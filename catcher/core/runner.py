@@ -9,7 +9,7 @@ from catcher.utils.file_utils import get_files, read_source_file, get_filename
 from catcher.utils.logger import warning, info, debug
 from catcher.utils.misc import merge_two_dicts, try_get_object, fill_template_str, report_override
 from catcher.utils.module_utils import prepare_modules
-from modules.log_storage import LogStorage
+from catcher.modules.log_storage import LogStorage
 
 
 class Runner:
