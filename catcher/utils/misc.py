@@ -5,7 +5,6 @@ import random
 import time
 import uuid
 
-from os import environ
 from jinja2 import Template, UndefinedError
 
 
@@ -15,6 +14,12 @@ def merge_two_dicts(x, y):
     if not y:
         return x
     return {**x, **y}
+
+
+def report_override(variables: dict, override: dict):
+    existing = set(variables)
+    replace = set(override)
+    return list(existing.intersection(replace))
 
 
 def try_get_object(source: str or dict or list):
@@ -62,7 +67,7 @@ def inject_builtins(variables: dict) -> dict:
     ts = time.time()
     variables_copy['NOW_TS'] = ts
     variables_copy['NOW_DT'] = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%dT%H:%M:%S0+0000')
-    return merge_two_dicts(dict(environ), variables_copy)
+    return variables_copy
 
 
 def render(source: str, variables: dict) -> str:

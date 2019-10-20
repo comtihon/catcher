@@ -2,6 +2,9 @@ import logging
 from logging import Logger
 
 import catcher
+from catcher.modules.log_storage import EmptyLogStorage
+
+log_storage = EmptyLogStorage('empty')
 
 
 def configure(log_level: str):
@@ -27,20 +30,25 @@ def get_logger() -> Logger:
 
 
 def debug(msg: str):
+    log_storage.output('debug', msg)
     get_logger().debug(msg)
 
 
 def info(msg: str):
+    log_storage.output('info', msg)
     get_logger().info(msg)
 
 
 def warning(msg: str):
+    log_storage.output('warning', msg)
     get_logger().warning(msg)
 
 
 def error(msg: str):
+    log_storage.output('error', msg)
     get_logger().error(msg)
 
 
 def critical(msg: str):
+    log_storage.output('critical', msg)
     get_logger().critical(msg)
