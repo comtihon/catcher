@@ -74,7 +74,9 @@ Installation
 .. _catcher-modules: https://pypi.org/project/catcher-modules
 .. _catcher-modules-index: https://catcher-modules.readthedocs.io/en/latest/source/catcher_modules.html#module-catcher_modules
 
+
 New in `1.20.0`:
+
 | Save output to file as json, including step definitions and variables before and after. Useful for debugging.
 | `catcher -p json test.yml`
 
