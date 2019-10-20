@@ -90,9 +90,11 @@ class OutputTest(TestClass):
             steps = [o for o in output if 'step' in o]
             self.assertEqual(2, len(steps))  # 2 step entry for 1 step (before & after)
             self.assertEqual('echo', list(steps[0]['step'].keys())[0])
-            self.assertEqual(['CURRENT_DIR', 'RESOURCES_DIR', 'TEST_NAME'], list(steps[0]['variables'].keys()))
+            self.assertEqual(sorted(['CURRENT_DIR', 'RESOURCES_DIR', 'TEST_NAME']),
+                             sorted(list(steps[0]['variables'].keys())))
             self.assertEqual('echo', list(steps[1]['step'].keys())[0])
-            self.assertEqual(['CURRENT_DIR', 'RESOURCES_DIR', 'TEST_NAME', 'user'], list(steps[1]['variables'].keys()))
+            self.assertEqual(sorted(['CURRENT_DIR', 'RESOURCES_DIR', 'TEST_NAME', 'user']),
+                             sorted(list(steps[1]['variables'].keys())))
             self.assertEqual('val', steps[1]['variables']['user'])
 
     def test_run_multiple_tests(self):
@@ -115,13 +117,15 @@ class OutputTest(TestClass):
             self.assertEqual(join(self.test_dir, 'first.yaml'), report['file'])
             output = report['output']
             steps = [o for o in output if 'step' in o]
-            self.assertEqual(['CURRENT_DIR', 'RESOURCES_DIR', 'TEST_NAME'], list(steps[0]['variables'].keys()))
+            self.assertEqual(sorted(['CURRENT_DIR', 'RESOURCES_DIR', 'TEST_NAME']),
+                             sorted(list(steps[0]['variables'].keys())))
             self.assertEqual(1, steps[1]['variables']['test'])
             report = obj[1]
             self.assertEqual(join(self.test_dir, 'second.yaml'), report['file'])
             output = report['output']
             steps = [o for o in output if 'step' in o]
-            self.assertEqual(['CURRENT_DIR', 'RESOURCES_DIR', 'TEST_NAME'], list(steps[0]['variables'].keys()))
+            self.assertEqual(sorted(['CURRENT_DIR', 'RESOURCES_DIR', 'TEST_NAME']),
+                             sorted(list(steps[0]['variables'].keys())))
             self.assertEqual(2, steps[1]['variables']['test'])
 
     def test_run_with_include(self):
