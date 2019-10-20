@@ -85,7 +85,10 @@ class InventoryTest(TestClass):
         steps:
             - check: {equals: {the: '{{ foo }}', is: '1'}}
         ''')
-        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), join(self.test_dir, 'inventory.yml'))
+        runner = Runner(self.test_dir,
+                        join(self.test_dir, 'main.yaml'),
+                        join(self.test_dir, 'inventory.yml'),
+                        system_environment=dict(os.environ))
         self.assertTrue(runner.run_tests())
 
     # env var can be set inside other vars
@@ -102,7 +105,10 @@ class InventoryTest(TestClass):
            - echo: {from: '{{ database_conf }}', to: database_conf.output}
            - check: {equals: {the: '{{ database_conf.username }}', is: 'user'}}
         ''')
-        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), join(self.test_dir, 'inventory.yml'))
+        runner = Runner(self.test_dir,
+                        join(self.test_dir, 'main.yaml'),
+                        join(self.test_dir, 'inventory.yml'),
+                        system_environment=dict(os.environ))
         self.assertTrue(runner.run_tests())
         content = ast.literal_eval(read_file(join(self.test_dir, 'database_conf.output')))
         self.assertEquals(content, {'username': 'user', 'password': '********'})

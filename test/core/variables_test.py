@@ -75,7 +75,10 @@ class VariablesTest(TestClass):
             - check: {equals: {the: '{{ FOO }}', is: '1'}}
 
         ''')
-        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        runner = Runner(self.test_dir,
+                        join(self.test_dir, 'main.yaml'),
+                        None,
+                        system_environment=dict(os.environ))
         self.assertTrue(runner.run_tests())
 
     # env var should be overridden with any other var

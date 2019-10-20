@@ -11,7 +11,7 @@ Options:
   -l LEVEL --log-level LEVEL         set log level. Options: debug, info, warning, error, critical [default: info]
   -i INVENTORY --inventory INVENTORY inventory file with environment configuration
   -e VARIABLE --environment VARIABLE set variable (will override inventory).
-  -s SYS_ENV --system_env SYS-ENV    use system environment variables as variables [default: false]
+  -s SYS_ENV --system_env SYS-ENV    use system environment variables as variables [default: true]
   -m MODULES --modules MODULES       specify directories or python packages to search for external modules
   -r RESOURCES --resources RESOURCES set the resources dir [default: ./resources]
   -p FORMAT --format FORMAT          set the format (json/html) for the resulting file, which includes all steps
@@ -52,9 +52,9 @@ def run_tests(path: str, arguments: dict):
     modules = arguments['--modules']
     resources = arguments['--resources']
     output_format = arguments['--format']
-    use_sys_vars = arguments['system_env']
+    use_sys_vars = arguments['--system_env']
     if use_sys_vars:
-        sys_vars = {}
+        sys_vars = dict(os.environ)
     else:
         sys_vars = None
     __load_modules(modules)

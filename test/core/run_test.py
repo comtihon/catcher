@@ -91,6 +91,9 @@ class RunTest(TestClass):
         steps:
             - echo: {from: '{{ SECRET_PASSWORD }}', to: sys_env.output}
         ''')
-        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        runner = Runner(self.test_dir,
+                        join(self.test_dir, 'main.yaml'),
+                        None,
+                        system_environment=dict(os.environ))
         runner.run_tests()
         self.assertTrue(check_file(join(self.test_dir, 'sys_env.output'), '123'))

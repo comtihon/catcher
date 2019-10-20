@@ -111,7 +111,7 @@ class OutputTest(TestClass):
         reports = [f for f in listdir(self.test_dir) if isfile(join(self.test_dir, f)) and f.startswith('report')]
         self.assertEqual(1, len(reports))
         with open(join(self.test_dir, reports[0]), 'r') as fp:
-            obj = json.load(fp)
+            obj = sorted(json.load(fp), key=lambda r: r['file'])
             self.assertEqual(2, len(obj))
             report = obj[0]
             self.assertEqual(join(self.test_dir, 'first.yaml'), report['file'])
