@@ -1,3 +1,4 @@
+import ast
 import json
 from os import listdir
 from os.path import join, isfile
@@ -43,7 +44,7 @@ class OutputTest(TestClass):
     def test_step_failed(self):
         self.populate_file('main.yaml', '''---
                 variables:
-                    foo: [bar, baz]
+                    foo: [bar]
                 steps:
                     - echo: {from: '{{ foo }}'}
                     - check: 
@@ -68,8 +69,8 @@ class OutputTest(TestClass):
             self.assertTrue(steps[1]['success'])
             self.assertEqual('check', list(steps[2]['step'].keys())[0])
             self.assertFalse(steps[3]['success'])
-            self.assertEqual("operation {'any': {'of': '['bar', 'baz']', 'equals': '404'}} failed", steps[3]['output'])
-            self.assertEqual("operation {'any': {'of': '['bar', 'baz']', 'equals': '404'}} failed", report['status'])
+            self.assertEqual("operation {'any': {'of': '['bar']', 'equals': '404'}} failed", steps[3]['output'])
+            self.assertEqual("operation {'any': {'of': '['bar']', 'equals': '404'}} failed", report['status'])
 
     def test_register_variable(self):
         self.populate_file('main.yaml', '''---
