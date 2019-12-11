@@ -1,4 +1,3 @@
-import ast
 import json
 from os import listdir
 from os.path import join, isfile
@@ -69,8 +68,12 @@ class OutputTest(TestClass):
             self.assertTrue(steps[1]['success'])
             self.assertEqual('check', list(steps[2]['step'].keys())[0])
             self.assertFalse(steps[3]['success'])
-            self.assertEqual("operation {'any': {'of': '['bar']', 'equals': '404'}} failed", steps[3]['output'])
-            self.assertEqual("operation {'any': {'of': '['bar']', 'equals': '404'}} failed", report['status'])
+            self.assertTrue(self._compare_operations(steps[3]['output'],
+                                                     "operation {'any': {'of': '['bar']', 'equals': '404'}} failed",
+                                                     "operation {'any': {'equals': '404', 'of': '['bar']'}} failed"))
+            self.assertTrue(self._compare_operations(report['status'],
+                                                     "operation {'any': {'of': '['bar']', 'equals': '404'}} failed",
+                                                     "operation {'any': {'equals': '404', 'of': '['bar']'}} failed"))
 
     def test_register_variable(self):
         self.populate_file('main.yaml', '''---
@@ -234,3 +237,8 @@ class OutputTest(TestClass):
             self.assertEqual('run', list(steps[5]['step'].keys())[0])
             self.assertEqual('echo', list(steps[6]['step'].keys())[0])
             self.assertEqual('echo', list(steps[7]['step'].keys())[0])
+
+    # py36 has dict insert ordering, while older implementations have some other.
+    @staticmethod
+    def _compare_operations(operation, *expectations):
+        return any([operation == exp for exp in expectations])
