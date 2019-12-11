@@ -120,16 +120,23 @@ class Http(Step):
         rq = dict(verify=self.verify, headers=headers)
         isjson, body = self.__form_body(variables)
         debug('http ' + str(self.method) + ' ' + str(url) + ', ' + str(headers) + ', ' + str(body))
+        content_type = self.__get_content_type(headers)
         if isjson or isinstance(body, dict):  # contains tojson or dict supplied
-            if 'content-type' not in headers and 'Content-Type' not in headers:  # add json content type if missing
-                headers['content-type'] = 'application/json'
-            if isinstance(body, dict):  # json body formed manually via python dict
+            if isinstance(body, dict) and content_type == 'application/json':
+                # json body formed manually via python dict
                 rq['json'] = body
-            else:  # string, already in json
+            else:  # json string or form-data dict
                 rq['data'] = body
         else:  # raw body (or body is None)
             rq['data'] = body
         return rq
+
+    @staticmethod
+    def __get_content_type(headers):
+        content_type = headers.get('Content-Type')
+        if content_type is None:
+            content_type = headers.get('content-type')
+        return content_type
 
     def __form_body(self, variables) -> str or dict:
         if self.method == 'get':
