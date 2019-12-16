@@ -3,21 +3,23 @@ Variables
 
 Predefined
 ----------
-Variables from inventory, `variables` block or command line `-e` argument
+Variables from inventory, ``variables`` block or command line ``-e`` argument
 
 Computed
 --------
 
-| Registered in steps variables via `register: {var_name: var_value}`.
-| `var_value` can be a variable itself like: `register: {email: '{{ user }}@test.com'}`
+| Registered in steps variables via ``register: {var_name: var_value}``.
+| ``var_value`` can be a variable itself like: ``register: {email: '{{ user }}@test.com'}``
 
 Inherited
 ---------
-Inherited from `run` steps. Every run include adds its variables to test scope.
+Inherited from ``run`` steps. Every run include adds its variables to test scope.
 
 Built-in
 --------
-| 1. `OUTPUT` - operation's output. Can be used for new variables registration::
+| 1. ``OUTPUT`` - operation's output. Can be used for new variables registration
+
+::
 
     - http:
         post: 
@@ -25,7 +27,9 @@ Built-in
             body: {'id': '{{ id }}', 'action': 'fee'}
         register: {reply: '{{ OUTPUT.id }}'}
 
-| 2. `ITEM` - item of a list. Used in `any` and `all` checks and `foreach` loops ::
+| 2. ``ITEM`` - item of a list. Used in ``any`` and ``all`` checks and ``foreach`` loops
+
+::
 
     variables:
         list: [{n: 1, k: 'a'}, {n: 2, k: 'a'}, {n: 3, k: 'a'}]
@@ -35,22 +39,22 @@ Built-in
                 of: '{{ list }}'
                 equals: {the: '{{ ITEM.k }}', is: 'a'}
 
-| 3. `NOW_TS` - return timestamp::
+| 3. ``NOW_TS`` - return timestamp::
 
     steps:
       - echo: {from: '{{ NOW_TS }}', register: {now: '{{ OUTPUT }}'}}
 
-| 4. `NOW_DT` - return current date in `yyyy-mm-ddTHH:MM:SS0+0000`
-| 5. `RANDOM_STR` - return random string in uuid format
-| 6. `RANDOM_INT` - return random int [-2147483648, 2147483648]
-| 7. `TEST_NAME` - name of the current test
-| 8. `CURRENT_DIR` - current directory
-| 9. `INVENTORY` - current inventory.
-| 10. `RESOURCES_DIR` - resources directory. Can be specified via `-r` param. Default is `./resources`.
+| 4. ``NOW_DT`` - return current date in ``yyyy-mm-ddTHH:MM:SS0+0000``
+| 5. ``RANDOM_STR`` - return random string in uuid format
+| 6. ``RANDOM_INT`` - return random int [-2147483648, 2147483648]
+| 7. ``TEST_NAME`` - name of the current test
+| 8. ``CURRENT_DIR`` - current directory
+| 9. ``INVENTORY`` - current inventory.
+| 10. ``RESOURCES_DIR`` - resources directory. Can be specified via ``-r`` param. Default is ``./resources``.
 
 Built-in functions
 ------------------
-| 1. `random_int()` - will generate a random int for you. The only difference between `RANDOM_INT` is - you can set limits
+| 1. ``random_int()`` - will generate a random int for you. The only difference between ``RANDOM_INT`` is - you can set limits
 
 ::
 
@@ -59,7 +63,7 @@ Built-in functions
         - echo: {from: '{{ random_int(1) }}', to: one.output} # write a random int from 1 to max_size to the file
         - echo: {from: '{{ random_int(range_to=1) }}', to: one.output} # write a random int from min_size to 1 to the file
 
-| 2. `random_choice()` - syntax sugar for `{{ list[random_var] }}`. Take random element from a list
+| 2. ``random_choice()`` - syntax sugar for ``{{ list[random_var] }}``. Take random element from a list
 
 ::
 
@@ -84,14 +88,18 @@ Environment variables
 ---------------------
 
 | There is a full support for environment variables in inventory files and partly support in steps itself.
-| In steps you can just access them ::
+| In steps you can just access them
+
+::
 
     steps:
         - check: {equals: {the: '{{ FOO }}', is: '1'}}
 
-| If you run `export FOO=1` before - this step will pass.
+| If you run ``export FOO=1`` before - this step will pass.
 | There is a limitation (only for steps) - variables should be accessed directly.
-| It means, this not work ::
+| It means, this not work
+
+::
 
     variables:
         foo: '{{ FOO }}'
@@ -100,8 +108,8 @@ Environment variables
 
 | Because here there are 2 steps:
 
-1. replace foo with `{{ FOO }}`
-2. replace `{{ FOO }}` with value from environment.
+1. replace foo with ``{{ FOO }}``
+2. replace ``{{ FOO }}`` with value from environment.
 
 | However, there is no such limitation in inventory.
 
@@ -127,36 +135,34 @@ Variables override priority
 Variables from command line
 ---------------------------
 Variables, passed from command line override inventory variables.
-`inventory.yaml`::
+``inventory.yaml``::
 
     foo=bar
 
-in this case `catcher -i inventory.yaml test -e foo=baz` foo variable
-will be `baz`.
+in this case ``catcher -i inventory.yaml test -e foo=baz`` foo variable will be ``baz``.
 
 Variables in test scripts
 -------------------------
 Variables, set in test scripts, override inventory variables and variables,
 passed from command line.
-`inventory.yaml`::
+``inventory.yaml``::
 
-    foo=bar
+    foo: bar
 
-`test.yaml`::
+``test.yaml``::
 
     variables:
-        foo=bax
+        foo: bax
     steps:
         ...
 
-in this case `catcher -i inventory.yaml test.yaml -e foo=baz` foo variable
-will be `bax`.
+in this case ``catcher -i inventory.yaml test.yaml -e foo=baz`` foo variable will be ``bax``.
 
 Variables from run includes
 ---------------------------
-Variables, computed via `run` includes override variables declared before.
+Variables, computed via ``run`` includes override variables declared before.
 
-`compute_fee.yaml`::
+``compute_fee.yaml``::
 
     ---
     variables:
@@ -165,7 +171,7 @@ Variables, computed via `run` includes override variables declared before.
         - echo: {from: '{{ RANDOM_STR }}', register: {uuid: '{{ OUTPUT }}'}}
         # ... do something else
 
-`main_test.yaml`::
+``main_test.yaml``::
 
     ---
     include:
@@ -184,7 +190,7 @@ Variables, computed via `run` includes override variables declared before.
 Environment variables
 ---------------------
 | All other variables override environmental variables from steps.
-| export FOO=bar
+| ``export FOO=bar``
 test.yml::
 
     variables:
