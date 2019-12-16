@@ -7,3 +7,4 @@ requests_mock==1.7.*
 PyYAML==5.*
 Jinja2==2.10.*
 uuid==1.30
+Faker==3.0.*

@@ -1,5 +1,8 @@
 import os
+import random
 from os.path import join
+
+from faker import Faker
 
 from catcher.core.runner import Runner
 from test.abs_test_class import TestClass
@@ -105,3 +108,57 @@ class VariablesTest(TestClass):
                 ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
         self.assertFalse(runner.run_tests())
+
+    # faker can be called from catcher
+    def test_random_functions(self):
+        Faker.seed(4321)
+        self.populate_file('main.yaml', '''---
+        steps:
+            - echo: {from: '{{ random("ipv4_private") }}', to: one.output}
+        ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
+        self.assertTrue(check_file(join(self.test_dir, 'one.output'), '10.32.135.245'))
+
+    # random int with args can be called
+    def test_random_int(self):
+        random.seed(123)
+        self.populate_file('main.yaml', '''---
+        steps:
+            - echo: {from: '{{ random_int(1, 10) }}', to: one.output}
+        ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
+        self.assertTrue(check_file(join(self.test_dir, 'one.output'), '2'))
+
+        # no upper limit
+        self.populate_file('main.yaml', '''---
+        steps:
+            - echo: {from: '{{ random_int(1) }}', to: one.output}
+        ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
+        self.assertTrue(check_file(join(self.test_dir, 'one.output'), '8312092512683043478'))
+
+        # no lower limit
+        self.populate_file('main.yaml', '''---
+        steps:
+            - echo: {from: '{{ random_int(range_to=1) }}', to: one.output}
+        ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
+        self.assertTrue(check_file(join(self.test_dir, 'one.output'), '-6278120581589537461'))
+
+    # random choice on a list can be called
+    def test_random_choice(self):
+        random.seed(123)
+        self.populate_file('main.yaml', '''---
+        variables:
+            my_list: ['one', 'two', 'three']
+        steps:
+            - echo: {from: '{{ random_choice(my_list) }}', to: one.output}
+        ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
+        self.assertTrue(check_file(join(self.test_dir, 'one.output'), 'one'))
+

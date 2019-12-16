@@ -2,10 +2,15 @@ import ast
 import datetime
 import json
 import random
+import sys
 import time
 import uuid
 
+from faker import Faker
 from jinja2 import Template, UndefinedError
+
+from catcher.utils.module_utils import get_submodules_of
+random.seed()
 
 
 def merge_two_dicts(x, y):
@@ -70,8 +75,30 @@ def inject_builtins(variables: dict) -> dict:
     return variables_copy
 
 
+def rand_fun(param):
+    fake = Faker()
+    for modname, importer in get_submodules_of('faker.providers'):  # add all known providers
+        fake.add_provider(importer.find_module(modname).load_module(modname))
+    if hasattr(fake, param):
+        return getattr(fake, param)()
+    else:
+        raise ValueError('Unknown param to randomize: ' + param)
+
+
+def rand_numeric(range_from=-sys.maxsize - 1, range_to=sys.maxsize):
+    return random.randint(range_from, range_to)
+
+
+def rand_choice(sequence):
+    return random.choice(sequence)
+
+
 def render(source: str, variables: dict) -> str:
+    template = Template(source)
+    template.globals['random'] = rand_fun
+    template.globals['random_int'] = rand_numeric
+    template.globals['random_choice'] = rand_choice
     try:
-        return Template(source).render(variables)
+        return template.render(variables)
     except UndefinedError:
         return source

@@ -48,6 +48,34 @@ Built-in
 | 9. `INVENTORY` - current inventory.
 | 10. `RESOURCES_DIR` - resources directory. Can be specified via `-r` param. Default is `./resources`.
 
+Built-in functions
+------------------
+| 1. `random_int()` - will generate a random int for you. The only difference between `RANDOM_INT` is - you can set
+limits ::
+
+    steps:
+        - echo: {from: '{{ random_int(1, 10) }}', to: one.output}  # write a random int between 1 and 10 to the file
+        - echo: {from: '{{ random_int(1) }}', to: one.output} # write a random int from 1 to max_size to the file
+        - echo: {from: '{{ random_int(range_to=1) }}', to: one.output} # write a random int from min_size to 1 to the file
+
+| 2. `random_choice()` - syntax sugar for `{{ list[random_var] }}`. Take random element from a list ::
+
+    variables:
+        my_list: ['one', 'two', 'three']
+    steps:
+        - echo: {from: '{{ random_choice(my_list) }}', to: one.output}
+
+| 3. `Faker <https://github.com/joke2k/faker>`_ random data. With all available built-in providers imported. Type of the
+random data is set as an argument ::
+
+    steps:
+        - echo: {from: '{{ random("ipv4_private") }}', to: one.output}  # write random ipv4 address to file
+        - echo: {from: '{{ random("name") }}', to: one.output}  # write random name to file
+        - echo: {from: '{{ random("address") }}', to: one.output}  # write random address to file
+        - echo: {from: '{{ random("email") }}', to: one.output}  # write random email to file
+
+Please see `providers <https://faker.readthedocs.io/en/stable/providers.html>`_ for more info.
+
 Environment variables
 ---------------------
 
