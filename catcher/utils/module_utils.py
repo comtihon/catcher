@@ -31,6 +31,17 @@ def prepare_modules(module_paths: list, available: dict) -> dict:
     return indexed
 
 
+def get_submodules_of(package: str):
+    """
+    Get all submodules and their importers for the package. It is not recursive.
+    For recursive see __load_python_package_installed
+    Package should be installed in the system.
+    """
+    modules = locate(package)
+    return [(modname, importer) for importer, modname, ispkg
+            in pkgutil.iter_modules(path=modules.__path__, prefix=modules.__name__ + '.')]
+
+
 def load_external_actions(package: str):
     """
     Load all classes from a package
