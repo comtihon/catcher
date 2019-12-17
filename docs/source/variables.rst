@@ -39,7 +39,9 @@ Built-in
                 of: '{{ list }}'
                 equals: {the: '{{ ITEM.k }}', is: 'a'}
 
-| 3. ``NOW_TS`` - return timestamp::
+| 3. ``NOW_TS`` - return timestamp
+
+::
 
     steps:
       - echo: {from: '{{ NOW_TS }}', register: {now: '{{ OUTPUT }}'}}
@@ -194,7 +196,7 @@ Environment variables
 test.yml::
 
     variables:
-            FOO: baz
+        FOO: baz
     steps:
         - check: {equals: {the: '{{ FOO }}', is: 'baz'}}
 
