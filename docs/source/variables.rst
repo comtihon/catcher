@@ -89,8 +89,8 @@ Please see `providers <https://faker.readthedocs.io/en/stable/providers.html>`_ 
 Environment variables
 ---------------------
 
-| There is a full support for environment variables in inventory files and partly support in steps itself.
-| In steps you can just access them
+| There is a full support for environment variables in inventory files and in steps.
+| In steps you can just access them.
 
 ::
 
@@ -98,8 +98,7 @@ Environment variables
         - check: {equals: {the: '{{ FOO }}', is: '1'}}
 
 | If you run ``export FOO=1`` before - this step will pass.
-| There is a limitation (only for steps) - variables should be accessed directly.
-| It means, this not work
+| Since `1.21.2` predefined variables support templates as well.
 
 ::
 

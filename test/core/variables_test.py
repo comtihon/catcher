@@ -96,7 +96,6 @@ class VariablesTest(TestClass):
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
         self.assertTrue(runner.run_tests())
 
-    # env var can't be set in vars
     def test_env_var_in_vars(self):
         os.environ['FOO'] = '1'
         self.populate_file('main.yaml', '''---
@@ -106,8 +105,8 @@ class VariablesTest(TestClass):
                     - check: {equals: {the: '{{ foo }}', is: '1'}}
 
                 ''')
-        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
-        self.assertFalse(runner.run_tests())
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None, system_environment=dict(os.environ))
+        self.assertTrue(runner.run_tests())
 
     # faker can be called from catcher
     def test_random_functions(self):
@@ -131,6 +130,7 @@ class VariablesTest(TestClass):
         self.assertTrue(runner.run_tests())
         self.assertTrue(check_file(join(self.test_dir, 'one.output'), '2'))
 
+        random.seed(123)
         # no upper limit
         self.populate_file('main.yaml', '''---
         steps:
@@ -138,8 +138,9 @@ class VariablesTest(TestClass):
         ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
         self.assertTrue(runner.run_tests())
-        self.assertTrue(check_file(join(self.test_dir, 'one.output'), '8312092512683043478'))
+        self.assertTrue(check_file(join(self.test_dir, 'one.output'), '7733829868136316427'))
 
+        random.seed(123)
         # no lower limit
         self.populate_file('main.yaml', '''---
         steps:
@@ -147,7 +148,7 @@ class VariablesTest(TestClass):
         ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
         self.assertTrue(runner.run_tests())
-        self.assertTrue(check_file(join(self.test_dir, 'one.output'), '-6278120581589537461'))
+        self.assertTrue(check_file(join(self.test_dir, 'one.output'), '-2229762486649458603'))
 
     # random choice on a list can be called
     def test_random_choice(self):

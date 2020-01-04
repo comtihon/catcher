@@ -74,7 +74,9 @@ class Runner:
     def prepare_test(self, file: str, variables: dict, override_vars: None or dict = None) -> Test:
         body = read_source_file(file)
         registered_includes = self.process_includes(body.get('include', []), variables)
-        variables = merge_two_dicts(variables, body.get('variables', {}))  # override variables with test's variables
+        tests_variables = try_get_object(fill_template_str(body.get('variables', {}),
+                                                           merge_two_dicts(variables, self.environment)))
+        variables = merge_two_dicts(variables, tests_variables)  # override variables with test's variables
         if override_vars:
             override_keys = report_override(variables, override_vars)
             if override_keys:
