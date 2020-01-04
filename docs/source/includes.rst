@@ -104,8 +104,9 @@ Simple run on include
 Imagine you have this `register_user.yaml` test::
 
     ---
+    variables:
+        uuid: '{{ random("uuid4") }}'
     steps:
-        - echo: {from: '{{ RANDOM_STR }}', register: {uuid: '{{ OUTPUT }}'}}
         - http:
             actions:
               - post:  # register client and get id
@@ -192,8 +193,9 @@ And now imagine you, in your test need to run only a part of `register_and_login
 First, let's change `register_and_login.yaml` to look like this::
 
     ---
+    variables:
+        email: '{{ random("email") }}'
     steps:
-        - echo: {from: '{{ RANDOM_STR }}', register: {email: '{{ OUTPUT }}@test.com'}}
         - http:
             actions:
               - post:  # register client and get id

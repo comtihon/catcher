@@ -32,10 +32,10 @@ Catcher will help you::
         - file: metrics_check.yaml
           as: metrics_check
     variables:
+      metric1: '{{ RANDOM_INT }}'
+      device_id: '{{ RANDOM_STR }}'
       metric2: 5000 # this value will generate warning
     steps:
-        - echo: {from: '{{ RANDOM_INT }}', register: {metric1: '{{ OUTPUT }}'}}
-        - echo: {from: '{{ RANDOM_STR }}', register: {device_id: '{{ OUTPUT }}'}}
         - http: # send data to the Metrics service
             actions:
               - post:

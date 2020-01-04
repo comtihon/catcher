@@ -42,7 +42,7 @@ and test::
 
     ---
     variables:
-        data_id: 1
+        data_id: '{{ random(1) }}'  # random positive int
     steps:
         - http:
             post:
