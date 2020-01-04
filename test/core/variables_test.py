@@ -107,7 +107,7 @@ class VariablesTest(TestClass):
 
                 ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
-        self.assertFalse(runner.run_tests())
+        self.assertTrue(runner.run_tests())
 
     # faker can be called from catcher
     def test_random_functions(self):
