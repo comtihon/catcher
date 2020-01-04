@@ -96,7 +96,6 @@ class VariablesTest(TestClass):
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
         self.assertTrue(runner.run_tests())
 
-    # env var can't be set in vars
     def test_env_var_in_vars(self):
         os.environ['FOO'] = '1'
         self.populate_file('main.yaml', '''---
