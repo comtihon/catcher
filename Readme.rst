@@ -74,6 +74,9 @@ Installation
 .. _catcher-modules: https://pypi.org/project/catcher-modules
 .. _catcher-modules-index: https://catcher-modules.readthedocs.io/en/latest/source/catcher_modules.html#module-catcher_modules
 
+New in `1.22.0`:
+
+| Hash filters.
 
 New in `1.20.0`:
 

@@ -163,3 +163,17 @@ class VariablesTest(TestClass):
         self.assertTrue(runner.run_tests())
         self.assertTrue(check_file(join(self.test_dir, 'one.output'), 'one'))
 
+    # hash function is properly called
+    def test_hash(self):
+        self.populate_file('main.yaml', '''---
+        variables:
+            my_var: test
+        steps:
+            - echo: {from: '{{ "test" | hash("sha1") }}', to: one.output}
+            - echo: {from: '{{ my_var | hash("sha1") }}', to: two.output}
+        ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
+        self.assertTrue(check_file(join(self.test_dir, 'one.output'), 'a94a8fe5ccb19ba61c4c0873d391e987982fbbd3'))
+        self.assertTrue(check_file(join(self.test_dir, 'two.output'), 'a94a8fe5ccb19ba61c4c0873d391e987982fbbd3'))
+
