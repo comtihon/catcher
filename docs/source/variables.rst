@@ -86,6 +86,16 @@ Built-in functions
 
 Please see `providers <https://faker.readthedocs.io/en/stable/providers.html>`_ for more info.
 
+| 4. ``hash(algorithm)`` - hash the data using selected algorithm. Please check `hashlib <https://docs.python.org/3/library/hashlib.html>`_ docs for all algorithms available.
+
+::
+
+    variables:
+        my_var: 'my_value'
+    steps:
+        - echo: {from: '{{ "test" | hash("sha1") }}', register: {sha1: '{{ OUTPUT }}'}}
+        - echo: {from: '{{ my_var | hash("md5") }}', register: {md5: '{{ OUTPUT }}'}}
+
 Environment variables
 ---------------------
 

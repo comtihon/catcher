@@ -5,11 +5,12 @@ import random
 import sys
 import time
 import uuid
-
+import hashlib
 from faker import Faker
 from jinja2 import Template, UndefinedError
 
 from catcher.utils.module_utils import get_submodules_of
+
 random.seed()
 
 
@@ -85,6 +86,15 @@ def rand_fun(param):
         raise ValueError('Unknown param to randomize: ' + param)
 
 
+def hash_fun(data, alg='md5'):
+    if hasattr(hashlib, alg):
+        m = getattr(hashlib, alg)()
+        m.update(data.encode())
+        return m.hexdigest()
+    else:
+        raise ValueError('Unknown algorithm: ' + data)
+
+
 def rand_numeric(range_from=-sys.maxsize - 1, range_to=sys.maxsize):
     return random.randint(range_from, range_to)
 
@@ -98,6 +108,7 @@ def render(source: str, variables: dict) -> str:
     template.globals['random'] = rand_fun
     template.globals['random_int'] = rand_numeric
     template.globals['random_choice'] = rand_choice
+    template.environment.filters['hash'] = hash_fun
     try:
         return template.render(variables)
     except UndefinedError:
