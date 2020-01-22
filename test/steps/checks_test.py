@@ -155,3 +155,13 @@ class ChecksTest(TestClass):
         ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
         self.assertTrue(runner.run_tests())
+
+    # test if dates with dashes are not calculated as math
+    def test_compate_dates(self):
+        self.populate_file('main.yaml', '''---
+        steps:
+            - check:
+                equals: {the: '1973-10-12', is_not: '1973-12-10' }
+        ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
