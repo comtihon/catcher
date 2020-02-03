@@ -21,7 +21,7 @@ class Wait(Step):
     :microseconds: several microseconds
     :milliseconds: several milliseconds
     :nanoseconds: several nanoseconds
-    :for: (list of actions) will repeat them till they all finishes successfully or time ends.
+    :for: (list of actions) will repeat them till they all finishes successfully. Will fail if time ends.
 
     :Examples:
 
