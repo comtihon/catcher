@@ -5,6 +5,6 @@ requests==2.22.*
 urllib3==1.25.*
 requests_mock==1.7.*
 PyYAML==5.*
-Jinja2==2.10.*
+Jinja2==2.11.*
 uuid==1.30
 Faker==3.0.*
