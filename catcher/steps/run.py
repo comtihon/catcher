@@ -52,8 +52,8 @@ class Run(Step):
                 include: sign_up.register
     """
 
-    def __init__(self, ignore_errors=False, _body=None, run=None, include=None, tag=None, variables=None, **keywords):
-        super().__init__(keywords)
+    def __init__(self, ignore_errors=False, _body=None, run=None, include=None, tag=None, variables=None, **kwargs):
+        super().__init__(**kwargs)
         self.variables = {} if variables is None else variables
         self.ignore_errors = ignore_errors
         self.include = include

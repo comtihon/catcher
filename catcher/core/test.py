@@ -64,6 +64,8 @@ class Test:
                 try:
                     logger.log_storage.new_step(step, variables)
                     self.variables = action_object.action(self.includes, variables)
+                    # repeat for run (variables were computed after name)
+                    action_name = get_action_name(action, action_object, self.variables)
                     info('Step ' + action_name + ' OK')
                     logger.log_storage.step_end(step, self.variables)
                 except StopException as e:  # stop a test without error
