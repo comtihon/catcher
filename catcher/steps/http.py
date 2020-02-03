@@ -1,4 +1,5 @@
 import json
+import os
 from typing import Union
 
 import requests
@@ -143,7 +144,8 @@ class Http(Step):
             return False, None
         body = self.body
         if body is None:
-            body = read_file(fill_template_str(self.file, variables))
+            resources = variables['RESOURCES_DIR']
+            body = read_file(fill_template_str(os.path.join(resources, self.file), variables))
         if isinstance(body, dict):  # dump body to json to be able fill templates in
             body = json.dumps(body)
         isjson = 'tojson' in body
