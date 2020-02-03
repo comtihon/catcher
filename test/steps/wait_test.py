@@ -67,8 +67,6 @@ class WaitTest(TestClass):
                                             seconds: 1
                                             for:
                                                 check: {equals: {the: '{{ counter }}', is: 1}}
-                                        - echo: {from: '{{ NOW_TS }}', register: {after: '{{ OUTPUT }}'}}
-                                        - check: {equals: {the: '{{ after - before >= 1 }}', is: true}}
                                     ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
-        self.assertTrue(runner.run_tests())
+        self.assertFalse(runner.run_tests())
