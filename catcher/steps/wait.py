@@ -92,7 +92,7 @@ class Wait(Step):
         start = time.time()
         while repeat:
             if time.time() > start + self.delay:  # time limit reached
-                raise TimeoutError
+                raise Exception('Time limit reach with no success from substeps')
             loop_vars = deepcopy(output)  # start every loop from the same variables
             try:
                 for action in self._actions:
@@ -100,5 +100,5 @@ class Wait(Step):
                 repeat = False
                 output = loop_vars  # if loop was successful - return modified variables
             except Exception as e:
-                debug('wait step failure {}'.format(e))
+                debug('Wait step failure {}'.format(e))
         return output
