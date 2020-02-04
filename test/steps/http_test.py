@@ -118,3 +118,33 @@ class HttpTest(TestClass):
                     ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
         self.assertTrue(runner.run_tests())
+
+    @requests_mock.mock()
+    def test_await_2xx(self, m):
+        m.get('http://test.com', status_code=201)
+        self.populate_file('main.yaml', '''---
+                    steps:
+                        - http: {get: {url: 'http://test.com', response_code: 2xx}}
+                    ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
+
+    @requests_mock.mock()
+    def test_await_range(self, m):
+        m.get('http://test.com', status_code=201)
+        self.populate_file('main.yaml', '''---
+                            steps:
+                                - http: {get: {url: 'http://test.com', response_code: 200-300}}
+                            ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
+
+    @requests_mock.mock()
+    def test_await_range_xx(self, m):
+        m.get('http://test.com', status_code=201)
+        self.populate_file('main.yaml', '''---
+                                    steps:
+                                        - http: {get: {url: 'http://test.com', response_code: 2xx-3xx}}
+                                    ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
