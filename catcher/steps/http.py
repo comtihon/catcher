@@ -1,5 +1,6 @@
 import json
 import os
+import re
 from typing import Union
 
 import requests
@@ -19,13 +20,32 @@ class Http(Step):
 
     - headers: Dictionary with custom headers. *Optional*
     - url: url to call
-    - response_code: Code to await. *Optional* default is 200.
+    - response_code: Code to await. Use 'x' for a wildcard or '-' to set a range between 2 codes.
+                     *Optional* default is 200.
     - body: body to send (only for methods which support it).
     - body_from_file: File can be used as data source. *Optional* Either `body` or `body_from_file` should present.
     - verify: Verify SSL Certificate in case of https. *Optional*. Default is true.
     - should_fail: true, if this request should fail, f.e. to test connection refused. Will fail the test if no errors.
 
     :Examples:
+
+    Put data to server and await 200-299 code
+    ::
+
+        http:
+          put:
+            url: 'http://test.com?user_id={{ user_id }}'
+            body: {'foo': bar}
+          response_code: 2XX
+
+    Put data to server and await 201-3XX code
+    ::
+
+        http:
+          put:
+            url: 'http://test.com?user_id={{ user_id }}'
+            body: {'foo': bar}
+          response_code: 201-3xx
 
     Post data to server with custom header
     ::
@@ -75,7 +95,7 @@ class Http(Step):
                 should_fail: true
     """
 
-    def __init__(self, response_code=200, **kwargs) -> None:
+    def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         method = Step.filter_predefined_keys(kwargs)  # get/post/put...
         self.method = method.lower()
@@ -88,7 +108,7 @@ class Http(Step):
         if not self.verify:
             import urllib3
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-        self.code = response_code
+        self.code = conf.get('response_code', 200)
         if self.method != 'get':
             self.body = conf.get('body', None)
             if self.body is None:
@@ -107,7 +127,7 @@ class Http(Step):
             if self._should_fail:  # fail expected
                 return variables
         debug(r.text)
-        if r.status_code != self.code:
+        if self.__check_code(r.status_code, self.code):
             raise RuntimeError('Code mismatch: ' + str(r.status_code) + ' vs ' + str(self.code))
         try:
             response = r.json()
@@ -150,3 +170,14 @@ class Http(Step):
             body = json.dumps(body)
         isjson = 'tojson' in body
         return isjson, fill_template(body, variables, isjson=isjson)
+
+    @staticmethod
+    def __check_code(got: int, expected):
+        expected_str = str(expected).lower()
+        if '-' in str(expected_str):  # range
+            [e_from, e_to] = expected_str.split('-')
+            return not (int(e_from.replace('x', '0')) <= got <= int(e_to.replace('x', '9')))
+        if 'x' in expected_str:  # regexp
+            expected_str = expected_str.replace('x', '.')
+        p = re.compile(expected_str)
+        return p.match(str(got)) is None
