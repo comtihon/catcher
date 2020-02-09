@@ -51,8 +51,9 @@ Built-in
 | 6. ``RANDOM_INT`` - return random int [-2147483648, 2147483648]
 | 7. ``TEST_NAME`` - name of the current test
 | 8. ``CURRENT_DIR`` - current directory
-| 9. ``INVENTORY`` - current inventory.
-| 10. ``RESOURCES_DIR`` - resources directory. Can be specified via ``-r`` param. Default is ``./resources``.
+| 9. ``INVENTORY`` - current inventory filename.
+| 10. ``INVENTORY_FILE`` - full path to the current inventory.
+| 11. ``RESOURCES_DIR`` - resources directory. Can be specified via ``-r`` param. Default is ``./resources``.
 
 Built-in functions
 ------------------

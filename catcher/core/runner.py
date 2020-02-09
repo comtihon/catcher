@@ -47,6 +47,7 @@ class Runner:
             if self.inventory is not None:
                 inv_vars = read_source_file(self.inventory)
                 inv_vars['INVENTORY'] = get_filename(self.inventory)
+                inv_vars['INVENTORY_FILE'] = self.inventory
                 variables = try_get_object(fill_template_str(inv_vars, variables))  # fill env vars
             variables['CURRENT_DIR'] = self.path
             variables['RESOURCES_DIR'] = self.resources or self.path + '/resources'
