@@ -2,7 +2,7 @@
     :target: https://travis-ci.org/comtihon/catcher
 .. image:: https://img.shields.io/pypi/v/catcher.svg
     :target: https://pypi.python.org/pypi/catcher
-.. image:: https://img.shields.io/pypi/pyversions/catcher_modules.svg
+.. image:: https://img.shields.io/pypi/pyversions/catcher.svg
     :target: https://pypi.python.org/pypi/catcher
 .. image:: https://img.shields.io/pypi/wheel/catcher.svg
     :target: https://pypi.python.org/pypi/catcher
