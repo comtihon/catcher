@@ -1,4 +1,6 @@
+import io
 from os.path import join
+import cgi
 
 import requests_mock
 
@@ -148,3 +150,86 @@ class HttpTest(TestClass):
                                     ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
         self.assertTrue(runner.run_tests())
+
+    @requests_mock.mock()
+    def test_send_json_via_headers(self, m):
+        adapter = m.post('http://test.com')
+
+        self.populate_file('main.yaml', '''---
+                                    variables:
+                                        body: {'foo': 'bar'}
+                                    steps:
+                                        - http: 
+                                            post: 
+                                                url: 'http://test.com'
+                                                headers: {Content-Type: 'application/json'}
+                                                body: '{{ body }}'
+                                    ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
+        self.assertEqual({'foo': 'bar'}, adapter.last_request.json())
+
+    @requests_mock.mock()
+    def test_send_json_directly(self, m):
+        adapter = m.post('http://test.com')
+
+        self.populate_file('main.yaml', '''---
+                                    variables:
+                                        body: {'foo': 'bar'}
+                                    steps:
+                                        - http: 
+                                            post: 
+                                                url: 'http://test.com'
+                                                body: '{{ body |tojson }}'
+                                    ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
+        self.assertEqual({'foo': 'bar'}, adapter.last_request.json())
+
+    @requests_mock.mock()
+    def test_upload_file(self, m):
+        self.populate_file('main.yaml', '''---
+                                    steps:
+                                        - http: 
+                                            post: 
+                                                url: 'http://test.com'
+                                                files:
+                                                    file: 'foo.csv'
+                                                    type: 'text/csv'
+                                    ''')
+        self.populate_resource('foo.csv', "one,two\n"
+                                          "three,four"
+                               )
+
+        adapter = m.post('http://test.com')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
+        self.assertTrue('Content-Type: text/csv' in adapter.last_request.text)
+        self.assertTrue("one,two\n"
+                        "three,four" in adapter.last_request.text)
+
+    @requests_mock.mock()
+    def test_upload_multiple(self, m):
+        self.populate_file('main.yaml', '''---
+                                    steps:
+                                        - http: 
+                                            post: 
+                                                url: 'http://test.com'
+                                                files:
+                                                    - file: 'one.json'
+                                                      type: 'application/json'
+                                                    - file: 'foo.csv'
+                                                      type: 'text/csv'
+                                    ''')
+        self.populate_resource('one.json', "{\"key\":\"value\"}")
+        self.populate_resource('foo.csv', "one,two\n"
+                                          "three,four"
+                               )
+        adapter = m.post('http://test.com')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
+        self.assertTrue('Content-Type: text/csv' in adapter.last_request.text)
+        self.assertTrue('Content-Type: application/json' in adapter.last_request.text)
+        self.assertTrue("{\"key\":\"value\"}" in adapter.last_request.text)
+        self.assertTrue("one,two\n"
+                        "three,four" in adapter.last_request.text)
