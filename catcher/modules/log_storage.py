@@ -1,6 +1,7 @@
 from copy import deepcopy
 from datetime import datetime
 from catcher.modules.formatter import formatter_factory
+from catcher.utils import file_utils
 
 
 class LogStorage:
@@ -44,6 +45,7 @@ class LogStorage:
             self._data += [{'time': datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'data': output, 'level': level}]
 
     def write_report(self, path):
+        file_utils.ensure_dir(path)
         formatter = formatter_factory(self._format)
         formatter.format(path, self._data)
 

@@ -32,7 +32,7 @@ Testing - How it works?
 2. You write `tests`_ file in `YAML`_ or `JSON`_ formats where you describe data movement in your system
 3. You run your tests in any environment (from dev to prod) just changing `inventory`_ files.
 4. Bob (your colleague) implements his own business logic, which requires your test (or part of it) to be run.
-5. Bob writes his test in YAML and includes your test (or certain steps) to be run before or during his test.
+5. Bob writes his test in YAML and `includes`_ your test (or certain steps) to be run before or during his test.
 6. John (your devOps) decides to automate tests and makes CI run all tests on every microservice deploy.
 7. Your business logic is tested automatically and you will know if some of your services interact incorrectly.
 8. Profit.
@@ -41,6 +41,7 @@ Testing - How it works?
 .. _JSON: https://www.json.org/
 .. _inventory: https://catcher-test-tool.readthedocs.io/en/latest/source/inventory.html
 .. _tests: https://catcher-test-tool.readthedocs.io/en/latest/source/tests.html
+.. _includes: https://catcher-test-tool.readthedocs.io/en/latest/source/includes.html
 
 
 Migration - How it works?
@@ -74,19 +75,7 @@ Installation
 .. _catcher-modules: https://pypi.org/project/catcher-modules
 .. _catcher-modules-index: https://catcher-modules.readthedocs.io/en/latest/source/catcher_modules.html#module-catcher_modules
 
-New in `1.22.0`:
-
-| Hash filters.
-
-New in `1.20.0`:
-
-| Save output to file as json, including step definitions and variables before and after. Useful for debugging.
-| `catcher -p json test.yml`
-
-New in `1.19.0`:
-
-| To have `docker-compose` support install `catcher[compose]` instead.
-| This will make catcher run `docker-compose up` in your resources directory, if docker-compose file was found.
+Changelog is `here <https://github.com/comtihon/catcher/blob/master/Changelog.rst>`_.
 
 Usage
 -----
@@ -106,8 +95,10 @@ Usage
 
 | You can also specify `inventory`_ with `-i` to test against different environments, custom `module`_ paths with `-m`
   to include your own modules. Run `catcher -h` to get full list of available options.
+| See `run`_ documentation for local & docker run info.
 
 .. _module: https://catcher-test-tool.readthedocs.io/en/latest/source/modules.html
+.. _run: https://catcher-test-tool.readthedocs.io/en/latest/source/run.html
 
 Why catcher?
 ------------

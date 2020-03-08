@@ -12,5 +12,6 @@ VOLUME /opt/catcher/tests
 VOLUME /opt/catcher/resources
 VOLUME /opt/catcher/inventory
 VOLUME /opt/catcher/steps
+VOLUME /opt/catcher/reports
 
 ENTRYPOINT ["catcher"]

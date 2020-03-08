@@ -8,8 +8,6 @@ from os.path import join
 
 import yaml
 
-from catcher.utils.logger import error
-
 
 def get_module_filename(module) -> str:
     return get_filename(inspect.getfile(module))
@@ -22,9 +20,7 @@ def get_filename(filename: str) -> str:
 # Get list of yaml files in dir and subdirs
 def get_files(path: str) -> list:
     if not os.path.exists(path):
-        err = 'No such path: ' + path
-        error(err)
-        raise FileNotFoundError(err)
+        raise FileNotFoundError('No such path: ' + path)
     file = []
     if os.path.isdir(path):
         for f in os.listdir(path):
@@ -40,9 +36,7 @@ def get_files(path: str) -> list:
 
 def read_source_file(file: str) -> dict:
     if not os.path.exists(file):
-        err = 'No such file: ' + file
-        error(err)
-        raise FileNotFoundError(err)
+        raise FileNotFoundError('No such file: ' + file)
     if file.lower().endswith('json'):
         return _read_json_file(file)
     else:
@@ -51,9 +45,7 @@ def read_source_file(file: str) -> dict:
 
 def read_file(file: str) -> str:
     if not os.path.exists(file):
-        err = 'No such file: ' + file
-        error(err)
-        raise FileNotFoundError(err)
+        raise FileNotFoundError('No such file: ' + file)
     with io.open(file, mode='r', encoding='utf-8') as stream:
         return stream.read()
 
@@ -79,9 +71,7 @@ def _read_yaml_file(file: str) -> dict:
         try:
             return yaml.load(stream) or {}
         except yaml.YAMLError as exc:
-            err = 'Wrong YAML format for file ' + file + ' : ' + str(exc)
-            error(err)
-            raise yaml.YAMLError(err)
+            raise yaml.YAMLError('Wrong YAML format for file ' + file + ' : ' + str(exc))
 
 
 def _read_json_file(file: str) -> dict:
@@ -89,6 +79,4 @@ def _read_json_file(file: str) -> dict:
         try:
             return json.load(stream) or {}
         except yaml.YAMLError as exc:
-            err = 'Wrong YAML format for file ' + file + ' : ' + str(exc)
-            error(err)
-            raise yaml.YAMLError(err)
+            raise yaml.YAMLError('Wrong YAML format for file ' + file + ' : ' + str(exc))

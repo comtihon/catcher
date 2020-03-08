@@ -23,9 +23,10 @@ class OutputTest(TestClass):
         ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None, output_format='json')
         self.assertTrue(runner.run_tests())
-        reports = [f for f in listdir(self.test_dir) if isfile(join(self.test_dir, f)) and f.startswith('report')]
+        reports = [f for f in listdir(join(self.test_dir, 'reports'))
+                   if isfile(join(self.test_dir, 'reports', f)) and f.startswith('report')]
         self.assertEqual(1, len(reports))
-        with open(join(self.test_dir, reports[0]), 'r') as fp:
+        with open(join(self.test_dir, 'reports', reports[0]), 'r') as fp:
             obj = json.load(fp)
             self.assertEqual(1, len(obj))
             report = obj[0]
@@ -53,9 +54,10 @@ class OutputTest(TestClass):
                 ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None, output_format='json')
         self.assertFalse(runner.run_tests())
-        reports = [f for f in listdir(self.test_dir) if isfile(join(self.test_dir, f)) and f.startswith('report')]
+        reports = [f for f in listdir(join(self.test_dir, 'reports'))
+                   if isfile(join(self.test_dir, 'reports', f)) and f.startswith('report')]
         self.assertEqual(1, len(reports))
-        with open(join(self.test_dir, reports[0]), 'r') as fp:
+        with open(join(self.test_dir, 'reports', reports[0]), 'r') as fp:
             obj = json.load(fp)
             self.assertEqual(1, len(obj))
             report = obj[0]
@@ -82,9 +84,10 @@ class OutputTest(TestClass):
                         ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None, output_format='json')
         self.assertTrue(runner.run_tests())
-        reports = [f for f in listdir(self.test_dir) if isfile(join(self.test_dir, f)) and f.startswith('report')]
+        reports = [f for f in listdir(join(self.test_dir, 'reports'))
+                   if isfile(join(self.test_dir, 'reports', f)) and f.startswith('report')]
         self.assertEqual(1, len(reports))
-        with open(join(self.test_dir, reports[0]), 'r') as fp:
+        with open(join(self.test_dir, 'reports', reports[0]), 'r') as fp:
             obj = json.load(fp)
             self.assertEqual(1, len(obj))
             report = obj[0]
@@ -112,9 +115,10 @@ class OutputTest(TestClass):
                            ''')
         runner = Runner(self.test_dir, self.test_dir, None, output_format='json')
         self.assertTrue(runner.run_tests())
-        reports = [f for f in listdir(self.test_dir) if isfile(join(self.test_dir, f)) and f.startswith('report')]
+        reports = [f for f in listdir(join(self.test_dir, 'reports'))
+                   if isfile(join(self.test_dir, 'reports', f)) and f.startswith('report')]
         self.assertEqual(1, len(reports))
-        with open(join(self.test_dir, reports[0]), 'r') as fp:
+        with open(join(self.test_dir, 'reports', reports[0]), 'r') as fp:
             obj = sorted(json.load(fp), key=lambda r: r['file'])
             self.assertEqual(2, len(obj))
             report = obj[0]
@@ -146,9 +150,10 @@ class OutputTest(TestClass):
                 ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None, output_format='json')
         self.assertTrue(runner.run_tests())
-        reports = [f for f in listdir(self.test_dir) if isfile(join(self.test_dir, f)) and f.startswith('report')]
+        reports = [f for f in listdir(join(self.test_dir, 'reports'))
+                   if isfile(join(self.test_dir, 'reports', f)) and f.startswith('report')]
         self.assertEqual(1, len(reports))
-        with open(join(self.test_dir, reports[0]), 'r') as fp:
+        with open(join(self.test_dir, 'reports', reports[0]), 'r') as fp:
             obj = json.load(fp)
             self.assertEqual(2, len(obj))
             report = obj[0]
@@ -188,9 +193,10 @@ class OutputTest(TestClass):
                             ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None, output_format='json')
         self.assertTrue(runner.run_tests())
-        reports = [f for f in listdir(self.test_dir) if isfile(join(self.test_dir, f)) and f.startswith('report')]
+        reports = [f for f in listdir(join(self.test_dir, 'reports'))
+                   if isfile(join(self.test_dir, 'reports', f)) and f.startswith('report')]
         self.assertEqual(1, len(reports))
-        with open(join(self.test_dir, reports[0]), 'r') as fp:
+        with open(join(self.test_dir, 'reports', reports[0]), 'r') as fp:
             obj = json.load(fp)
             self.assertEqual(3, len(obj))
             report = obj[0]
@@ -222,9 +228,10 @@ class OutputTest(TestClass):
                 ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None, output_format='json')
         self.assertTrue(runner.run_tests())
-        reports = [f for f in listdir(self.test_dir) if isfile(join(self.test_dir, f)) and f.startswith('report')]
+        reports = [f for f in listdir(join(self.test_dir, 'reports'))
+                   if isfile(join(self.test_dir, 'reports', f)) and f.startswith('report')]
         self.assertEqual(1, len(reports))
-        with open(join(self.test_dir, reports[0]), 'r') as fp:
+        with open(join(self.test_dir, 'reports', reports[0]), 'r') as fp:
             obj = json.load(fp)
             self.assertEqual(1, len(obj))
             output = obj[0]['output']

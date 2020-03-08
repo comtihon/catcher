@@ -69,7 +69,7 @@ class Runner:
                     logger.log_storage.test_end(file, False, str(e))
             return all(results)
         finally:
-            logger.log_storage.write_report(self.path)
+            logger.log_storage.write_report(join(self.path, 'reports'))
             self._compose.down()
 
     def prepare_test(self, file: str, variables: dict, override_vars: None or dict = None) -> Test:
