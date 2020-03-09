@@ -28,9 +28,10 @@ class Http(Step):
     - verify: Verify SSL Certificate in case of https. *Optional*. Default is true.
     - should_fail: true, if this request should fail, f.e. to test connection refused. Will fail the test if no errors.
 
-    :files: can contain single file or a list of files
+    :files: is a single file or list of files, where <file_param> is a name of request param.
+            If you don't specify headers 'multipart/form-data' will be set automatically.
 
-    - file: path to the file
+    - <file_param>: path to the file
     - type: file mime type
 
     :Examples:
@@ -113,9 +114,9 @@ class Http(Step):
           post:
             url: 'http://example.com/upload'
             files:
-                - file: 'one.csv'
+                - my_csv_file: 'one.csv'
                   type: 'text/csv'
-                - file: 'two.json'
+                - my_json_file: 'two.json'
                   type: 'application/json'
 
     Test disconnected service:
@@ -160,13 +161,15 @@ class Http(Step):
             debug(str(e))
             if self._should_fail:  # fail expected
                 return variables
-        debug(r.text)
+        response = None
+        if r is not None:
+            debug(r.text)
+            try:
+                response = r.json()
+            except ValueError:
+                response = r.text
         if self.__check_code(r.status_code, self.code):
             raise RuntimeError('Code mismatch: ' + str(r.status_code) + ' vs ' + str(self.code))
-        try:
-            response = r.json()
-        except ValueError:
-            response = r.text
         return variables, response
 
     def _form_request(self, url, variables: dict) -> dict:
@@ -210,9 +213,9 @@ class Http(Step):
     def __form_files(self, variables) -> Optional[list]:
         if self.files is not None:
             if isinstance(self.files, dict):
-                return [('file', self.__prepare_file(self.files, variables))]
+                return [self.__prepare_file(self.files, variables)]
             elif isinstance(self.files, list):
-                return [('file', self.__prepare_file(f, variables)) for f in self.files]
+                return [self.__prepare_file(f, variables) for f in self.files]
             else:
                 warning('Don\'t know how to prepare ' + type(self.files))
         return None
@@ -231,8 +234,9 @@ class Http(Step):
     @staticmethod
     def __prepare_file(file: dict, variables: dict):
         resources = variables['RESOURCES_DIR']
-        filepath = file.get('file')
+        [file_key] = [k for k in file.keys() if k != 'type']
+        filepath = file[file_key]
         file_type = file.get('type', 'text/plain')
         filename = file_utils.get_filename(filepath)
         file = file_utils.read_file(fill_template_str(os.path.join(resources, filepath), variables))
-        return filename, file, file_type
+        return file_key, (filename, file, file_type)

@@ -1,6 +1,4 @@
-import io
 from os.path import join
-import cgi
 
 import requests_mock
 
@@ -216,9 +214,9 @@ class HttpTest(TestClass):
                                             post: 
                                                 url: 'http://test.com'
                                                 files:
-                                                    - file: 'one.json'
+                                                    - file1: 'one.json'
                                                       type: 'application/json'
-                                                    - file: 'foo.csv'
+                                                    - file2: 'foo.csv'
                                                       type: 'text/csv'
                                     ''')
         self.populate_resource('one.json', "{\"key\":\"value\"}")
