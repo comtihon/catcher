@@ -238,5 +238,5 @@ class Http(Step):
         filepath = file[file_key]
         file_type = file.get('type', 'text/plain')
         filename = file_utils.get_filename(filepath)
-        file = file_utils.read_file(fill_template_str(os.path.join(resources, filepath), variables))
+        file = fill_template_str(file_utils.read_file(os.path.join(resources, filepath)), variables)
         return file_key, (filename, file, file_type)

@@ -231,3 +231,27 @@ class HttpTest(TestClass):
         self.assertTrue("{\"key\":\"value\"}" in adapter.last_request.text)
         self.assertTrue("one,two\n"
                         "three,four" in adapter.last_request.text)
+
+    @requests_mock.mock()
+    def test_upload_template(self, m):
+        self.populate_file('main.yaml', '''---
+                                    variables:
+                                        var: 'one'
+                                    steps:
+                                        - http: 
+                                            post: 
+                                                url: 'http://test.com'
+                                                files:
+                                                    file: 'foo.csv'
+                                                    type: 'text/csv'
+                                    ''')
+        self.populate_resource('foo.csv', "{{var}},two\n"
+                                          "three,four"
+                               )
+
+        adapter = m.post('http://test.com')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
+        self.assertTrue('Content-Type: text/csv' in adapter.last_request.text)
+        self.assertTrue("one,two\n"
+                        "three,four" in adapter.last_request.text)
