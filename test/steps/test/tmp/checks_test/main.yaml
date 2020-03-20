@@ -1,0 +1,6 @@
+---
+                variables:
+                    user_email: 123
+                steps:
+                    - echo: {from: '{{ user_email }}', to: 'debug.output'}
+                
