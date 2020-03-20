@@ -65,6 +65,17 @@ def is_package_installed(package: str) -> bool:
         return False
 
 
+def add_package_to_globals(package: str, glob=None) -> dict:
+    if glob is None:
+        glob = globals()
+    try:
+        mod = importlib.import_module(package)
+        glob[package] = mod
+    except ImportError as e:
+        warning(str(e))
+    return glob
+
+
 def __load_python_package_by_path(path: str):
     name = ntpath.basename(path)
     loader = importlib.machinery.SourceFileLoader(name, path)
