@@ -11,7 +11,7 @@ from collections import Iterable
 from faker import Faker
 from jinja2 import Template, UndefinedError
 
-from catcher.utils.module_utils import get_submodules_of
+from catcher.utils import module_utils
 from catcher.utils.logger import debug
 
 random.seed()
@@ -53,20 +53,31 @@ def try_get_objects(source: str or dict or list):
     return got
 
 
-def fill_template(source: any, variables: dict, isjson=False) -> any:
+def fill_template(source: any, variables: dict, isjson=False, glob=None, globs_added=None) -> any:
+    if not globs_added:
+        globs_added = set()
     if isinstance(source, str):
         source = render(source, inject_builtins(variables))
         if isjson:  # do not parse json string back to objects
             return source
         try:
-            source = format_datetime(eval_datetime(source))
+            source = format_datetime(eval_datetime(source, glob))
+        except NameError as e:  # try to import missing package and rerun this code
+            if 'is not defined' in str(e):
+                name = str(e).split("'")[1]
+                if name not in globs_added:
+                    # f.e. tzinfo=psycopg2.tz.FixedOffsetTimezone for datetime
+                    glob = module_utils.add_package_to_globals(name, glob)
+                    globs_added.add(name)
+                    return fill_template(source, variables, isjson, glob=glob, globs_added=globs_added)
         except Exception:
             pass
     return source
 
 
-def eval_datetime(astr):
-    import datetime
+def eval_datetime(astr, glob=None):
+    if glob is None:
+        glob = globals()
     try:
         tree = ast.parse(astr)
     except SyntaxError:
@@ -78,7 +89,7 @@ def eval_datetime(astr):
                 and isinstance(node.func, ast.Attribute)
                 and node.func.attr == 'datetime'): continue
         pass
-    return eval(astr)
+    return eval(astr, glob)
 
 
 def format_datetime(iterable):
@@ -110,7 +121,7 @@ def inject_builtins(variables: dict) -> dict:
 
 def rand_fun(param):
     fake = Faker()
-    for modname, importer in get_submodules_of('faker.providers'):  # add all known providers
+    for modname, importer in module_utils.get_submodules_of('faker.providers'):  # add all known providers
         fake.add_provider(importer.find_module(modname).load_module(modname))
     if hasattr(fake, param):
         return getattr(fake, param)()
