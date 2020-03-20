@@ -1,6 +1,6 @@
 docopt==0.6.*
 mock==3.0.*
-pytest==5.3.*
+pytest==5.4.*
 requests==2.23.*
 urllib3==1.25.*
 requests_mock==1.7.*
