@@ -7,6 +7,7 @@ import time
 import uuid
 import hashlib
 from collections import Iterable
+from types import ModuleType
 
 from faker import Faker
 from jinja2 import Template, UndefinedError
@@ -69,7 +70,9 @@ def fill_template(source: any, variables: dict, isjson=False, glob=None, globs_a
                     # f.e. tzinfo=psycopg2.tz.FixedOffsetTimezone for datetime
                     glob = module_utils.add_package_to_globals(name, glob)
                     globs_added.add(name)
-                    return fill_template(source, variables, isjson, glob=glob, globs_added=globs_added)
+                    filled = fill_template(source, variables, isjson, glob=glob, globs_added=globs_added)
+                    if not isinstance(filled, ModuleType):  # for standalone 'string' var
+                        return filled
         except Exception:
             pass
     return source
