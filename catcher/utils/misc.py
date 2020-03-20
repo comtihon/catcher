@@ -6,10 +6,13 @@ import sys
 import time
 import uuid
 import hashlib
+from collections import Iterable
+
 from faker import Faker
 from jinja2 import Template, UndefinedError
 
 from catcher.utils.module_utils import get_submodules_of
+from catcher.utils.logger import debug
 
 random.seed()
 
@@ -31,8 +34,8 @@ def report_override(variables: dict, override: dict):
 def try_get_object(source: str or dict or list):
     if isinstance(source, str):
         try:  # try python term '{key: "value"}'
-            source = ast.literal_eval(source)
-        except (ValueError, SyntaxError):
+            source = eval_datetime(source)
+        except Exception:
             try:  # try json object '{"key" : "value"}'
                 source = json.loads(source)
             except ValueError:
@@ -56,10 +59,39 @@ def fill_template(source: any, variables: dict, isjson=False) -> any:
         if isjson:  # do not parse json string back to objects
             return source
         try:
-            source = ast.literal_eval(source)
-        except (ValueError, SyntaxError):
-            return source
+            source = format_datetime(eval_datetime(source))
+        except Exception:
+            pass
     return source
+
+
+def eval_datetime(astr):
+    import datetime
+    try:
+        tree = ast.parse(astr)
+    except SyntaxError:
+        raise ValueError(astr)
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.Module, ast.Expr, ast.Dict, ast.Str,
+                             ast.Attribute, ast.Num, ast.Name, ast.Load, ast.Tuple)): continue
+        if (isinstance(node, ast.Call)
+                and isinstance(node.func, ast.Attribute)
+                and node.func.attr == 'datetime'): continue
+        pass
+    return eval(astr)
+
+
+def format_datetime(iterable):
+    if not isinstance(iterable, Iterable) or isinstance(iterable, str):
+        if isinstance(iterable, datetime.datetime):
+            return iterable.strftime('%Y-%m-%d %H:%M:%S.%f')
+        return iterable
+    else:
+        if isinstance(iterable, dict):
+            return dict([(format_datetime(k), format_datetime(v)) for k, v in iterable.items()])  # TODO ordered dict?
+        elif isinstance(iterable, tuple):
+            return tuple([format_datetime(i) for i in iterable])
+        return [format_datetime(i) for i in iterable]
 
 
 def fill_template_str(source: any, variables: dict) -> str:
@@ -111,5 +143,6 @@ def render(source: str, variables: dict) -> str:
     template.environment.filters['hash'] = hash_fun
     try:
         return template.render(variables)
-    except UndefinedError:
+    except UndefinedError as e:
+        debug(e.message())
         return source

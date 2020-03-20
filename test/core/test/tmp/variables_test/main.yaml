@@ -1,0 +1,9 @@
+---
+                variables:
+                    date: 123
+                    date_object: {'mydate': '{{ date }}'}
+                steps:
+                    - check: 
+                        the: '{{ mydate }}'
+                        is: '2020'
+                
