@@ -36,6 +36,7 @@ class MiscTest(TestClass):
         self.assertEqual(11, try_get_object('11'))
         self.assertEqual(7.3, try_get_object('7.3'))
         self.assertEqual('string', try_get_object('string'))
+        self.assertEqual('id', try_get_object('id'))
         self.assertEqual('2020-03-20', try_get_object('2020-03-20'))
 
     # complex objects are parsed and returned
@@ -58,6 +59,7 @@ class MiscTest(TestClass):
         self.assertEqual(17, fill_template('{{ OUTPUT }}', {'OUTPUT': 17}))
         self.assertEqual(4.2, fill_template('{{ OUTPUT }}', {'OUTPUT': 4.2}))
         self.assertEqual('string', fill_template('{{ OUTPUT }}', {'OUTPUT': 'string'}))
+        self.assertEqual('id', fill_template('{{ OUTPUT }}', {'OUTPUT': 'id'}))
         self.assertEqual('2020-03-11', fill_template('{{ OUTPUT }}', {'OUTPUT': '2020-03-11'}))
 
     # templates are being filled in correctly with complex objects
