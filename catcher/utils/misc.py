@@ -163,5 +163,5 @@ def render(source: str, variables: dict) -> str:
     try:
         return template.render(variables)
     except UndefinedError as e:
-        debug(e.message())
+        debug(e.message)
         return source
