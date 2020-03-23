@@ -32,18 +32,6 @@ def report_override(variables: dict, override: dict):
     return list(existing.intersection(replace))
 
 
-def try_get_object(source: str or dict or list):
-    if isinstance(source, str):
-        try:  # try python term '{key: "value"}'
-            source = eval_datetime(source)
-        except Exception:
-            try:  # try json object '{"key" : "value"}'
-                source = json.loads(source)
-            except ValueError:
-                return source
-    return source
-
-
 def try_get_objects(source: str or dict or list):
     got = try_get_object(source)  # "'[1,2,3]'" -> '[1,2,3]' -> [1,2,3]
     got = try_get_object(got)  # '[1,2,3]' -> [1,2,3]
@@ -54,6 +42,21 @@ def try_get_objects(source: str or dict or list):
     return got
 
 
+def try_get_object(source: str or dict or list):
+    if isinstance(source, str):
+        try:  # try python term '{key: "value"}'
+            evaled = eval_datetime(source)
+            if isinstance(evaled, ModuleType) or callable(evaled):  # for standalone 'string' var or 'id' bif
+                return source
+            source = evaled
+        except Exception:
+            try:  # try json object '{"key" : "value"}'
+                source = json.loads(source)
+            except ValueError:
+                return source
+    return source
+
+
 def fill_template(source: any, variables: dict, isjson=False, glob=None, globs_added=None) -> any:
     if not globs_added:
         globs_added = set()
@@ -62,7 +65,9 @@ def fill_template(source: any, variables: dict, isjson=False, glob=None, globs_a
         if isjson:  # do not parse json string back to objects
             return source
         try:
-            source = format_datetime(eval_datetime(source, glob))
+            evaled = format_datetime(eval_datetime(source, glob))
+            if not isinstance(evaled, ModuleType) and not callable(evaled):  # for standalone 'string' var or 'id' bif
+                source = evaled
         except NameError as e:  # try to import missing package and rerun this code
             if 'is not defined' in str(e):
                 name = str(e).split("'")[1]
@@ -71,8 +76,8 @@ def fill_template(source: any, variables: dict, isjson=False, glob=None, globs_a
                     glob = module_utils.add_package_to_globals(name, glob)
                     globs_added.add(name)
                     filled = fill_template(source, variables, isjson, glob=glob, globs_added=globs_added)
-                    if not isinstance(filled, ModuleType):  # for standalone 'string' var
-                        return filled
+                    if not isinstance(filled, ModuleType) and not callable(filled):
+                        return filled  # for standalone 'string' var or 'id' bif
         except Exception:
             pass
     return source
