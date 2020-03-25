@@ -9,30 +9,6 @@ from catcher.utils.misc import fill_template_str, merge_two_dicts
 from catcher.core import step_factory
 
 
-class Include:
-    """
-    Include another testcase in include section:
-
-    ::
-        include:
-            - file: simple_file.yaml
-              run_on_include: false
-            - other_simple_file.yaml
-
-    each include file has it's own Include object and attached Test
-    """
-
-    def __init__(self, ignore_errors=False, **keywords) -> None:
-        if 'file' not in keywords:
-            raise RuntimeError('Can\'t include unknown file.')
-        self.file = keywords['file']
-        self.variables = keywords.get('variables', {})
-        self.alias = keywords.get('as', None)
-        self.run_on_include = keywords.get('run_on_include', self.alias is None)
-        self.ignore_errors = ignore_errors
-        self.test = None
-
-
 class Test:
     """
     Testcase. Contains variables, includes and steps to run.

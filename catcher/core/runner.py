@@ -2,7 +2,8 @@ from copy import deepcopy
 from os.path import join
 
 from catcher.utils import logger
-from catcher.core.test import Test, Include
+from catcher.core.test import Test
+from catcher.core.include import Include
 from catcher.modules.compose import DockerCompose
 from catcher.steps import step
 from catcher.utils.file_utils import get_files, read_source_file, get_filename
@@ -29,7 +30,7 @@ class Runner:
         self.tests_path = tests_path
         self.path = path
         self.inventory = inventory
-        self.all_includes = []
+        self.all_includes = None
         self.modules = merge_two_dicts(prepare_modules(modules, step.registered_steps), step.registered_steps)
         self._compose = DockerCompose(resources)
         self.resources = resources
@@ -54,7 +55,7 @@ class Runner:
             test_files = get_files(self.tests_path)
             results = []
             for file in test_files:
-                self.all_includes = []
+                self.all_includes = None  # each test has it's own include tree
                 try:
                     variables['TEST_NAME'] = file
                     test = self.prepare_test(file, variables)
@@ -74,7 +75,7 @@ class Runner:
 
     def prepare_test(self, file: str, variables: dict, override_vars: None or dict = None) -> Test:
         body = read_source_file(file)
-        registered_includes = self.process_includes(body.get('include', []), variables)
+        registered_includes = self.process_includes(file, body.get('include', []), variables)
         tests_variables = try_get_object(fill_template_str(body.get('variables', {}),
                                                            merge_two_dicts(variables, self.environment)))
         variables = merge_two_dicts(variables, tests_variables)  # override variables with test's variables
@@ -92,23 +93,22 @@ class Runner:
                     self.environment)
 
     def process_includes(self,
+                         file: str,
                          includes: list or str or dict,
                          variables: dict,
                          registered_includes: dict or None = None) -> (dict, dict):
         if registered_includes is None:
             registered_includes = {}
         if isinstance(includes, str) or isinstance(includes, dict):  # single include
-            self.process_include(includes, registered_includes, variables)
+            self.process_include(file, includes, registered_includes, variables)
         elif isinstance(includes, list):  # an array of includes
             for i in includes:  # run all includes and save includes with alias
-                variables = self.process_include(i, registered_includes, variables)
+                variables = self.process_include(file, i, registered_includes, variables)
         return registered_includes
 
-    def process_include(self, include_file: str or dict, includes: dict, variables: dict) -> dict:
+    def process_include(self, parent: str, include_file: str or dict, includes: dict, variables: dict) -> dict:
         include_file = self.path_from_root(include_file)
-        self.check_circular(include_file)
-        include = Include(**include_file)
-        self.all_includes.append(include)
+        self.all_includes, include = Include.check_circular(parent, self.all_includes, include_file)
         include.test = self.prepare_test(include.file, variables, include.variables)
         if include.alias is not None:
             includes[include.alias] = include.test
@@ -124,11 +124,6 @@ class Runner:
                 if not include.ignore_errors:
                     raise Exception('Include ' + include.file + ' failed: ' + str(e))
         return include.test.variables
-
-    def check_circular(self, current_include: dict):
-        path = current_include['file']
-        if [include for include in self.all_includes if include.file == path]:
-            raise Exception('Circular dependencies for ' + path)
 
     def path_from_root(self, include_file: str or dict) -> dict:
         if isinstance(include_file, str):

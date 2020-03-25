@@ -6,7 +6,7 @@ import sys
 import time
 import uuid
 import hashlib
-from collections import Iterable
+from collections.abc import Iterable
 from types import ModuleType
 
 from faker import Faker

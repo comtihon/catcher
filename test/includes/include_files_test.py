@@ -117,6 +117,33 @@ class IncludeFilesTest(TestClass):
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
         self.assertFalse(runner.run_tests())
 
+    # includes from multiple places shouldn't throw curcular dependencies error
+    def test_include_multiple_places(self):
+        """
+        main |--> include1 --> include2
+             |--> include2
+        """
+        self.populate_file('main.yaml', '''---
+                include: 
+                        - file: include1.yml
+                          as: inc1
+                        - file: include2.yml
+                          as: inc2
+                ''')
+        self.populate_file('include1.yml', '''---
+                include:
+                    - file: include2.yml
+                      as: inc2
+        ''')
+        self.populate_file('include2.yml', '''---
+        variables:
+            foo: 123
+        steps:
+            - echo: {from: '{{ foo }}', to: other.output}
+        ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
+
     # test run on include and later by alias
     def test_run_on_include_and_later(self):
         self.populate_file('main.yaml', '''---

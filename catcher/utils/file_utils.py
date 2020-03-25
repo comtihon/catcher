@@ -69,7 +69,7 @@ def ensure_dir(path: str):
 def _read_yaml_file(file: str) -> dict:
     with open(file, 'r') as stream:
         try:
-            return yaml.load(stream) or {}
+            return yaml.load(stream, Loader=yaml.FullLoader) or {}
         except yaml.YAMLError as exc:
             raise yaml.YAMLError('Wrong YAML format for file ' + file + ' : ' + str(exc))
 
