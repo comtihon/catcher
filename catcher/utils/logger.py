@@ -3,8 +3,17 @@ from logging import Logger
 
 import catcher
 from catcher.modules.log_storage import EmptyLogStorage
+from colorama import Fore, Style
 
 log_storage = EmptyLogStorage('empty')
+
+
+def green(output: str) -> str:
+    return Fore.GREEN + output + Style.RESET_ALL
+
+
+def red(output: str) -> str:
+    return Fore.RED + output + Style.RESET_ALL
 
 
 def configure(log_level: str):

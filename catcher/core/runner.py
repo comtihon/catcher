@@ -61,10 +61,10 @@ class Runner:
                     logger.log_storage.test_start(file)
                     test.run()
                     results.append(True)
-                    info('Test ' + file + ' passed.')
+                    info('Test ' + file + logger.green(' passed.'))
                     logger.log_storage.test_end(file, True)
                 except Exception as e:
-                    warning('Test ' + file + ' failed: ' + str(e))
+                    warning('Test ' + file + logger.red(' failed: ') + str(e))
                     results.append(False)
                     logger.log_storage.test_end(file, False, str(e))
             return all(results)
