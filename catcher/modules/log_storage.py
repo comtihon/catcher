@@ -9,6 +9,7 @@ class LogStorage:
         self._data = []
         self._current_test = None
         self._format = output_format
+        self.nesting_counter = 0
 
     def test_start(self, test: str, test_type='test'):
         self._current_test = {'start_time': datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'file': test,
@@ -28,6 +29,18 @@ class LogStorage:
         self._data += [{**{'end_time': datetime.now().strftime("%Y-%m-%d %H:%M:%S")}, **self._current_test}]
         self._current_test = None
 
+    def nested_test_in(self):
+        """
+        If test is run from include
+        """
+        self.nesting_counter += 1
+
+    def nested_test_out(self):
+        """
+        If test is run from include
+        """
+        self.nesting_counter -= 1
+
     def new_step(self, step, variables):
         self._current_test['output'] += [{'time': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                                           'step': self.clean_step_def(step), 'variables': self.clean_vars(variables)}]
@@ -35,7 +48,8 @@ class LogStorage:
     def step_end(self, step, variables, output: str = None, success: bool = True):
         self._current_test['output'] += [{'time': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                                           'step': self.clean_step_def(step),
-                                          'variables': self.clean_vars(variables), 'success': success, 'output': output}]
+                                          'variables': self.clean_vars(variables), 'success': success,
+                                          'output': output}]
 
     def output(self, level, output):
         if self._current_test:

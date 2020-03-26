@@ -6,7 +6,7 @@ import sys
 import time
 import uuid
 import hashlib
-from collections import Iterable
+from collections.abc import Iterable
 from types import ModuleType
 
 from faker import Faker
@@ -73,7 +73,7 @@ def fill_template(source: any, variables: dict, isjson=False, glob=None, globs_a
                 name = str(e).split("'")[1]
                 if name not in globs_added:
                     # f.e. tzinfo=psycopg2.tz.FixedOffsetTimezone for datetime
-                    glob = module_utils.add_package_to_globals(name, glob)
+                    glob = module_utils.add_package_to_globals(name, glob, warn_missing_package=False)
                     globs_added.add(name)
                     filled = fill_template(source, variables, isjson, glob=glob, globs_added=globs_added)
                     if not isinstance(filled, ModuleType) and not callable(filled):

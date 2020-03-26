@@ -28,6 +28,8 @@ from catcher.core.runner import Runner
 from catcher.utils import logger
 from catcher.utils.logger import warning
 from catcher.utils.module_utils import load_external_actions
+from colorama import init
+init()
 
 
 def main(args=None):

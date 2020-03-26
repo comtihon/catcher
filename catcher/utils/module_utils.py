@@ -7,7 +7,7 @@ from os.path import join
 from pydoc import locate
 from types import ModuleType
 
-from catcher.utils.logger import warning, error
+from catcher.utils.logger import warning, error, debug
 
 
 def prepare_modules(module_paths: list, available: dict) -> dict:
@@ -65,14 +65,17 @@ def is_package_installed(package: str) -> bool:
         return False
 
 
-def add_package_to_globals(package: str, glob=None) -> dict:
+def add_package_to_globals(package: str, glob=None, warn_missing_package=True) -> dict:
     if glob is None:
         glob = globals()
     try:
         mod = importlib.import_module(package)
         glob[package] = mod
     except ImportError as e:
-        warning(str(e))
+        if warn_missing_package:
+            warning(str(e))
+        else:
+            debug(str(e))
     return glob
 
 
