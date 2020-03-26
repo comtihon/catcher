@@ -23,7 +23,7 @@ Migration
             request:
                 conf: '{{ migrations_postgres }}'
                 query: "select count(*) from migration where hash = '{{ TEST_NAME }}';"
-            register: {result: '{{ OUTPUT }}'}
+            register: {result: '{{ OUTPUT.count }}'}
             tag: check
             name: 'check_migration_{{ TEST_NAME }}'
         - stop:

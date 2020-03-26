@@ -59,6 +59,14 @@ data checks.
 
 Register variables
 ------------------
+Imagine we have a table **test**:
+
++---------+-------------+
+|   id    |    value    |
++============+==========+
+|  int    | varchar[255]|
++---------+-------------+
+
 Let's register postgres read result and compare it with expected one::
 
     ---
@@ -67,7 +75,7 @@ Let's register postgres read result and compare it with expected one::
     steps:
         - http:
             post:
-              url: '{{ data_service_url }}'
+              url: '{{ data_service_url }}/api/v1/test'
               body: {key: '{{ data_id }}', data: 'foo'}
         - postgres:
             request:
@@ -75,10 +83,10 @@ Let's register postgres read result and compare it with expected one::
               query: 'select * from test where id={{ data_id }};'
             register: {document: '{{ OUTPUT }}'}
         - check:
-            equals: {the: '{{ document[1] }}', is: 'foo'}
+            equals: {the: '{{ document.value }}', is: 'foo'}
 
 Here we've registered the whole output of postgres query command into the `document` variable and
-access it in `check` step later. In `check equals` step we access second column, which has `foo` value (first one is id).
+access it in `check` step later. In `check equals` step we access `value` column, which has `foo` value.
 With `register` step you can register part of output::
 
     # same steps as below
@@ -86,7 +94,7 @@ With `register` step you can register part of output::
             request:
               conf: '{{ postgres_conf }}'
               query: 'select * from test where id={{ data_id }};'
-            register: {foo: '{{ OUTPUT }}[1]'}
+            register: {foo: '{{ OUTPUT.value }}'}
         - check:
             equals: {the: '{{ foo }}', is: 'foo'}
 
@@ -97,7 +105,7 @@ and you can also register multiple variables::
             request:
               conf: '{{ postgres_conf }}'
               query: 'select * from test where id={{ data_id }};'
-            register: {foo: '{{ OUTPUT }}[1]', id: '{{ OUTPUT }}[0]'}
+            register: {foo: '{{ OUTPUT.value }}', id: '{{ OUTPUT.id }}'}
         - check:
             equals:
               and:
@@ -213,7 +221,7 @@ Which is not so useful if you have lots of steps. Name them::
             register: {document: '{{ OUTPUT }}'}
             name: 'check data in postgres'
         - check:
-            equals: {the: '{{ document[1] }}', is: 'foo'}
+            equals: {the: '{{ document.value }}', is: 'foo'}
             name: 'check data equality'
 
 And you will see::
