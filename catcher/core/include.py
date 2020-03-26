@@ -26,7 +26,6 @@ class Include:
         self.alias = keywords.get('as', None)
         self.run_on_include = keywords.get('run_on_include', self.alias is None)
         self.ignore_errors = ignore_errors
-        self.test = None
 
     @staticmethod
     def check_circular(parent: str,

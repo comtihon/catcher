@@ -40,24 +40,31 @@ def get_logger() -> Logger:
 
 def debug(msg: str):
     log_storage.output('debug', msg)
-    get_logger().debug(msg)
+    get_logger().debug(_nested_output(msg))
 
 
 def info(msg: str):
     log_storage.output('info', msg)
-    get_logger().info(msg)
+    get_logger().info(_nested_output(msg))
 
 
 def warning(msg: str):
     log_storage.output('warning', msg)
-    get_logger().warning(msg)
+    get_logger().warning(_nested_output(msg))
 
 
 def error(msg: str):
     log_storage.output('error', msg)
-    get_logger().error(msg)
+    get_logger().error(_nested_output(msg))
 
 
 def critical(msg: str):
     log_storage.output('critical', msg)
-    get_logger().critical(msg)
+    get_logger().critical(_nested_output(msg))
+
+
+def _nested_output(msg):
+    if log_storage.nesting_counter > 0:
+        spaces = ''.join(['\t' for i in range(0, log_storage.nesting_counter - 1)])
+        msg = spaces + '|--> ' + str(msg)
+    return msg

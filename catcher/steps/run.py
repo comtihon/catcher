@@ -1,7 +1,9 @@
 from catcher.steps.step import Step, update_variables
-from catcher.utils.logger import error
+from catcher.utils.logger import error, info
 from catcher.utils.misc import merge_two_dicts, fill_template_str
 from catcher.steps.stop import StopException
+from catcher.utils import file_utils
+from catcher.utils import logger
 
 
 class Run(Step):
@@ -76,10 +78,15 @@ class Run(Step):
         variables = merge_two_dicts(include.variables, merge_two_dicts(variables, filled_vars))
         include.variables = variables
         try:
+            info('Running {}'.format(test))
+            logger.log_storage.nested_test_in()
             variables = include.run(tag=tag, raise_stop=True)
+            logger.log_storage.nested_test_out()
         except StopException as e:
+            logger.log_storage.nested_test_out()
             raise e
         except Exception as e:
+            logger.log_storage.nested_test_out()
             if not self.ignore_errors:
                 raise Exception('Step run ' + test + ' failed: ' + str(e))
         return variables
