@@ -6,6 +6,7 @@ from importlib import machinery
 from os.path import join
 from pydoc import locate
 from types import ModuleType
+from inspect import getmembers, isfunction
 
 from catcher.utils.logger import warning, error, debug
 
@@ -47,9 +48,9 @@ def load_external_actions(package: str):
     Load all classes from a package
     """
     if package.endswith('.py'):
-        __load_python_package_by_path(package)
+        return __load_python_package_by_path(package)
     else:
-        __load_python_package_installed(package)
+        return __load_python_package_installed(package)
 
 
 def get_all_subclasses_of(clazz) -> list:
@@ -79,18 +80,30 @@ def add_package_to_globals(package: str, glob=None, warn_missing_package=True) -
     return glob
 
 
+def get_all_functions(module: str) -> dict:
+    mod = load_external_actions(module)
+    if isinstance(mod, list):
+        res = {}
+        for m in mod:
+            res = {**res, **dict([o for o in getmembers(m) if isfunction(o[1])])}
+        return res
+    else:
+        return dict([o for o in getmembers(mod) if isfunction(o[1])])
+
+
 def __load_python_package_by_path(path: str):
     name = ntpath.basename(path)
     loader = importlib.machinery.SourceFileLoader(name, path)
     mod = ModuleType(loader.name)
     loader.exec_module(mod)
+    return mod
 
 
 def __load_python_package_installed(package: str):
     modules = locate(package)
     if modules is None:
         return  # package not installed
-    for importer, modname, ispkg in pkgutil.walk_packages(path=modules.__path__,
-                                                          prefix=modules.__name__ + '.',
-                                                          onerror=lambda x: None):
-        importlib.import_module(modname)
+    return [importlib.import_module(modname)
+            for importer, modname, ispkg in pkgutil.walk_packages(path=modules.__path__,
+                                                                  prefix=modules.__name__ + '.',
+                                                                  onerror=lambda x: None)]
