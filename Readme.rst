@@ -18,19 +18,17 @@ Support your team with a good Catcher!
 
 What is catcher?
 ----------------
-Catcher is a flexible tool, that can be used for: automated end-to-end testing, running universal migrations, 
-performing complex business actions.  
+Catcher is a flexible end to end test tool, that can be used for automated microservices or data pipelines testing.
 It helps you to check either one service or whole system interaction.
 With the help of Catcher you can easily mock external services your system relies on. Catcher is not about only http, it
-can check Kafka, Postgres, CouchBase, Mongodb.
-
+can check different services, such as Kafka, Postgres, CouchBase, Mongodb, Elastic, S3, emails and others.
 
 Testing - How it works?
 -----------------------
 
 1. You implement new business requirements, touching one ore more services (external and internal)
 2. You write `tests`_ file in `YAML`_ or `JSON`_ formats where you describe data movement in your system
-3. You run your tests in any environment (from dev to prod) just changing `inventory`_ files.
+3. You run your tests in any environment (from dev to prod) by just changing `inventory`_ files.
 4. Bob (your colleague) implements his own business logic, which requires your test (or part of it) to be run.
 5. Bob writes his test in YAML and `includes`_ your test (or certain steps) to be run before or during his test.
 6. John (your devOps) decides to automate tests and makes CI run all tests on every microservice deploy.
