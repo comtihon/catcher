@@ -44,24 +44,6 @@ Testing - How it works?
 .. _includes: https://catcher-test-tool.readthedocs.io/en/latest/source/includes.html
 
 
-Migration - How it works?
--------------------------
-Every new feature in microservices require several migration steps in more than one service. But it is much better to
-create one migration script for all services (kafka, aws, databases) to prevent code duplication and keep all instructions
-in one place. See more in `migrations`_
-
-.. _migrations: https://catcher-test-tool.readthedocs.io/en/latest/source/migrations.html
-
-
-Complex business actions - How it works?
-----------------------------------------
-| If in your company you need to perform some complex business actions - use catcher to automate them.
-| F.e. before business review you need to register a new user and it requires you to make 10 http request and send 2 kafka messages.
-| Do you really like to spend 10-20 minutes of your time on doing these steps one by one?
-| Write a catcher script `register_new_user.yaml` and call it manually:
-| `catcher -i inventory.yaml register_new_user.yaml -e user_name=test_22.04.2018`.
-
-
 Installation
 ------------
 | To install catcher with all internal `modules`_ run `sudo pip install catcher-modules[all]`.
@@ -76,6 +58,14 @@ Installation
 .. _catcher-modules-index: https://catcher-modules.readthedocs.io/en/latest/source/catcher_modules.html#module-catcher_modules
 
 Changelog is `here <https://github.com/comtihon/catcher/blob/master/Changelog.rst>`_.
+
+Customization
+-------------
+Catcher can be easily customized to serve your needs.
+
+1. You can write your own functions and filters and use them in your step's `templates <https://catcher-test-tool.readthedocs.io/en/latest/source/filters_and_functions.html>`_.
+2. You can create your own `steps <https://catcher-test-tool.readthedocs.io/en/latest/source/modules.html>`_ (as python script or any executable)
+3. You can write your steps in catcher itself and `include <https://catcher-test-tool.readthedocs.io/en/latest/source/includes.html#run-on-action>`_ them from other tests.
 
 Usage
 -----

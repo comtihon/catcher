@@ -19,12 +19,12 @@ class FiltersTest(TestClass):
                 variables:
                     my_var: test
                 steps:
-                    - echo: {from: '{{ "test" | hash("sha1") }}', to: one.output}
+                    - echo: {from: '{{ "test" | hash }}', to: one.output}
                     - echo: {from: '{{ my_var | hash("sha1") }}', to: two.output}
                 ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
         self.assertTrue(runner.run_tests())
-        self.assertTrue(check_file(join(self.test_dir, 'one.output'), 'a94a8fe5ccb19ba61c4c0873d391e987982fbbd3'))
+        self.assertTrue(check_file(join(self.test_dir, 'one.output'), '098f6bcd4621d373cade4e832627b4f6'))
         self.assertTrue(check_file(join(self.test_dir, 'two.output'), 'a94a8fe5ccb19ba61c4c0873d391e987982fbbd3'))
 
     def test_builtin_functions_available(self):

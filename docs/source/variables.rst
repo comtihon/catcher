@@ -97,6 +97,11 @@ Please see `providers <https://faker.readthedocs.io/en/stable/providers.html>`_ 
         - echo: {from: '{{ "test" | hash("sha1") }}', register: {sha1: '{{ OUTPUT }}'}}
         - echo: {from: '{{ my_var | hash("md5") }}', register: {md5: '{{ OUTPUT }}'}}
 
+Custom functions and filters
+----------------------------
+If you need some customisation but don't want to create a custom module - you can try a filter/function. Please
+check this `page <https://catcher-test-tool.readthedocs.io/en/latest/source/filters_and_functions.html>`_ for more info.
+
 Environment variables
 ---------------------
 
