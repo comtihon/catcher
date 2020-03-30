@@ -1,7 +1,7 @@
 """Catcher - Microservices automated test tool.
 
 Usage:
-  catcher [-i INVENTORY] <tests> [-l LEVEL] [-e VARS...] [-m MODS...] [-r RES] [-p FORMAT] [-s SYS_ENV]
+  catcher [-i INVENTORY] <tests> [-l LEVEL] [-e VARS...] [-m MODS...]... [-r RES] [-p FORMAT] [-s SYS_ENV] [-f FILTER]...
   catcher -v | --version
   catcher -h | --help
 
@@ -17,6 +17,7 @@ Options:
   -p FORMAT --format FORMAT          set the format (json/html) for the resulting file, which includes all steps
                                      execution results, variables and outputs. It is created in the current directory.
                                      Is not created by default.
+  -f FILTER --filter FILTER          Path to python file with custom filters implementation.
 """
 import os
 import sys
@@ -29,6 +30,7 @@ from catcher.utils import logger
 from catcher.utils.logger import warning
 from catcher.utils.module_utils import load_external_actions
 from colorama import init
+
 init()
 
 
@@ -54,6 +56,7 @@ def run_tests(path: str, arguments: dict):
     modules = arguments['--modules']
     resources = arguments['--resources']
     output_format = arguments['--format']
+    filters = arguments['--filter']
     use_sys_vars = arguments['--system_env']
     if use_sys_vars:
         sys_vars = dict(os.environ)
@@ -65,7 +68,8 @@ def run_tests(path: str, arguments: dict):
                     environment=__env_to_variables(environment),
                     resources=resources,
                     system_environment=sys_vars,
-                    output_format=output_format)
+                    output_format=output_format,
+                    filters=filters)
     return runner.run_tests()
 
 

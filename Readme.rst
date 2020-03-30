@@ -18,19 +18,17 @@ Support your team with a good Catcher!
 
 What is catcher?
 ----------------
-Catcher is a flexible tool, that can be used for: automated end-to-end testing, running universal migrations, 
-performing complex business actions.  
+Catcher is a flexible end to end test tool, that can be used for automated microservices or data pipelines testing.
 It helps you to check either one service or whole system interaction.
 With the help of Catcher you can easily mock external services your system relies on. Catcher is not about only http, it
-can check Kafka, Postgres, CouchBase, Mongodb.
-
+can check different services, such as Kafka, Postgres, CouchBase, Mongodb, Elastic, S3, emails and others.
 
 Testing - How it works?
 -----------------------
 
 1. You implement new business requirements, touching one ore more services (external and internal)
 2. You write `tests`_ file in `YAML`_ or `JSON`_ formats where you describe data movement in your system
-3. You run your tests in any environment (from dev to prod) just changing `inventory`_ files.
+3. You run your tests in any environment (from dev to prod) by just changing `inventory`_ files.
 4. Bob (your colleague) implements his own business logic, which requires your test (or part of it) to be run.
 5. Bob writes his test in YAML and `includes`_ your test (or certain steps) to be run before or during his test.
 6. John (your devOps) decides to automate tests and makes CI run all tests on every microservice deploy.
@@ -42,24 +40,6 @@ Testing - How it works?
 .. _inventory: https://catcher-test-tool.readthedocs.io/en/latest/source/inventory.html
 .. _tests: https://catcher-test-tool.readthedocs.io/en/latest/source/tests.html
 .. _includes: https://catcher-test-tool.readthedocs.io/en/latest/source/includes.html
-
-
-Migration - How it works?
--------------------------
-Every new feature in microservices require several migration steps in more than one service. But it is much better to
-create one migration script for all services (kafka, aws, databases) to prevent code duplication and keep all instructions
-in one place. See more in `migrations`_
-
-.. _migrations: https://catcher-test-tool.readthedocs.io/en/latest/source/migrations.html
-
-
-Complex business actions - How it works?
-----------------------------------------
-| If in your company you need to perform some complex business actions - use catcher to automate them.
-| F.e. before business review you need to register a new user and it requires you to make 10 http request and send 2 kafka messages.
-| Do you really like to spend 10-20 minutes of your time on doing these steps one by one?
-| Write a catcher script `register_new_user.yaml` and call it manually:
-| `catcher -i inventory.yaml register_new_user.yaml -e user_name=test_22.04.2018`.
 
 
 Installation
@@ -76,6 +56,14 @@ Installation
 .. _catcher-modules-index: https://catcher-modules.readthedocs.io/en/latest/source/catcher_modules.html#module-catcher_modules
 
 Changelog is `here <https://github.com/comtihon/catcher/blob/master/Changelog.rst>`_.
+
+Customization
+-------------
+Catcher can be easily customized to serve your needs.
+
+1. You can write your own functions and filters and use them in your step's `templates <https://catcher-test-tool.readthedocs.io/en/latest/source/filters_and_functions.html>`_.
+2. You can create your own `steps <https://catcher-test-tool.readthedocs.io/en/latest/source/modules.html>`_ (as python script or any executable)
+3. You can write your steps in catcher itself and `include <https://catcher-test-tool.readthedocs.io/en/latest/source/includes.html#run-on-action>`_ them from other tests.
 
 Usage
 -----

@@ -1,0 +1,128 @@
+import random
+from os.path import join
+
+from faker import Faker
+
+from test.abs_test_class import TestClass
+from catcher.core.runner import Runner
+from test.test_utils import check_file
+from catcher.utils.singleton import Singleton
+
+
+class FiltersTest(TestClass):
+    def __init__(self, method_name):
+        super().__init__('filters_test', method_name)
+        Singleton._instances = {}
+
+    def test_builtin_filters_available(self):
+        self.populate_file('main.yaml', '''---
+                variables:
+                    my_var: test
+                steps:
+                    - echo: {from: '{{ "test" | hash }}', to: one.output}
+                    - echo: {from: '{{ my_var | hash("sha1") }}', to: two.output}
+                ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
+        self.assertTrue(check_file(join(self.test_dir, 'one.output'), '098f6bcd4621d373cade4e832627b4f6'))
+        self.assertTrue(check_file(join(self.test_dir, 'two.output'), 'a94a8fe5ccb19ba61c4c0873d391e987982fbbd3'))
+
+    def test_builtin_functions_available(self):
+        Faker.seed(4321)
+        random.seed(123)
+        self.populate_file('main.yaml', '''---
+                variables:
+                    my_list: ['one', 'two', 'three']
+                steps:
+                    - echo: {from: '{{ random("ipv4_private") }}', to: one.output}
+                    - echo: {from: '{{ random_int(1, 10) }}', to: two.output}
+                    - echo: {from: '{{ random_choice(my_list) }}', to: three.output}
+                ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
+        self.assertTrue(check_file(join(self.test_dir, 'one.output'), '10.32.135.245'))
+        self.assertTrue(check_file(join(self.test_dir, 'two.output'), '3'))
+        self.assertTrue(check_file(join(self.test_dir, 'three.output'), 'one'))
+
+    def test_custom_filters_available(self):
+        self.populate_file('custom_filter.py',
+                           '''def filter_increment(input):
+       if isinstance(input, int):
+         return input + 1
+       return 'not an int'
+    
+def filter_to_string(input, arg='test'):
+  return _not_a_fun(input) + ' ' + arg
+
+def _not_a_fun(arg):
+  return 'to_str=' + str(arg)  
+                            ''')
+        self.populate_file('main.yaml', '''---
+                        steps:
+                            - echo: {from: '{{ 221 | increment }}', to: one.output}
+                            - echo: {from: '{{ 221 | to_string("hello") }}', to: two.output}
+                        ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None,
+                        filter_list=[join(self.test_dir, 'custom_filter.py')])
+        self.assertTrue(runner.run_tests())
+        self.assertTrue(check_file(join(self.test_dir, 'one.output'), '222'))
+        self.assertTrue(check_file(join(self.test_dir, 'two.output'), 'to_str=221 hello'))
+
+    def test_custom_functions_available(self):
+        self.populate_file('custom_filter.py',
+                           '''def function_my_custom():
+                               return {'key': 'value'}
+
+def function_my_other(input):
+  return _not_a_fun(input)
+
+def _not_a_fun(arg):
+  return 'to_str=' + str(arg)  
+                            ''')
+        self.populate_file('main.yaml', '''---
+                                steps:
+                                    - echo: {from: '{{ my_custom() }}', to: one.output}
+                                    - echo: {from: '{{ my_other("test") }}', to: two.output}
+                                ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None,
+                        filter_list=[join(self.test_dir, 'custom_filter.py')])
+        self.assertTrue(runner.run_tests())
+        self.assertTrue(check_file(join(self.test_dir, 'one.output'), "{'key': 'value'}"))
+        self.assertTrue(check_file(join(self.test_dir, 'two.output'), 'to_str=test'))
+
+    def test_custom_both_available(self):
+        self.populate_file('custom_filter.py',
+                           '''def filter_increment(input):
+       if isinstance(input, int):
+         return input + 1
+       return 'not an int'
+       
+def function_my_other(input):
+  return _not_a_fun(input)
+
+def _not_a_fun(arg):
+  return 'to_str=' + str(arg)  
+                            ''')
+        self.populate_file('main.yaml', '''---
+                                steps:
+                                    - echo: {from: '{{ 221 | increment }}', to: one.output}
+                                    - echo: {from: '{{ my_other("test") }}', to: two.output}
+                                ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None,
+                        filter_list=[join(self.test_dir, 'custom_filter.py')])
+        self.assertTrue(runner.run_tests())
+        self.assertTrue(check_file(join(self.test_dir, 'one.output'), '222'))
+        self.assertTrue(check_file(join(self.test_dir, 'two.output'), 'to_str=test'))
+
+    def test_custom_ignore_other(self):
+        self.populate_file('custom_filter.py',
+                           '''def other(arg):
+  return 'to_str=' + str(arg)  
+                            ''')
+        self.populate_file('main.yaml', '''---
+                                steps:
+                                    - echo: {from: '{{ 221 | other }}', to: one.output}
+                                ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None,
+                        filter_list=[join(self.test_dir, 'custom_filter.py')])
+        self.assertFalse(runner.run_tests())

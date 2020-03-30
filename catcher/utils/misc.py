@@ -2,20 +2,16 @@ import ast
 import datetime
 import json
 import random
-import sys
 import time
 import uuid
-import hashlib
 from collections.abc import Iterable
 from types import ModuleType
 
-from faker import Faker
 from jinja2 import Template, UndefinedError
 
 from catcher.utils import module_utils
 from catcher.utils.logger import debug
-
-random.seed()
+from catcher.modules.filters import FiltersHolder
 
 
 def merge_two_dicts(x, y):
@@ -127,39 +123,13 @@ def inject_builtins(variables: dict) -> dict:
     return variables_copy
 
 
-def rand_fun(param):
-    fake = Faker()
-    for modname, importer in module_utils.get_submodules_of('faker.providers'):  # add all known providers
-        fake.add_provider(importer.find_module(modname).load_module(modname))
-    if hasattr(fake, param):
-        return getattr(fake, param)()
-    else:
-        raise ValueError('Unknown param to randomize: ' + param)
-
-
-def hash_fun(data, alg='md5'):
-    if hasattr(hashlib, alg):
-        m = getattr(hashlib, alg)()
-        m.update(data.encode())
-        return m.hexdigest()
-    else:
-        raise ValueError('Unknown algorithm: ' + data)
-
-
-def rand_numeric(range_from=-sys.maxsize - 1, range_to=sys.maxsize):
-    return random.randint(range_from, range_to)
-
-
-def rand_choice(sequence):
-    return random.choice(sequence)
-
-
 def render(source: str, variables: dict) -> str:
     template = Template(source)
-    template.globals['random'] = rand_fun
-    template.globals['random_int'] = rand_numeric
-    template.globals['random_choice'] = rand_choice
-    template.environment.filters['hash'] = hash_fun
+    holder = FiltersHolder()
+    for filter_mod, value in holder.filters.items():
+        template.environment.filters[filter_mod] = value
+    for fun_mod, value in holder.functions.items():
+        template.globals[fun_mod] = value
     try:
         return template.render(variables)
     except UndefinedError as e:

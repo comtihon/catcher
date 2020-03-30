@@ -1,5 +1,5 @@
-Modules
-=======
+Custom Modules
+==============
 
 | Catcher has a flexible modular system. If built-in modules functionality is not enough you can use your own modules.
 | Read :doc:`tests` for more info about running and naming steps, registering and using variables.

@@ -11,6 +11,7 @@ from catcher.utils.logger import warning, info, debug
 from catcher.utils.misc import merge_two_dicts, try_get_object, fill_template_str, report_override
 from catcher.utils.module_utils import prepare_modules
 from catcher.modules.log_storage import LogStorage
+from catcher.modules.filters import FiltersHolder
 
 
 class Runner:
@@ -22,7 +23,8 @@ class Runner:
                  environment=None,
                  system_environment=None,
                  resources=None,
-                 output_format=None) -> None:
+                 output_format=None,
+                 filter_list=None) -> None:
         if modules is None:
             modules = []
         self.environment = environment if environment is not None else {}
@@ -36,6 +38,7 @@ class Runner:
         self.resources = resources
         if output_format:
             logger.log_storage = LogStorage(output_format)
+        FiltersHolder(filter_list)
 
     def run_tests(self) -> bool:
         try:
