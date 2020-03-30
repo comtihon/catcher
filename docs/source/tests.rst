@@ -277,15 +277,32 @@ Short form::
             from: '{{ my_data }}'
             skip_if: '{{ no_output }}'
 
-Long form::
+Is same as::
+
+        - echo:
+            from: '{{ my_data }}'
+            skip_if:
+                equals: {the: '{{ no_output }}', is: true}
+
+Multiple clauses::
 
     variables:
-        list: ['a', 'b', 'c']
+        services: {'service1: 'provided', 'service2': 'runtime']
+        in_docker: true
     steps:
-        - echo:
-            from: 'hello world'
+        - sh:
+            command: "grep 'docker|lxc' /proc/1/cgroup"
+            return_code: 1
+            ignore_errors: true
+            register: {in_docker: false}
+        - docker:
+            start:
+                image: 'my_service1_image'
+                ports:
+                    '1080/tcp': 8000
             skip_if:
                 or:
-                    - contains: {the: '1', in: '{{ list }}'}
-                    - equals: {the: '{{ list[0] }}', is: 'a'}
-                    - contains: {the: 'b', in: '{{ list }}'}
+                    - equals: {the: '{{ services.service1 }}', is: 'provided'}
+                    - equals: {the: '{{ in_docker }}', is: true}
+
+Will start `my_service1_image` in docker if current test is not running in docker and service1 is not provided.

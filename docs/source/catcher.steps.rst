@@ -60,6 +60,14 @@ catcher.steps.run module
     :undoc-members:
     :show-inheritance:
 
+catcher.steps.sh\_step module
+-------------------------
+
+.. automodule:: catcher.steps.sh_step
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 catcher.steps.step module
 -------------------------
 
