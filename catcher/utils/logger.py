@@ -16,6 +16,10 @@ def red(output: str) -> str:
     return Fore.RED + output + Style.RESET_ALL
 
 
+def yellow(output: str) -> str:
+    return Fore.YELLOW + output + Style.RESET_ALL
+
+
 def configure(log_level: str):
     level = None
     if log_level == 'critical':

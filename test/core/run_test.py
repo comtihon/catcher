@@ -59,7 +59,6 @@ class RunTest(TestClass):
         ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
         runner.run_tests()
-        self.assertTrue(not os.path.exists(join(self.test_dir, 'main1.output')))
         self.assertTrue(check_file(join(self.test_dir, 'main2.output'), 'test2'))
 
     def test_run_named(self):
@@ -97,3 +96,54 @@ class RunTest(TestClass):
                         system_environment=dict(os.environ))
         runner.run_tests()
         self.assertTrue(check_file(join(self.test_dir, 'sys_env.output'), '123'))
+
+    def test_run_skip_if_short(self):
+        self.populate_file('main.yaml', '''---
+                variables:
+                    no_output: true
+                steps:
+                    - echo:
+                        from: 'hello world'
+                        to: main1.output
+                        skip_if: '{{ no_output }}'
+                    - echo: {from: 'test2', to: main2.output}
+                ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        runner.run_tests()
+        self.assertTrue(not os.path.exists(join(self.test_dir, 'main1.output')))
+        self.assertTrue(check_file(join(self.test_dir, 'main2.output'), 'test2'))
+
+    def test_run_skip_if_long(self):
+        self.populate_file('main.yaml', '''---
+                        variables:
+                            user_name: 'test'
+                        steps:
+                            - echo:
+                                from: 'hello world'
+                                to: main1.output
+                                skip_if:
+                                    equals: {the: '{{ user_name }}', is: 'test'}
+                            - echo: {from: 'test2', to: main2.output}
+                        ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        runner.run_tests()
+        self.assertTrue(not os.path.exists(join(self.test_dir, 'main1.output')))
+
+    def test_run_skip_if_multiple(self):
+        self.populate_file('main.yaml', '''---
+                                variables:
+                                    list: ['a', 'b', 'c']
+                                steps:
+                                    - echo:
+                                        from: 'hello world'
+                                        to: main1.output
+                                        skip_if:
+                                            or:
+                                                - contains: {the: '1', in: '{{ list }}'}
+                                                - equals: {the: '{{ list[0] }}', is: 'a'}
+                                                - contains: {the: 'b', in: '{{ list }}'}
+                                    - echo: {from: 'test2', to: main2.output}
+                                ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        runner.run_tests()
+        self.assertTrue(not os.path.exists(join(self.test_dir, 'main1.output')))

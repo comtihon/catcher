@@ -2,7 +2,6 @@ from catcher.steps.step import Step, update_variables
 from catcher.utils.logger import error, info
 from catcher.utils.misc import merge_two_dicts, fill_template_str
 from catcher.steps.stop import StopException
-from catcher.utils import file_utils
 from catcher.utils import logger
 
 

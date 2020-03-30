@@ -39,14 +39,14 @@ Built-in
                 of: '{{ list }}'
                 equals: {the: '{{ ITEM.k }}', is: 'a'}
 
-| 3. ``NOW_TS`` - return timestamp. **Deprecated**, use function `now` instead.
+| 3. ``NOW_TS`` - return timestamp. **Deprecated**, use function `now_ts()` instead.
 
 ::
 
     steps:
       - echo: {from: '{{ NOW_TS }}', register: {now: '{{ OUTPUT }}'}}
 
-| 4. ``NOW_DT`` - return current date for UTC timezone in ``yyyy-mm-ddTHH:MM:SS0`` format.  **Deprecated**, use function `now_ts` instead.
+| 4. ``NOW_DT`` - return current date for UTC timezone in ``yyyy-mm-ddTHH:MM:SS0`` format.  **Deprecated**, use function `now()` instead.
 | 5. ``RANDOM_STR`` - return random string in uuid format
 | 6. ``RANDOM_INT`` - return random int [-2147483648, 2147483648]
 | 7. ``TEST_NAME`` - name of the current test
