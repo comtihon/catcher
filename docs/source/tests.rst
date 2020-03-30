@@ -142,6 +142,42 @@ to::
                 query: 'select * from test where id={{ id }};'
               register: {document: '{{ OUTPUT }}'}
 
+Name your steps
+---------------
+When you run your test you will see something like this::
+
+    INFO:catcher:Step echo OK
+    INFO:catcher:Step postgres OK
+    INFO:catcher:Step postgres OK
+    INFO:catcher:Step check OK
+
+Which is not so useful if you have lots of steps. Name them::
+
+    ---
+    variables:
+        data_id: 1
+    steps:
+        - http:
+            post:
+              url: '{{ data_service_url }}'
+              body: {key: '{{ data_id }}', data: 'foo'}
+            name: 'load data to service {{ data_service_url }}'
+        - postgres:
+            request:
+              conf: '{{ postgres_conf }}'
+              query: 'select * from test where id={{ data_id }};'
+            register: {document: '{{ OUTPUT }}'}
+            name: 'check data in postgres'
+        - check:
+            equals: {the: '{{ document.value }}', is: 'foo'}
+            name: 'check data equality'
+
+And you will see::
+
+    INFO:catcher:Step load data to service 127.0.0.1/save_data OK
+    INFO:catcher:Step check data in postgres OK
+    INFO:catcher:Step check data equality OK
+
 Ignore errors
 -------------
 You can ignore a step's errors and continue the test::
@@ -194,39 +230,62 @@ New in `1.17.0` - you can now use `Wait.for` instead::
 
  In this case `other_steps` will be executed only when `select 1;` is true or after 30 seconds.
 
-Name your steps
----------------
-When you run your test you will see something like this::
+Skip steps
+----------
+| You can skip your steps based on conditions.
+| Imagine you have 2 services under one API (new and legacy). If user is registered via Facebook Oauth2 - his loan is
+stored in Postgres.
+| For legacy users with credentials based registration loans are stored in Couchbase.
+| In your test you need to create loan for the test user, but you may not know which database you should populate.
+Example::
 
-    INFO:catcher:Step echo OK
-    INFO:catcher:Step postgres OK
-    INFO:catcher:Step postgres OK
-    INFO:catcher:Step check OK
-
-Which is not so useful if you have lots of steps. Name them::
-
-    ---
-    variables:
-        data_id: 1
     steps:
         - http:
-            post:
-              url: '{{ data_service_url }}'
-              body: {key: '{{ data_id }}', data: 'foo'}
-            name: 'load data to service {{ data_service_url }}'
+            get:
+                url: '{{ my_web_service }}/api/v1/users?id={{ user_id }}'
+            register: {registration_type: '{{ OUTPUT.data.registration }}'}
+            name: 'Determine registration type for user {{ user_id }}'
         - postgres:
             request:
-              conf: '{{ postgres_conf }}'
-              query: 'select * from test where id={{ data_id }};'
-            register: {document: '{{ OUTPUT }}'}
-            name: 'check data in postgres'
-        - check:
-            equals: {the: '{{ document.value }}', is: 'foo'}
-            name: 'check data equality'
+                conf: 'test:test@localhost:5433/test'
+                query: "insert into loans(value) values(1000) where user_id == '{{ user_id }}';"
+            name: 'Update user loan for facebook user'
+            skip_if:
+                equals: {the: '{{ registration_type }}', is_not: 'facebook'}
+        - couchbase:
+            request:
+                conf:
+                    bucket: loans
+                    host: localhost
+                put:
+                    key: '{{ user_id }}'
+                    value: {value: 1000}
+            skip_if:
+                equals: {the: '{{ registration_type }}', is_not: 'other'}
+            name: 'Update user loan for legacy user'
 
-And you will see::
+In this example step postgres is skipped for legacy users and step couchbase is skipped for new users.
 
-    INFO:catcher:Step load data to service 127.0.0.1/save_data OK
-    INFO:catcher:Step check data in postgres OK
-    INFO:catcher:Step check data equality OK
+You can use any :meth:`catcher.steps.check` in skip_if condition.
 
+Short form::
+
+    variables:
+        no_output: true
+    steps:
+        - echo:
+            from: '{{ my_data }}'
+            skip_if: '{{ no_output }}'
+
+Long form::
+
+    variables:
+        list: ['a', 'b', 'c']
+    steps:
+        - echo:
+            from: 'hello world'
+            skip_if:
+                or:
+                    - contains: {the: '1', in: '{{ list }}'}
+                    - equals: {the: '{{ list[0] }}', is: 'a'}
+                    - contains: {the: 'b', in: '{{ list }}'}

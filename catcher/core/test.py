@@ -2,7 +2,7 @@ import traceback
 
 from catcher.utils import logger
 
-from catcher.steps.step import Step
+from catcher.steps.step import Step, SkipException
 from catcher.steps.stop import StopException
 from catcher.utils.logger import debug, info
 from catcher.utils.misc import fill_template_str, merge_two_dicts
@@ -39,6 +39,7 @@ class Test:
                 action_name = get_action_name(action, action_object, variables)
                 try:
                     logger.log_storage.new_step(step, variables)
+                    action_object.check_skip(variables)
                     self.variables = action_object.action(self.includes, variables)
                     # repeat for run (variables were computed after name)
                     action_name = get_action_name(action, action_object, self.variables)
@@ -52,15 +53,19 @@ class Test:
                     info('Step ' + action_name + logger.green(' OK'))
                     logger.log_storage.step_end(step, self.variables, success=True, output=str(e))
                     return self.variables  # stop current test
+                except SkipException as e:  # skip this step
+                    info('Step ' + action_name + logger.yellow(' skipped'))
+                    logger.log_storage.step_end(step, self.variables, success=True, output=str(e))
+                    continue
                 except Exception as e:
-                    if ignore_errors:
+                    if ignore_errors:  # continue actions & steps execution
                         debug('Step ' + action_name + logger.red(' failed') + ', but we ignore it')
                         logger.log_storage.step_end(step, variables, success=True)
-                        continue
-                    info('Step ' + action_name + logger.red(' failed: ') + str(e))
-                    debug(traceback.format_exc())
-                    logger.log_storage.step_end(step, variables, success=False, output=str(e))
-                    raise e
+                    else:
+                        info('Step ' + action_name + logger.red(' failed: ') + str(e))
+                        debug(traceback.format_exc())
+                        logger.log_storage.step_end(step, variables, success=False, output=str(e))
+                        raise e
         return self.variables
 
     def __repr__(self) -> str:
