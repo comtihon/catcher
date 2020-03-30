@@ -10,4 +10,3 @@ uuid==1.30
 Faker==4.0.*
 colorama==0.4.*
 networkx==2.4.*
-pytz==2019.3
