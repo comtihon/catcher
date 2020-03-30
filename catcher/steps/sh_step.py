@@ -23,6 +23,19 @@ class Sh(Step):
         - sh:
             command: 'ls -la'
 
+    Determine if running in docker
+    ::
+
+        variables:
+            docker: true
+        steps:
+            - sh:
+                command: "grep 'docker|lxc' /proc/1/cgroup"
+                return_code: 1
+                ignore_errors: true
+                register: {docker: false}
+            - echo: {from: 'In docker: {{ docker }}'}
+
     """
 
     def __init__(self, command=None, path=None, return_code=0, **kwargs) -> None:
