@@ -103,6 +103,8 @@ def __load_python_package_installed(package: str):
     modules = locate(package)
     if modules is None:
         return  # package not installed
+    if not hasattr(modules, '__path__'):
+        return modules
     return [importlib.import_module(modname)
             for importer, modname, ispkg in pkgutil.walk_packages(path=modules.__path__,
                                                                   prefix=modules.__name__ + '.',

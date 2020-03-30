@@ -17,7 +17,8 @@ Options:
   -p FORMAT --format FORMAT          set the format (json/html) for the resulting file, which includes all steps
                                      execution results, variables and outputs. It is created in the current directory.
                                      Is not created by default.
-  -f FILTER --filter FILTER          Path to python file with custom filters implementation.
+  -f FILTER --filter FILTER          Path to python file with custom filters implementation or python module's path if
+                                     installed in the system.
 """
 import os
 import sys

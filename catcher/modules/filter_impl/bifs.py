@@ -1,6 +1,7 @@
 import hashlib
 import random
 import sys
+import datetime
 from faker import Faker
 from catcher.utils import module_utils
 
@@ -41,6 +42,39 @@ def filter_hash(data, alg='md5'):
         return m.hexdigest()
     else:
         raise ValueError('Unknown algorithm: ' + data)
+
+
+def filter_astimestamp(data, date_format='%Y-%m-%d %H:%M:%S.%f'):
+    """
+    Convert date to timestamp. Date can be either python date object or date string
+    F.e. ::
+
+        - echo: {from: '{{ date_time_var | astimestamp }}', to: two.output}
+
+    :param data: date time object (or string representation) to be converted to a timestamp.
+    :param date_format: date format (in case it is a string)
+    """
+    if isinstance(data, str):
+        data = datetime.datetime.strptime(data, date_format)
+    return datetime.datetime.timestamp(data)
+
+
+def filter_asdate(data, date_format='%Y-%m-%d %H:%M:%S.%f'):
+    """
+    Convert timestamp to date
+    F.e. ::
+
+        - echo: {from: '{{ timestamp_var | asdate(date_format="%Y-%m-%d") }}', to: two.output}
+
+    :param data: timestamp to be converted to a date
+    :param date_format: expected data format.
+    """
+    if isinstance(data, str):
+        if '.' in data:
+            data = float(data)
+        else:
+            data = int(data)
+    return datetime.datetime.fromtimestamp(data).strftime(date_format)
 
 
 def function_random_int(range_from=-sys.maxsize - 1, range_to=sys.maxsize):

@@ -126,3 +126,17 @@ def _not_a_fun(arg):
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None,
                         filter_list=[join(self.test_dir, 'custom_filter.py')])
         self.assertFalse(runner.run_tests())
+
+    def test_date_time_filters(self):
+        self.populate_file('main.yaml', '''---
+                                variables:
+                                    date_time: '2020-03-12 11:11:11.111'
+                                    timestamp: 1585560107.45579
+                                steps:
+                                    - echo: {from: '{{ date_time | astimestamp }}', to: one.output}
+                                    - echo: {from: '{{ timestamp | asdate }}', to: two.output}
+                                ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
+        self.assertTrue(check_file(join(self.test_dir, 'one.output'), "1584007871.111"))
+        self.assertTrue(check_file(join(self.test_dir, 'two.output'), '2020-03-30 11:21:47.455790'))
