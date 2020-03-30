@@ -138,5 +138,5 @@ def _not_a_fun(arg):
                                 ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
         self.assertTrue(runner.run_tests())
-        self.assertTrue(check_file(join(self.test_dir, 'one.output'), "1585560107.45579"))
+        self.assertTrue(check_file(join(self.test_dir, 'one.output'), "1585567307.45579"))
         self.assertTrue(check_file(join(self.test_dir, 'two.output'), '2020-03-30 11:21:47.455790'))

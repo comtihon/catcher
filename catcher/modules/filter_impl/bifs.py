@@ -2,6 +2,8 @@ import hashlib
 import random
 import sys
 import datetime
+
+import pytz
 from faker import Faker
 from catcher.utils import module_utils
 
@@ -44,7 +46,7 @@ def filter_hash(data, alg='md5'):
         raise ValueError('Unknown algorithm: ' + data)
 
 
-def filter_astimestamp(data, date_format='%Y-%m-%d %H:%M:%S.%f'):
+def filter_astimestamp(data, date_format='%Y-%m-%d %H:%M:%S.%f', tz='UTC'):
     """
     Convert date to timestamp. Date can be either python date object or date string
     F.e. ::
@@ -53,13 +55,15 @@ def filter_astimestamp(data, date_format='%Y-%m-%d %H:%M:%S.%f'):
 
     :param data: date time object (or string representation) to be converted to a timestamp.
     :param date_format: date format (in case it is a string)
+    :param tz: timezone
     """
     if isinstance(data, str):
         data = datetime.datetime.strptime(data, date_format)
+    data = pytz.timezone(tz).localize(data)
     return datetime.datetime.timestamp(data)
 
 
-def filter_asdate(data, date_format='%Y-%m-%d %H:%M:%S.%f'):
+def filter_asdate(data, date_format='%Y-%m-%d %H:%M:%S.%f', tz='UTC'):
     """
     Convert timestamp to date
     F.e. ::
@@ -68,13 +72,16 @@ def filter_asdate(data, date_format='%Y-%m-%d %H:%M:%S.%f'):
 
     :param data: timestamp to be converted to a date
     :param date_format: expected data format.
+    :param tz: timezone
     """
     if isinstance(data, str):
         if '.' in data:
             data = float(data)
         else:
             data = int(data)
-    return datetime.datetime.fromtimestamp(data).strftime(date_format)
+    dt = datetime.datetime.fromtimestamp(data)
+    data = pytz.timezone(tz).localize(dt)
+    return data.strftime(date_format)
 
 
 def function_random_int(range_from=-sys.maxsize - 1, range_to=sys.maxsize):
