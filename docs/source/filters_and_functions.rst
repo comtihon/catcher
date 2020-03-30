@@ -1,12 +1,14 @@
 Custom filters and functions
 ============================
 
-Both functions & filters are a piece of python code, which catcher can run from the template. The algotithm is simple:
+Both functions & filters are a piece of python code, which catcher can run from the template. The algorithm is simple:
 
 1. You create a python file with functions you'd like to run from your tests
 2. You point catcher to this file (or files)
 3. You use it in your templates
 4. Profit.
+
+You can use built-in functions and filters implementation :meth:`catcher.modules.filter_impl.bifs` as an example.
 
 Functions
 ---------
@@ -97,3 +99,11 @@ And call it in test with or without param::
                     'user': '{{ username }}'
                     'password_urlencoded': '{{ password | encode('base64') }}'
                     'password_clean': '{{ password | encode }}'
+
+System functions
+----------------
+| If your python module is already installed in the system (and is available via pydoc.locate) - you can just specify it's
+| module path.
+| F.e. `my_package/my_module.py`.
+| If it is not installed in the system - specify it as a source file: `catcher -f /full/path/to/my_package/my_module.py`.
+| If it was already installed in the system - specify only python path: `catcher -f my_package.my_module` **without** py.
