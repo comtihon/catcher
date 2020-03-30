@@ -301,8 +301,8 @@ Multiple clauses::
                 ports:
                     '1080/tcp': 8000
             skip_if:
-                and:
-                    - equals: {the: '{{ services.service1 }}', is_not: 'provided'}
-                    - equals: {the: '{{ in_docker }}', is: false}
+                or:
+                    - equals: {the: '{{ services.service1 }}', is: 'provided'}
+                    - equals: {the: '{{ in_docker }}', is: true}
 
 Will start `my_service1_image` in docker if current test is not running in docker and service1 is not provided.
