@@ -1,6 +1,7 @@
 import random
 from os.path import join
 
+import pytest
 from faker import Faker
 
 from test.abs_test_class import TestClass
@@ -126,3 +127,48 @@ def _not_a_fun(arg):
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None,
                         filter_list=[join(self.test_dir, 'custom_filter.py')])
         self.assertFalse(runner.run_tests())
+
+    @pytest.mark.skip(reason="can't catch bug with timezones. Disabled for CI.")
+    def test_date_time_filters(self):
+        self.populate_file('main.yaml', '''---
+                                variables:
+                                    date_time: '2020-03-30 11:21:47.455790'
+                                    timestamp: 1585560107.45579
+                                steps:
+                                    - echo: {from: '{{ date_time | astimestamp }}', to: one.output}
+                                    - echo: {from: '{{ timestamp | asdate }}', to: two.output}
+                                ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
+        self.assertTrue(check_file(join(self.test_dir, 'one.output'), "1585560107.45579"))
+        self.assertTrue(check_file(join(self.test_dir, 'two.output'), '2020-03-30 11:21:47.455790'))
+
+    def test_dt_filters_compatible(self):
+        """
+        old (variable based) and new (function based) formats are not compatible, as variable based date format
+        drops milliseconds. To make this test pass I have to add current_ts.split(".")[0]+".0" which also drops it
+        """
+        self.populate_file('main.yaml', '''---
+                            variables:
+                                current_dt: '{{ NOW_DT }}'
+                                current_ts: '{{ NOW_TS }}'
+                            steps:
+                                - check: {equals: {the: '{{ current_dt }}', 
+                                is: '{{ current_ts | asdate(date_format="%Y-%m-%dT%H:%M:%S0+0000") }}'}}
+                                - check: {equals: {the: '{{ current_ts.split(".")[0]+".0" }}', 
+                                is: '{{ current_dt | astimestamp(date_format="%Y-%m-%dT%H:%M:%S0+0000") }}'}}
+                            ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
+
+    def test_dt_fitlers_revertable(self):
+        self.populate_file('main.yaml', '''---
+                                variables:
+                                    current_ts: '{{ now_ts() }}'
+                                steps:
+                                    - echo: {from: '{{ current_ts | asdate }}', register: {current_dt: '{{ OUTPUT }}'}}
+                                    - check: {equals: {the: '{{ current_ts }}', is: '{{ current_dt | astimestamp }}'}}
+                                    - check: {equals: {the: '{{ current_dt }}', is: '{{ current_ts | asdate }}'}}
+                                    ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())

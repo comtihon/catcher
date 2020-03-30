@@ -103,7 +103,7 @@ def format_datetime(iterable):
         return iterable
     else:
         if isinstance(iterable, dict):
-            return dict([(format_datetime(k), format_datetime(v)) for k, v in iterable.items()])  # TODO ordered dict?
+            return dict([(format_datetime(k), format_datetime(v)) for k, v in iterable.items()])
         elif isinstance(iterable, tuple):
             return tuple([format_datetime(i) for i in iterable])
         return [format_datetime(i) for i in iterable]
@@ -117,7 +117,7 @@ def inject_builtins(variables: dict) -> dict:
     variables_copy = dict(variables)
     variables_copy['RANDOM_STR'] = str(uuid.uuid4())
     variables_copy['RANDOM_INT'] = random.randint(-2147483648, 2147483648)
-    ts = time.time()
+    ts = round(time.time(), 6)   # from timestamp uses rounding, so we should also use it here, to make them compatible
     variables_copy['NOW_TS'] = ts
     variables_copy['NOW_DT'] = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%dT%H:%M:%S0+0000')
     return variables_copy
