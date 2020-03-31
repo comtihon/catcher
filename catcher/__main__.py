@@ -70,7 +70,7 @@ def run_tests(path: str, arguments: dict):
                     resources=resources,
                     system_environment=sys_vars,
                     output_format=output_format,
-                    filters=filters)
+                    filter_list=filters)
     return runner.run_tests()
 
 
