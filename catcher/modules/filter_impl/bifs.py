@@ -5,9 +5,94 @@ import datetime
 import time
 
 from faker import Faker
-from catcher.utils import module_utils
+from catcher.utils import module_utils, misc
 
 random.seed()
+
+
+def filter_astuple(param):
+    """
+    Convert data to tuple
+    F.e. ::
+
+        - postgres:
+            request:
+              conf: '{{ postgres_conf }}'
+              query: "select status from my_table
+                     where id in {{ [1, 2, 3] |astuple }}"
+
+    :param param: data to convert
+    """
+    return tuple(misc.try_get_objects(param))
+
+
+def filter_asint(param):
+    """
+    Convert data to int
+    F.e. ::
+
+        - postgres:
+            request:
+              conf: '{{ postgres_conf }}'
+              query: "select status from my_table
+                     where id == {{ my_str_var |asint }}"
+
+    :param param: data to convert
+    """
+    return int(misc.try_get_objects(param))
+
+
+def filter_asfloat(param):
+    """
+    Convert data to float
+    F.e. ::
+
+        - check: {equals: {the: 36.6, is: '{{ "36.6" | asfloat }}'}}
+
+    :param param: data to convert
+    """
+    return float(misc.try_get_objects(param))
+
+
+def filter_aslist(param):
+    """
+    Convert data to list
+    F.e. ::
+
+        - loop:
+            foreach:
+                in: '{{ my_dictionary |aslist }}'
+                do:
+                    echo: {from: '{{ ITEM.value }}', to: '{{ ITEM.key }}.output'}
+
+    :param param: data to convert
+    """
+    return list(misc.try_get_objects(param))
+
+
+def filter_asdict(param):
+    """
+    Convert data to dict
+    F.e. ::
+
+        - check: {equals: {the: [1, 2],
+                           is: '{{ ([("one", 1), ("two", 2)] | asdict).values() |aslist }}'}}
+
+    :param param: data to convert
+    """
+    return dict(misc.try_get_objects(param))
+
+
+def filter_asstr(param):
+    """
+    Convert data to string
+    F.e. ::
+
+        - check: {equals: {the: '17', is: '{{ my_int | asstr }}'}}
+
+    :param param: data to convert
+    """
+    return str(misc.try_get_objects(param))
 
 
 def function_random(param):

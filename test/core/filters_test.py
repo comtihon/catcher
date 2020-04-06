@@ -172,3 +172,24 @@ def _not_a_fun(arg):
                                     ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
         self.assertTrue(runner.run_tests())
+
+    def test_data_conversion_filters(self):
+        self.populate_file('main.yaml', '''---
+                        variables:
+                            my_tuple: ('one', 'two', 'three')
+                            my_list: ['one', 'two', 'three']
+                            my_dict: {'one': 1, 'two': 2}
+                            my_int: 17
+                            my_float: 36.6
+                        steps:
+                            - check: {equals: {the: '{{ my_tuple }}', is: '{{ my_list | astuple }}'}}
+                            - check: {equals: {the: '{{ my_list }}', is: '{{ my_tuple | aslist }}'}}
+                            - check: {equals: {the: '{{ my_int }}', is: '{{ "17" | asint }}'}}
+                            - check: {equals: {the: '{{ my_float }}', is: '{{ "36.6" | asfloat }}'}}
+                            - check: {equals: {the: '{{ my_dict }}', is: '{{ [("one", 1), ("two", 2)] | asdict }}'}}
+                            - check: {equals: {the: [1, 2], 
+                                                is: '{{ ([("one", 1), ("two", 2)] | asdict).values() |aslist }}'}}
+                            - check: {equals: {the: '17', is: '{{ my_int | asstr }}'}}
+                        ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
