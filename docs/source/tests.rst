@@ -306,3 +306,37 @@ Multiple clauses::
                     - equals: {the: '{{ in_docker }}', is: true}
 
 Will start `my_service1_image` in docker if current test is not running in docker and service1 is not provided.
+
+Do a cleanup
+------------
+
+If your steps modify data you can do a clean up. Use `finally` block the same way you are using `steps`. You can also
+add **run** parameter to steps to specify when clean up steps should be run: **'always'** will always run, it is the
+default value, **'pass'** will run only if test passes, **'fail'** will run only if test fails.
+
+Run test, do a cleanup, if test passes - notify google chat. ::
+
+    steps:
+        - http:
+            get:
+                url: '{{ my_web_service }}/api/v1/users?id={{ user_id }}'
+            register: {registration_type: '{{ OUTPUT.data.registration }}'}
+            name: 'Determine registration type for user {{ user_id }}'
+        - postgres:
+            request:
+                conf: '{{ postgres_conf }}'
+                query: "insert into loans(value) values(1000) where user_id == '{{ user_id }}';"
+            name: 'Update user loan for facebook user'
+    finally:
+        - postgres:
+            request:
+                conf: '{{ postgres_conf }}'
+                query: "delete from loans(value) where user_id == '{{ user_id }}';"
+            name: 'Clean up user'
+        - http:
+            post:
+                url: '{{ google_chat_webhook_url }}'
+                headers: {Content-Type: 'application/json'}
+                data: {text: 'Test passed. You can deploy the service now'}
+            run: 'pass'
+
