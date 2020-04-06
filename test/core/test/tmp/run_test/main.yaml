@@ -1,8 +1,0 @@
----
-        steps:
-            - echo: {from: '{{ SECRET_PASSWORD }}', to: sys_env.output}
-        finally:
-            - sh: 
-                command: 'rm sys_env.output'
-                path: '{{ CURRENT_DIR }}'
-        
