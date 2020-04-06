@@ -55,5 +55,5 @@ class Sh(Step):
         stdout, stderr = process.communicate()
         if process.returncode != int(fill_template(self._return_code, variables)):
             debug('Process return code {}.\nStderr is {}\nStdout is {}'.format(process.returncode, stderr, stdout))
-            raise Exception
+            raise Exception(stderr)
         return variables, stdout

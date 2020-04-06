@@ -18,7 +18,7 @@ class MetaStep(type):
         return cls
 
 
-SERVICE_KEYS = ['register', 'ignore_errors', 'name', 'tag', 'skip_if']
+SERVICE_KEYS = ['register', 'ignore_errors', 'name', 'tag', 'skip_if', 'run']
 
 
 class SkipException(Exception):
@@ -35,7 +35,8 @@ class Step(object, metaclass=MetaStep):
     :ignore_errors: Do not stop the test if this step fails. Can be useful with running includes. *Optional*
     :tag: Tag this step to be called via `run` with tag. *Optional*
     :skip_if: Skip condition. This step will be skipped if condition is true. *Optional*
-
+    :run: Run type for final action. *Optional*. 'pass' will run action only if test passes,
+          'fail' will run action only if test fails. 'always' will always run action. It is the default value.
     :actions: Each step can have one ore multiple actions. In case of one action `actions` list is
                 not necessary and you can use short form. Also - in case of several actions each should have its
                 own properties like `register`, `tag` etc...
@@ -59,6 +60,7 @@ class Step(object, metaclass=MetaStep):
               - post:  # fill some personal data
                   url: '{{ user_service_url }}/data'
                   body: {gender: 'M', age: 22, firstName: 'John', lastName: 'Doe'}
+
 
     :Examples:
 
@@ -129,6 +131,26 @@ class Step(object, metaclass=MetaStep):
                 skip_if:
                     equals: {the: '{{ registration_type }}', is_not: 'other'}
 
+    Run step and do some clean up after
+    ::
+
+        steps:
+            - http:
+                get:
+                    url: '{{ my_web_service }}/api/v1/users?id={{ user_id }}'
+                register: {registration_type: '{{ OUTPUT.data.registration }}'}
+                name: 'Determine registration type for user {{ user_id }}'
+            - postgres:
+                request:
+                    conf: '{{ postgres_conf }}'
+                    query: "insert into loans(value) values(1000) where user_id == '{{ user_id }}';"
+                name: 'Update user loan for facebook user'
+        finally:
+            - postgres:
+                request:
+                    conf: '{{ postgres_conf }}'
+                    query: "delete from loans(value) where user_id == '{{ user_id }}';"
+                name: 'Clean up user'
 
     """
 

@@ -1,0 +1,10 @@
+---
+        variables:
+            foo: [bar, baz]
+        steps:
+            - echo: {from: '{{ foo }}'}
+            - check: 
+                any:
+                    of: '{{ foo }}'
+                    equals: 'baz'
+        

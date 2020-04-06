@@ -1,17 +1,17 @@
 from copy import deepcopy
 from os.path import join
 
-from catcher.utils import logger
-from catcher.core.test import Test
 from catcher.core.include import Include
+from catcher.core.test import Test
 from catcher.modules.compose import DockerCompose
+from catcher.modules.filters import FiltersHolder
+from catcher.modules.log_storage import LogStorage
 from catcher.steps import step
+from catcher.utils import logger
 from catcher.utils.file_utils import get_files, read_source_file, get_filename
 from catcher.utils.logger import warning, info, debug
 from catcher.utils.misc import merge_two_dicts, try_get_object, fill_template_str, report_override
 from catcher.utils.module_utils import prepare_modules
-from catcher.modules.log_storage import LogStorage
-from catcher.modules.filters import FiltersHolder
 
 
 class Runner:
@@ -59,18 +59,10 @@ class Runner:
             results = []
             for file in test_files:
                 self.all_includes = None  # each test has it's own include tree
-                try:
-                    variables['TEST_NAME'] = file
-                    test = self.prepare_test(file, variables)
-                    logger.log_storage.test_start(file)
-                    test.run()
-                    results.append(True)
-                    info('Test ' + file + logger.green(' passed.'))
-                    logger.log_storage.test_end(file, True)
-                except Exception as e:
-                    warning('Test ' + file + logger.red(' failed: ') + str(e))
-                    results.append(False)
-                    logger.log_storage.test_end(file, False, str(e))
+                variables['TEST_NAME'] = file
+                test, result = self._run_test(file, variables)
+                results.append(result)
+                self._run_finally(test, file, result)
             return all(results)
         finally:
             logger.log_storage.write_report(join(self.path, 'reports'))
@@ -88,12 +80,13 @@ class Runner:
                 debug('Overriding these variables: ' + str(override_keys))
             variables = merge_two_dicts(variables, override_vars)
         return Test(self.path,
-                    registered_includes,
-                    deepcopy(variables),  # each test has independent variables
-                    body.get('config', {}),
-                    body.get('steps', []),
-                    self.modules,
-                    self.environment)
+                    includes=registered_includes,
+                    variables=deepcopy(variables),  # each test has independent variables
+                    config=body.get('config', {}),
+                    steps=body.get('steps', []),
+                    final=body.get('finally', []),
+                    modules=self.modules,
+                    override_vars=self.environment)
 
     def process_includes(self,
                          file: str,
@@ -134,3 +127,29 @@ class Runner:
         else:
             include_file['file'] = join(self.path, include_file['file'])
             return include_file
+
+    def _run_test(self, file, variables):
+        test = None
+        try:
+            test = self.prepare_test(file, variables)
+            logger.log_storage.test_start(file)
+            test.run()
+            info('Test ' + file + logger.green(' passed.'))
+            logger.log_storage.test_end(file, True)
+            return test, True
+        except Exception as e:
+            warning('Test ' + file + logger.red(' failed: ') + str(e))
+            logger.log_storage.test_end(file, False, str(e))
+            return test, False
+
+    @classmethod
+    def _run_finally(cls, test, file, result: bool):
+        if test and test.final:
+            logger.log_storage.test_start(file, test_type='{}_cleanup'.format(file))
+            try:
+                test.run_finally(result)
+                info('Test ' + file + ' [cleanup] ' + logger.green(' passed.'))
+                logger.log_storage.test_end(file, True, test_type='{} [cleanup]'.format(file))
+            except Exception as e:
+                warning('Test ' + file + ' [cleanup] ' + logger.red(' failed: ') + str(e))
+                logger.log_storage.test_end(file, False, test_type='{} [cleanup]'.format(file))
