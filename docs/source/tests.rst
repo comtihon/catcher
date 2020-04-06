@@ -228,13 +228,14 @@ New in `1.17.0` - you can now use `Wait.for` instead::
                         query: 'select 1;'
         - other_steps
 
- In this case `other_steps` will be executed only when `select 1;` is true or after 30 seconds.
+In this case `other_steps` will be executed only when `select 1;` becomes true. Test will fail after 30 seconds,
+if `select 1;` is still failing.
 
 Skip steps
 ----------
 | You can skip your steps based on conditions.
 | Imagine you have 2 services under one API (new and legacy). If user is registered via Facebook Oauth2 - his loan is
-stored in Postgres.
+  stored in Postgres.
 | For legacy users with credentials based registration loans are stored in Couchbase.
 | In your test you need to create loan for the test user, but you may not know which database you should populate.
 Example::
