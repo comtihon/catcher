@@ -187,8 +187,8 @@ def _not_a_fun(arg):
                             - check: {equals: {the: '{{ my_int }}', is: '{{ "17" | asint }}'}}
                             - check: {equals: {the: '{{ my_float }}', is: '{{ "36.6" | asfloat }}'}}
                             - check: {equals: {the: '{{ my_dict }}', is: '{{ [("one", 1), ("two", 2)] | asdict }}'}}
-                            - check: {equals: {the: [1, 2], 
-                                                is: '{{ ([("one", 1), ("two", 2)] | asdict).values() |aslist }}'}}
+                            - check: {equals: {the: [2, 2], 
+                                                is: '{{ ([("a", 2), ("b", 2)] | asdict).values() |aslist }}'}}
                             - check: {equals: {the: '17', is: '{{ my_int | asstr }}'}}
                         ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
