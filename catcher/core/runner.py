@@ -1,3 +1,4 @@
+import traceback
 from copy import deepcopy
 from os.path import join
 
@@ -139,6 +140,7 @@ class Runner:
             return test, True
         except Exception as e:
             warning('Test ' + file + logger.red(' failed: ') + str(e))
+            debug(traceback.format_exc())
             logger.log_storage.test_end(file, False, str(e))
             return test, False
 
@@ -152,4 +154,5 @@ class Runner:
                 logger.log_storage.test_end(file, True, test_type='{} [cleanup]'.format(file))
             except Exception as e:
                 warning('Test ' + file + ' [cleanup] ' + logger.red(' failed: ') + str(e))
+                debug(traceback.format_exc())
                 logger.log_storage.test_end(file, False, test_type='{} [cleanup]'.format(file))
