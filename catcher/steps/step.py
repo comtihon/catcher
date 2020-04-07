@@ -18,7 +18,7 @@ class MetaStep(type):
         return cls
 
 
-SERVICE_KEYS = ['register', 'ignore_errors', 'name', 'tag', 'skip_if', 'run']
+SERVICE_KEYS = ['register', 'ignore_errors', 'name', 'tag', 'skip_if', 'run_if']
 
 
 class SkipException(Exception):
@@ -35,8 +35,8 @@ class Step(object, metaclass=MetaStep):
     :ignore_errors: Do not stop the test if this step fails. Can be useful with running includes. *Optional*
     :tag: Tag this step to be called via `run` with tag. *Optional*
     :skip_if: Skip condition. This step will be skipped if condition is true. *Optional*
-    :run: Run type for final action. *Optional*. 'pass' will run action only if test passes,
-          'fail' will run action only if test fails. 'always' will always run action. It is the default value.
+    :run_if: Run type for final action. *Optional*. 'pass' will run action only if test passes,
+             'fail' will run action only if test fails. 'always' will always run action. It is the default value.
     :actions: Each step can have one ore multiple actions. In case of one action `actions` list is
                 not necessary and you can use short form. Also - in case of several actions each should have its
                 own properties like `register`, `tag` etc...

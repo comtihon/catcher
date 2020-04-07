@@ -312,7 +312,7 @@ Do a cleanup
 ------------
 
 If your steps modify data you can do a clean up. Use `finally` block the same way you are using `steps`. You can also
-add **run** parameter to steps to specify when clean up steps should be run: **'always'** will always run, it is the
+add **run_if** parameter to steps to specify when clean up steps should be run: **'always'** will always run, it is the
 default value, **'pass'** will run only if test passes, **'fail'** will run only if test fails.
 
 Run test, do a cleanup, if test passes - notify google chat. ::
@@ -339,5 +339,5 @@ Run test, do a cleanup, if test passes - notify google chat. ::
                 url: '{{ google_chat_webhook_url }}'
                 headers: {Content-Type: 'application/json'}
                 data: {text: 'Test passed. You can deploy the service now'}
-            run: 'pass'
+            run_if: 'pass'
 

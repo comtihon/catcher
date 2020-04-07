@@ -43,7 +43,7 @@ class Test:
             if step_tag != tag:
                 return True
         if result is not None:  # skip if result is specified (step is final)
-            run_type = get_or_default('run', step[action], 'always')
+            run_type = get_or_default('run_if', step[action], 'always')
             if (not result and run_type == 'pass') or (result and run_type == 'fail'):
                 debug('Skip final action')
                 return True

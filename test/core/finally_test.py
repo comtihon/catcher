@@ -34,7 +34,7 @@ class FinallyTest(TestClass):
                             - sh: 
                                 command: 'mkdir test'
                                 path: '{{ CURRENT_DIR }}'
-                                run: 'fail'
+                                run_if: 'fail'
                         ''')
         runner = Runner(self.test_dir,
                         join(self.test_dir, 'main.yaml'),
@@ -51,7 +51,7 @@ class FinallyTest(TestClass):
                             - sh: 
                                 command: 'mkdir test'
                                 path: '{{ CURRENT_DIR }}'
-                                run: 'fail'
+                                run_if: 'fail'
                         ''')
         runner = Runner(self.test_dir,
                         join(self.test_dir, 'main.yaml'),
@@ -68,7 +68,7 @@ class FinallyTest(TestClass):
                             - sh: 
                                 command: 'mkdir test'
                                 path: '{{ CURRENT_DIR }}'
-                                run: 'pass'
+                                run_if: 'pass'
                         ''')
         runner = Runner(self.test_dir,
                         join(self.test_dir, 'main.yaml'),
@@ -85,7 +85,7 @@ class FinallyTest(TestClass):
                             - sh: 
                                 command: 'mkdir test'
                                 path: '{{ CURRENT_DIR }}'
-                                run: 'pass'
+                                run_if: 'pass'
                         ''')
         runner = Runner(self.test_dir,
                         join(self.test_dir, 'main.yaml'),
@@ -102,7 +102,7 @@ class FinallyTest(TestClass):
                                     - sh: 
                                         command: 'mkdir test'
                                         path: '{{ CURRENT_DIR }}'
-                                        run: 'always'
+                                        run_if: 'always'
                                 ''')
         runner = Runner(self.test_dir,
                         join(self.test_dir, 'main.yaml'),
@@ -119,7 +119,7 @@ class FinallyTest(TestClass):
                                     - sh: 
                                         command: 'mkdir test'
                                         path: '{{ CURRENT_DIR }}'
-                                        run: 'always'
+                                        run_if: 'always'
                                 ''')
         runner = Runner(self.test_dir,
                         join(self.test_dir, 'main.yaml'),
