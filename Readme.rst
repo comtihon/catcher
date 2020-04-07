@@ -96,9 +96,9 @@ Why catcher?
 * apply :meth:`catcher.steps.check` to the steps results;
 * write test for development, change inventory and test stage/uat/prod after deploy;
 * test all your `microservices`_ with ease;
-* automate your testing!
 * `modular`_ architecture
-* perfect for big data pipelines testing with `prepare-expect`_
+* perfect for big data `pipelines`_ testing with `prepare-expect`_
+* automate your testing!
 
 Quickstart and documentation
 ----------------------------
@@ -108,3 +108,4 @@ See `readthedocs`_.
 .. _microservices: https://catcher-test-tool.readthedocs.io/en/latest/source/microservices.html
 .. _modular: https://catcher-test-tool.readthedocs.io/en/latest/source/modules.html
 .. _prepare-expect: https://catcher-modules.readthedocs.io/en/latest/source/prepare_expect.html
+.. _pipelines: https://catcher-modules.readthedocs.io/en/latest/source/airflow.html
