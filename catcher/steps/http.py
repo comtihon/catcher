@@ -4,7 +4,6 @@ import re
 from typing import Union, Optional
 
 import requests
-from requests import request
 
 from catcher.steps.step import Step, update_variables
 from catcher.utils.logger import debug, warning
@@ -27,12 +26,17 @@ class Http(Step):
     - files: send file from resources (only for methods which support it). *Optional*
     - verify: Verify SSL Certificate in case of https. *Optional*. Default is true.
     - should_fail: true, if this request should fail, f.e. to test connection refused. Will fail the test if no errors.
+    - clear_cookies: clear cookies before performing this step. Important, this will clear cookies for current and
+                     following steps! *Optional*. Default is false.
 
     :files: is a single file or list of files, where <file_param> is a name of request param.
             If you don't specify headers 'multipart/form-data' will be set automatically.
 
     - <file_param>: path to the file
     - type: file mime type
+
+    :cookies: All requests are run in the same session, sharing cookies got from previous requests. If you wish to
+              clear cookies - use `clear_cookies`
 
     :Examples:
 
@@ -43,7 +47,7 @@ class Http(Step):
           put:
             url: 'http://test.com?user_id={{ user_id }}'
             body: {'foo': bar}
-          response_code: 2XX
+            response_code: 2XX
 
     Put data to server and await 201-3XX code
     ::
@@ -52,7 +56,7 @@ class Http(Step):
           put:
             url: 'http://test.com?user_id={{ user_id }}'
             body: {'foo': bar}
-          response_code: 201-3xx
+            response_code: 201-3xx
 
     Post data to server with custom header
     ::
@@ -130,7 +134,30 @@ class Http(Step):
             get:
                 url: '{{ my_container_url }}'
                 should_fail: true
+
+    Test correct and incorrect login (clear cookies):
+    ::
+
+        steps:
+            - http:
+                post:
+                    url: 'http://test.com/login.php?user_id={{ user_id }}'
+                    body: {'pwd': secret}
+                    response_code: 2XX
+                name: "Do a login"
+            - http:
+                get:
+                    url: 'http://test.com/protected_path'
+                    response_code: 2XX
+                name: "Logged-in user can access protected_path"
+            - http:
+                get:
+                    url: 'http://test.com/protected_path'
+                    response_code: 401
+                    clear_cookies: true
+                name: "protected_path can't be accessed without login"
     """
+    session = None
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
@@ -148,13 +175,18 @@ class Http(Step):
         self.body = conf.get('body')
         self.file = conf.get('body_from_file')
         self.files = conf.get('files')
+        self.clear_cookies = conf.get('clear_cookies', False)
+        if Http.session is None:
+            Http.session = requests.Session()
 
     @update_variables
     def action(self, includes: dict, variables: dict) -> Union[tuple, dict]:
         url = fill_template(self.url, variables)
+        if self.clear_cookies:
+            Http.session = requests.Session()
         r = None
         try:
-            r = request(self.method, url, **self._form_request(url, variables))
+            r = Http.session.request(self.method, url, **self._form_request(url, variables))
             if self._should_fail:  # fail expected
                 raise RuntimeError('Request expected to fail, but it doesn\'t')
         except requests.exceptions.ConnectionError as e:

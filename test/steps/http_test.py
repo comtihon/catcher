@@ -1,8 +1,11 @@
 from os.path import join
 
+import pytest
+import requests
 import requests_mock
 
 from catcher.core.runner import Runner
+from catcher.steps.http import Http
 from test.abs_test_class import TestClass
 
 
@@ -255,3 +258,38 @@ class HttpTest(TestClass):
         self.assertTrue('Content-Type: text/csv' in adapter.last_request.text)
         self.assertTrue("one,two\n"
                         "three,four" in adapter.last_request.text)
+
+    @pytest.mark.skip(reason="Uses external service. Shouldn't be run automatically")
+    def test_use_cookies(self):
+        self.populate_file('main.yaml', '''---
+                            steps:
+                                - http: 
+                                    get: 
+                                        url: 'http://httpbin.org/cookies/set/sessioncookie/123456789'
+                                - http:
+                                    get:
+                                        url: 'http://httpbin.org/cookies'
+                                    register: {reply: '{{ OUTPUT }}'}
+                                - check:
+                                    equals: {the: '{{ reply.cookies.sessioncookie }}', is: '123456789'}
+                            ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
+
+    @pytest.mark.skip(reason="Uses external service. Shouldn't be run automatically")
+    def test_clear_cookies(self):
+        self.populate_file('main.yaml', '''---
+                                    steps:
+                                        - http: 
+                                            get: 
+                                                url: 'http://httpbin.org/cookies/set/sessioncookie/123456789'
+                                        - http:
+                                            get:
+                                                url: 'http://httpbin.org/cookies'
+                                                clear_cookies: true
+                                            register: {reply: '{{ OUTPUT }}'}
+                                        - check:
+                                            equals: {the: '{{ reply.cookies }}', is: '{}'}
+                                    ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
