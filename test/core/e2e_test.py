@@ -5,6 +5,7 @@ from os.path import join
 from test import TEST_DIR
 from test.abs_test_class import TestClass
 from catcher.utils import logger, file_utils
+from catcher import __main__
 
 
 class E2ETest(TestClass):
@@ -144,7 +145,7 @@ class E2ETest(TestClass):
         self.assertEqual('Test main.yaml: ' + logger.green('pass'), lines[-1])
 
     def _run_test(self, args: str, expected_code=0):
-        process = subprocess.Popen('python ../../../../catcher/__main__.py {}'.format(args).split(' '),
+        process = subprocess.Popen('python {} {}'.format(__main__.__file__, args).split(' '),
                                    cwd=join(os.getcwd(), TEST_DIR),
                                    stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE,
