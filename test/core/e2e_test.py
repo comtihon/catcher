@@ -18,6 +18,7 @@ class E2ETest(TestClass):
     def tearDown(self):
         super().tearDown()
         file_utils.remove_dir(join(os.getcwd(), TEST_DIR, 'steps'))
+        file_utils.remove_dir(join(os.getcwd(), TEST_DIR, 'reports'))
 
     def test_can_run(self):
         self.populate_file('main.yaml', '''---
@@ -125,6 +126,22 @@ class E2ETest(TestClass):
             lines[-3])
         self.assertEqual('Test two.yaml: ' + logger.red('fail') + ', on step 2', lines[-2])
         self.assertEqual('Test three.yaml: ' + logger.green('pass'), lines[-1])
+
+    def test_run_summary_with_output(self):
+        self.populate_file('main.yaml', '''---
+                        steps:
+                            - check: 
+                                equals: {the: 'life', is: 'life'}  # na-na, na-na-na
+                        ''')
+        output = self._run_test(self.test_dir + ' -p json')
+        lines = output.strip().split('\n')
+        self.assertEqual(
+            'INFO:catcher:Test run {}. Success: {}, Fail: {}. Total: {}'.format(logger.blue('1'),
+                                                                                logger.green('1'),
+                                                                                logger.green('0'),
+                                                                                logger.green('100%')),
+            lines[-2])
+        self.assertEqual('Test main.yaml: ' + logger.green('pass'), lines[-1])
 
     def _run_test(self, args: str, expected_code=0):
         process = subprocess.Popen('python ../../../../catcher/__main__.py {}'.format(args).split(' '),
