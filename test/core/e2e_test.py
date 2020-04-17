@@ -150,7 +150,9 @@ class E2ETest(TestClass):
                                    stderr=subprocess.PIPE,
                                    universal_newlines=True)
         stdout, stderr = process.communicate()
-        self.assertEqual(expected_code, process.returncode)
+        if expected_code != process.returncode:
+            print(stderr)
+            self.fail('Got return code {}, expected {}'.format(process.returncode, expected_code))
         return stderr
 
     @staticmethod
