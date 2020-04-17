@@ -8,8 +8,16 @@ from colorama import Fore, Style
 log_storage = EmptyLogStorage('empty')
 
 
+def blue(output: str) -> str:
+    return Fore.BLUE + output + Style.RESET_ALL
+
+
 def green(output: str) -> str:
     return Fore.GREEN + output + Style.RESET_ALL
+
+
+def light_green(output: str) -> str:
+    return Fore.LIGHTGREEN_EX + output + Style.RESET_ALL
 
 
 def red(output: str) -> str:

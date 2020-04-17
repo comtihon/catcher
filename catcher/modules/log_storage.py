@@ -43,18 +43,23 @@ class LogStorage:
 
     def new_step(self, step, variables):
         self._current_test['output'] += [{'time': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                                          'step': self.clean_step_def(step), 'variables': self.clean_vars(variables)}]
+                                          'step': self.clean_step_def(step),
+                                          'variables': self.clean_vars(variables),
+                                          'nested': self.nesting_counter}]
 
     def step_end(self, step, variables, output: str = None, success: bool = True):
         self._current_test['output'] += [{'time': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                                           'step': self.clean_step_def(step),
-                                          'variables': self.clean_vars(variables), 'success': success,
+                                          'variables': self.clean_vars(variables),
+                                          'nested': self.nesting_counter,
+                                          'success': success,
                                           'output': output}]
 
     def output(self, level, output):
         if self._current_test:
             self._current_test['output'] += [{'time': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                                              'data': output, 'level': level}]
+                                              'data': output,
+                                              'level': level}]
         else:
             self._data += [{'time': datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'data': output, 'level': level}]
 
@@ -62,6 +67,41 @@ class LogStorage:
         file_utils.ensure_dir(path)
         formatter = formatter_factory(self._format)
         formatter.format(path, self._data)
+
+    def print_summary(self, path):
+        from catcher.utils import logger
+        tests = [t for t in self._data if t.get('type') == 'test']
+        ok = len([t for t in tests if t['status'] == 'OK'])
+        fail = len(tests) - ok
+        percent = ok / len(tests) * 100
+        out_string = 'Test run {}.'.format(logger.blue(str(len(tests))))
+        out_string += ' Success: ' + logger.green(str(ok)) + ', Fail: '
+        if fail > 0:
+            out_string += logger.red(str(fail))
+        else:
+            out_string += logger.green(str(fail))
+        out_string += '. Total: '
+        fun = logger.red
+        if percent >= 100:
+            fun = logger.green
+        elif percent >= 66:
+            fun = logger.light_green
+        elif percent >= 33:
+            fun = logger.yellow
+        out_string += fun('{:.0f}%'.format(percent))
+        for test in tests:
+            out_string += '\nTest {}: '.format(self.cut_path(path, test['file']))
+            # select only step's ends, which belongs to the current test (excluding registered includes run)
+            step_finish_only = [o for o in test['output'] if 'success' in o and o['nested'] == 0]
+            if test['status'] == 'OK':
+                out_string += logger.green('pass')
+            else:
+                out_string += logger.red('fail') + ', on step {}'.format(len(step_finish_only))
+        logger.info(out_string)
+
+    @staticmethod
+    def cut_path(tests_path, test_path):
+        return test_path.split(tests_path)[1][1:]  # cut tests_path/
 
     @staticmethod
     def clean_step_def(data: dict):
@@ -87,17 +127,11 @@ class EmptyLogStorage(LogStorage):
     The default implementation. Does nothing.
     """
 
-    def test_start(self, path, test_type='test'):
-        pass
+    def new_step(self, step, variables):  # ignore variables to free memory
+        super().new_step(step, {})
 
-    def test_end(self, test, success: bool, output: str = None, test_type='test'):
-        pass
-
-    def new_step(self, step, variables):
-        pass
-
-    def step_end(self, step, variables, output: str = None, success: bool = True):
-        pass
+    def step_end(self, step, variables, output: str = None, success: bool = True):  # ignore variables to free memory
+        super().step_end(step, {}, output, success)
 
     def output(self, level, output):
         pass
