@@ -15,7 +15,7 @@ class LogStorage:
         self._current_test = {'start_time': datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'file': test,
                               'type': test_type, 'output': [], 'status': 'running'}
 
-    def test_end(self, test, success: bool, output: str = None, test_type='test'):
+    def test_end(self, test, success: bool, output: str = None, test_type='test', end_comment=None):
         if self._current_test:
             if success:
                 self._current_test['status'] = 'OK'
@@ -26,6 +26,7 @@ class LogStorage:
                     self._current_test['status'] = 'FAIL'
         else:
             self._current_test = {}  # to avoid NPE on the next line
+        self._current_test['comment'] = end_comment
         self._data += [{**{'end_time': datetime.now().strftime("%Y-%m-%d %H:%M:%S")}, **self._current_test}]
         self._current_test = None
 
@@ -90,7 +91,7 @@ class EmptyLogStorage(LogStorage):
     def test_start(self, path, test_type='test'):
         pass
 
-    def test_end(self, test, success: bool, output: str = None, test_type='test'):
+    def test_end(self, test, success: bool, output: str = None, test_type='test', end_comment=None):
         pass
 
     def new_step(self, step, variables):

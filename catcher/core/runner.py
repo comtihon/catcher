@@ -145,7 +145,7 @@ class Runner:
             return True
         except SkipException:
             info('Include ' + file + logger.yellow(' skipped.'))
-            logger.log_storage.test_end(file, True)
+            logger.log_storage.test_end(file, True, end_comment='Skipped')
             return True
         except Exception as e:
             logger.log_storage.test_end(test.path, False, str(e), test_type='include')
@@ -164,7 +164,7 @@ class Runner:
             return test, True
         except SkipException:
             info('Test ' + file + logger.yellow(' skipped.'))
-            logger.log_storage.test_end(file, True)
+            logger.log_storage.test_end(file, True, end_comment='Skipped')
             return test, True
         except Exception as e:
             warning('Test ' + file + logger.red(' failed: ') + str(e))
