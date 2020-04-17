@@ -1,3 +1,7 @@
+New in `1.30`:
+
+| Ability to ignore tests.
+
 New in `1.29`:
 
 | Added `finally` code block. Now you can specify cleanup steps.

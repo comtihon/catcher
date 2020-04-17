@@ -341,3 +341,35 @@ Run test, do a cleanup, if test passes - notify google chat. ::
                 data: {text: 'Test passed. You can deploy the service now'}
             run_if: 'pass'
 
+
+Ignore the test
+---------------
+
+Sometimes some tests are broken and you don't have time to fix them. Or you have test which run in your cloud environment,
+but not locally. Just ignore them!
+
+Simple ignore::
+
+    ignore: true  # this test is failing for some reason
+    variables:
+        foo: bar
+    steps:
+        - check: {equals: {the: true, is: false}}
+
+Ignore based on os env var::
+
+    ignore:
+        equals: {the: '{{ CLOUD }}', is_not: 'AWS'}
+    variables:
+        foo: bar
+    steps:
+        - check: {equals: {the: true, is: false}}
+
+Run test everywhere except local inventory::
+
+    ignore:
+        equals: {the: '{{ INVENTORY }}', is: 'local'}
+    variables:
+        foo: bar
+    steps:
+        - check: {equals: {the: true, is: false}}

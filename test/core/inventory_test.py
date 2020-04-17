@@ -112,3 +112,26 @@ class InventoryTest(TestClass):
         self.assertTrue(runner.run_tests())
         content = ast.literal_eval(read_file(join(self.test_dir, 'database_conf.output')))
         self.assertEquals(content, {'username': 'user', 'password': '********'})
+
+    def test_ignore_locally(self):
+        self.populate_file('local.yml', '''---
+                service:
+                    host: '127.0.0.1'
+                    port: '8080'
+                ''')
+        self.populate_file('cloud.yml', '''---
+                service:
+                    host: 'my.gateway/service'
+                    port: '9000'
+                ''')
+        self.populate_file('main.yaml', '''---
+                                ignore: 
+                                    equals: {the: '{{ INVENTORY }}', is: 'local'}
+                                steps:
+                                    - check: {equals: {the: true, is: false}}
+                                ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), join(self.test_dir, 'local.yml'))
+        self.assertTrue(runner.run_tests())
+
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), join(self.test_dir, 'cloud.yml'))
+        self.assertFalse(runner.run_tests())

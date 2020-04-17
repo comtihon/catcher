@@ -167,3 +167,21 @@ class IncludeFilesTest(TestClass):
         runner.run_tests()
         self.assertTrue(check_file(join(self.test_dir, 'include.output'), 'hello'))
         self.assertTrue(check_file(join(self.test_dir, 'other.output'), 'hello'))
+
+    def test_include_skipped_test(self):
+        self.populate_file('main.yaml', '''---
+                include: simple_file.yaml
+                steps:
+                    - echo: {from: '12', to: bar.output}
+                ''')
+        self.populate_file('simple_file.yaml', '''---
+                ignore: true
+                variables:
+                    foo: bar
+                steps:
+                    - echo: {from: '{{ foo }}', to: foo.output}
+                ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        runner.run_tests()
+        self.assertFalse(os.path.exists(join(self.test_dir, 'foo.output')))
+        self.assertTrue(check_file(join(self.test_dir, 'bar.output'), '12'))
