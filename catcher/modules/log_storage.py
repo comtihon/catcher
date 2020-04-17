@@ -73,7 +73,7 @@ class LogStorage:
         tests = [t for t in self._data if t.get('type') == 'test']
         ok = len([t for t in tests if t['status'] == 'OK'])
         fail = len(tests) - ok
-        percent = ok / len(tests) * 100
+        percent = ok / len(tests) * 100 if len(tests) > 0 else 0
         out_string = 'Test run {}.'.format(logger.blue(str(len(tests))))
         out_string += ' Success: ' + logger.green(str(ok)) + ', Fail: '
         if fail > 0:
