@@ -52,11 +52,12 @@ class E2ETest(TestClass):
                         ''')
         output = self._run_test(self.test_dir, expected_code=1)
         lines = output.strip().split('\n')
+        to_compare = sorted(lines[-3:])  # need to sort it, as output order is not guaranteed in CI
         self.assertEqual('INFO:catcher:Test run 3. Success: 2, Fail: 1. Total: 67%',
                          self.clean_output(lines[-4]))
-        self.assertEqual('Test one.yaml: pass', self.clean_output(lines[-3]))
-        self.assertEqual('Test two.yaml: fail, on step 2', self.clean_output(lines[-2]))
-        self.assertEqual('Test three.yaml: pass', self.clean_output(lines[-1]))
+        self.assertEqual('Test one.yaml: pass', self.clean_output(to_compare[-3]))
+        self.assertEqual('Test three.yaml: pass', self.clean_output(to_compare[-2]))
+        self.assertEqual('Test two.yaml: fail, on step 2', self.clean_output(to_compare[-1]))
 
     def test_check_output_run_on_include(self):
         self.populate_step('steps/include.yaml', '''---
@@ -113,10 +114,11 @@ class E2ETest(TestClass):
                                         ''')
         output = self._run_test(self.test_dir, expected_code=1)
         lines = output.strip().split('\n')
+        to_compare = sorted(lines[-3:])  # need to sort it, as output order is not guaranteed in CI
         self.assertEqual('INFO:catcher:Test run 2. Success: 1, Fail: 1. Total: 50%',
-                         self.clean_output(lines[-3]))
-        self.assertEqual('Test two.yaml: fail, on step 2', self.clean_output(lines[-2]))
-        self.assertEqual('Test three.yaml: pass', self.clean_output(lines[-1]))
+                         self.clean_output(to_compare[-3]))
+        self.assertEqual('Test three.yaml: pass', self.clean_output(to_compare[-2]))
+        self.assertEqual('Test two.yaml: fail, on step 2', self.clean_output(to_compare[-1]))
 
     def test_run_summary_with_output(self):
         self.populate_file('main.yaml', '''---
@@ -126,9 +128,10 @@ class E2ETest(TestClass):
                         ''')
         output = self._run_test(self.test_dir + ' -p json')
         lines = output.strip().split('\n')
+        to_compare = sorted(lines[-2:])  # need to sort it, as output order is not guaranteed in CI
         self.assertEqual('INFO:catcher:Test run 1. Success: 1, Fail: 0. Total: 100%',
-                         self.clean_output(lines[-2]))
-        self.assertEqual('Test main.yaml: pass', self.clean_output(lines[-1]))
+                         self.clean_output(to_compare[-2]))
+        self.assertEqual('Test main.yaml: pass', self.clean_output(to_compare[-1]))
 
     def test_run_output_include_only(self):
         self.populate_file('main.yaml', '''---
