@@ -69,6 +69,7 @@ class Runner:
             return all(results)
         finally:
             logger.log_storage.write_report(join(self.path, 'reports'))
+            logger.log_storage.print_summary(self.tests_path)
             self._compose.down()
 
     def prepare_test(self, file: str, variables: dict, override_vars: None or dict = None) -> Runnable:
