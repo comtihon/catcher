@@ -15,7 +15,7 @@ class LogStorage:
         self._current_test = {'start_time': datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'file': test,
                               'type': test_type, 'output': [], 'status': 'running'}
 
-    def test_end(self, test, success: bool, output: str = None, test_type='test'):
+    def test_end(self, test, success: bool, output: str = None, test_type='test', end_comment=None):
         if self._current_test:
             if success:
                 self._current_test['status'] = 'OK'
@@ -26,6 +26,7 @@ class LogStorage:
                     self._current_test['status'] = 'FAIL'
         else:
             self._current_test = {}  # to avoid NPE on the next line
+        self._current_test['comment'] = end_comment
         self._data += [{**{'end_time': datetime.now().strftime("%Y-%m-%d %H:%M:%S")}, **self._current_test}]
         self._current_test = None
 
@@ -43,18 +44,23 @@ class LogStorage:
 
     def new_step(self, step, variables):
         self._current_test['output'] += [{'time': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                                          'step': self.clean_step_def(step), 'variables': self.clean_vars(variables)}]
+                                          'step': self.clean_step_def(step),
+                                          'variables': self.clean_vars(variables),
+                                          'nested': self.nesting_counter}]
 
     def step_end(self, step, variables, output: str = None, success: bool = True):
         self._current_test['output'] += [{'time': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                                           'step': self.clean_step_def(step),
-                                          'variables': self.clean_vars(variables), 'success': success,
+                                          'variables': self.clean_vars(variables),
+                                          'nested': self.nesting_counter,
+                                          'success': success,
                                           'output': output}]
 
     def output(self, level, output):
         if self._current_test:
             self._current_test['output'] += [{'time': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                                              'data': output, 'level': level}]
+                                              'data': output,
+                                              'level': level}]
         else:
             self._data += [{'time': datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'data': output, 'level': level}]
 
@@ -62,6 +68,52 @@ class LogStorage:
         file_utils.ensure_dir(path)
         formatter = formatter_factory(self._format)
         formatter.format(path, self._data)
+
+    def print_summary(self, path):
+        from catcher.utils import logger
+        tests = [t for t in self._data if t.get('type') == 'test']
+        out_string = self.calculate_statistics(tests)
+        for test in tests:
+            out_string += '\nTest {}: '.format(self.cut_path(path, test['file']))
+            # select only step's ends, which belongs to the current test (excluding registered includes run)
+            step_finish_only = [o for o in test['output'] if 'success' in o and o['nested'] == 0]
+            if test['status'] == 'OK' and test['comment'] != 'Skipped':
+                out_string += logger.green('pass')
+            elif test['comment'] == 'Skipped':
+                out_string += logger.yellow('skipped')
+            else:
+                out_string += logger.red('fail') + ', on step {}'.format(len(step_finish_only))
+        logger.info(out_string)
+
+    @staticmethod
+    def calculate_statistics(tests):
+        from catcher.utils import logger
+        ok = len([t for t in tests if t['status'] == 'OK' and t['comment'] != 'Skipped'])
+        skipped = len([t for t in tests if t['comment'] == 'Skipped'])
+        fail = len(tests) - (ok + skipped)
+        percent = (ok + skipped) / len(tests) * 100 if len(tests) > 0 else 0
+        out_string = 'Test run {}.'.format(logger.blue(str(len(tests))))
+        out_string += ' Success: ' + logger.green(str(ok)) + ', Fail: '
+        if fail > 0:
+            out_string += logger.red(str(fail))
+        else:
+            out_string += logger.green(str(fail))
+        if skipped:
+            out_string += ', Skipped: ' + logger.yellow(str(skipped))
+        out_string += '. Total: '
+        fun = logger.red
+        if percent >= 100:
+            fun = logger.green
+        elif percent >= 66:
+            fun = logger.light_green
+        elif percent >= 33:
+            fun = logger.yellow
+        out_string += fun('{:.0f}%'.format(percent))
+        return out_string
+
+    @staticmethod
+    def cut_path(tests_path, test_path):
+        return test_path.split(tests_path)[1][1:]  # cut tests_path/
 
     @staticmethod
     def clean_step_def(data: dict):
@@ -87,17 +139,11 @@ class EmptyLogStorage(LogStorage):
     The default implementation. Does nothing.
     """
 
-    def test_start(self, path, test_type='test'):
-        pass
+    def new_step(self, step, variables):  # ignore variables to free memory
+        super().new_step(step, {})
 
-    def test_end(self, test, success: bool, output: str = None, test_type='test'):
-        pass
-
-    def new_step(self, step, variables):
-        pass
-
-    def step_end(self, step, variables, output: str = None, success: bool = True):
-        pass
+    def step_end(self, step, variables, output: str = None, success: bool = True):  # ignore variables to free memory
+        super().step_end(step, {}, output, success)
 
     def output(self, level, output):
         pass

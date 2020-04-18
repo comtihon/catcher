@@ -147,3 +147,34 @@ class RunTest(TestClass):
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
         runner.run_tests()
         self.assertTrue(not os.path.exists(join(self.test_dir, 'main1.output')))
+
+    def test_run_ignore_test(self):
+        self.populate_file('main.yaml', '''---
+                ignore: true # for some reason this test is not working
+                steps:
+                    - check: {equals: {the: true, is: false}}
+                ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
+
+    def test_ignore_condition(self):
+        os.environ['CLOUD'] = 'AWS'
+        self.populate_file('main.yaml', '''---
+                        ignore: 
+                            equals: {the: '{{ CLOUD }}', is: 'AWS'}
+                        steps:
+                            - check: {equals: {the: true, is: false}}
+                        ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None, system_environment=dict(os.environ))
+        self.assertTrue(runner.run_tests())
+
+        os.environ['CLOUD'] = 'Marathon'
+        self.populate_file('main.yaml', '''---
+                                ignore: 
+                                    equals: {the: '{{ CLOUD }}', is: 'AWS'}
+                                steps:
+                                    - check: {equals: {the: true, is: false}}
+                                ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None, system_environment=dict(os.environ))
+        self.assertFalse(runner.run_tests())
+

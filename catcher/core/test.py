@@ -1,4 +1,5 @@
 import traceback
+from abc import ABC
 
 from catcher.core import step_factory
 from catcher.steps.step import Step, SkipException
@@ -8,20 +9,32 @@ from catcher.utils.logger import debug, info
 from catcher.utils.misc import fill_template_str, merge_two_dicts
 
 
-class Test:
+class Runnable(ABC):
+    def __init__(self, path, variables, final) -> None:
+        super().__init__()
+        self.path = path
+        self.variables = variables
+        self.final = final
+
+    def run(self, tag=None, raise_stop=False) -> dict:
+        return self.variables
+
+    def run_finally(self, result: bool):
+        pass
+
+
+class Test(Runnable):
     """
     Testcase. Contains variables, includes and steps to run.
     """
 
-    def __init__(self, path: str, includes: dict, variables: dict,
-                 config: dict, steps: list, final: list, modules: dict, override_vars=None) -> None:
+    def __init__(self, path: str, includes: dict, variables: dict, config: dict, steps: list, final: list,
+                 modules: dict, override_vars=None) -> None:
+        super().__init__(path, variables, final)
         self.includes = includes
-        self.variables = variables
         self.config = config
         self.steps = steps
-        self.path = path
         self.modules = modules
-        self.final = final
         self.override_vars = override_vars if override_vars is not None else {}
 
     def run(self, tag=None, raise_stop=False) -> dict:
@@ -91,6 +104,14 @@ class Test:
 
     def __repr__(self) -> str:
         return str(self.steps)
+
+
+class IgnoredTest(Runnable):
+    def __init__(self, path, variables) -> None:
+        super().__init__(path, variables, False)
+
+    def run(self, tag=None, raise_stop=False):
+        raise SkipException('Test ignored')
 
 
 def get_or_default(key: str, body: dict or str, default: any) -> any:
