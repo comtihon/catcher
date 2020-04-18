@@ -81,10 +81,11 @@ class E2ETest(TestClass):
                                 ''')
         output = self._run_test(self.test_dir, expected_code=1)
         lines = output.strip().split('\n')
+        to_compare = sorted(lines[-3:])  # need to sort it, as output order is not guaranteed in CI
         self.assertEqual('INFO:catcher:Test run 2. Success: 1, Fail: 1. Total: 50%',
-                         self.clean_output(lines[-3]))
-        self.assertEqual('Test two.yaml: fail, on step 2', self.clean_output(lines[-2]))
-        self.assertEqual('Test three.yaml: pass', self.clean_output(lines[-1]))
+                         self.clean_output(to_compare[-3]))
+        self.assertEqual('Test three.yaml: pass', self.clean_output(to_compare[-2]))
+        self.assertEqual('Test two.yaml: fail, on step 2', self.clean_output(to_compare[-1]))
 
     def test_check_outut_run_on_action(self):
         self.populate_step('steps/include.yaml', '''---
