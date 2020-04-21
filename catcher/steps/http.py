@@ -26,8 +26,11 @@ class Http(Step):
     - files: send file from resources (only for methods which support it). *Optional*
     - verify: Verify SSL Certificate in case of https. *Optional*. Default is true.
     - should_fail: true, if this request should fail, f.e. to test connection refused. Will fail the test if no errors.
-    - clear_cookies: clear cookies before performing this step. Important, this will clear cookies for current and
-                     following steps! *Optional*. Default is false.
+    - session: http session name. Cookies are saved between sessions. *Optional*. Default session is 'default'.
+               If set to null - there would be no session.
+    - fix_cookies: if true will make cookies secure if you use https and not secure if you don't. *Optional*.
+                   Default is true. Is useful when you don't have tls for your test env, but can't change infra.
+    - timeout: number of seconds to wait for response. *Optional*. Default is no timeout (wait forever)
 
     :files: is a single file or list of files, where <file_param> is a name of request param.
             If you don't specify headers 'multipart/form-data' will be set automatically.
@@ -35,8 +38,8 @@ class Http(Step):
     - <file_param>: path to the file
     - type: file mime type
 
-    :cookies: All requests are run in the same session, sharing cookies got from previous requests. If you wish to
-              clear cookies - use `clear_cookies`
+    :cookies: All requests are run in the session, sharing cookies got from previous requests. If you wish to
+              start new empty session use `session`. If you don't want a session to be saved use `session: null`
 
     :Examples:
 
@@ -144,20 +147,22 @@ class Http(Step):
                     url: 'http://test.com/login.php?user_id={{ user_id }}'
                     body: {'pwd': secret}
                     response_code: 2XX
+                    session: 'user1'
                 name: "Do a login"
             - http:
                 get:
                     url: 'http://test.com/protected_path'
                     response_code: 2XX
+                    session: 'user1'
                 name: "Logged-in user can access protected_path"
             - http:
                 get:
                     url: 'http://test.com/protected_path'
                     response_code: 401
-                    clear_cookies: true
+                    session: 'user2'
                 name: "protected_path can't be accessed without login"
     """
-    session = None
+    sessions = {}
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
@@ -175,31 +180,33 @@ class Http(Step):
         self.body = conf.get('body')
         self.file = conf.get('body_from_file')
         self.files = conf.get('files')
-        self.clear_cookies = conf.get('clear_cookies', False)
-        if Http.session is None:
-            Http.session = requests.Session()
+        self.session = conf.get('session', 'default')
+        self.fix_cookies = conf.get('fix_cookies', True)
+        self.timeout = conf.get('timeout')
 
     @update_variables
     def action(self, includes: dict, variables: dict) -> Union[tuple, dict]:
         url = fill_template(self.url, variables)
-        if self.clear_cookies:
-            Http.session = requests.Session()
+        session = Http.sessions.get(self.session, requests.Session())
         r = None
         try:
-            r = Http.session.request(self.method, url, **self._form_request(url, variables))
+            r = session.request(self.method, url, **self._form_request(url, variables))
             if self._should_fail:  # fail expected
                 raise RuntimeError('Request expected to fail, but it doesn\'t')
         except requests.exceptions.ConnectionError as e:
             debug(str(e))
             if self._should_fail:  # fail expected
                 return variables
-        response = None
-        if r is not None:
-            debug(r.text)
-            try:
-                response = r.json()
-            except ValueError:
-                response = r.text
+        self.__fix_cookies(url, session)
+        if self.session is not None:  # save session if name is specified
+            Http.sessions[self.session] = session
+        if r is None:
+            raise Exception('No response received')
+        debug(r.text)
+        try:
+            response = r.json()
+        except ValueError:
+            response = r.text
         if self.__check_code(r.status_code, self.code):
             raise RuntimeError('Code mismatch: ' + str(r.status_code) + ' vs ' + str(self.code))
         return variables, response
@@ -219,6 +226,7 @@ class Http(Step):
                 rq['data'] = body
         else:  # raw body (or body is None)
             rq['data'] = body
+        rq['timeout'] = self.timeout
         return rq
 
     @staticmethod
@@ -251,6 +259,18 @@ class Http(Step):
             else:
                 warning('Don\'t know how to prepare ' + type(self.files))
         return None
+
+    def __fix_cookies(self, url: str, session):
+        """
+        If url was https and cookies received are not secure - make them secure.
+        If url was http and cookies received are secure - make them not secure
+        """
+        if self.fix_cookies:
+            secure = url.startswith('https')
+            for site, cookies in session.cookies._cookies.items():
+                for path, cookie_list in cookies.items():
+                    for name, cookie in cookie_list.items():
+                        cookie.secure = secure
 
     @staticmethod
     def __check_code(got: int, expected):
