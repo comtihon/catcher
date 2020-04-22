@@ -1,3 +1,8 @@
+New in `1.31`:
+
+| Http step supports multiple sessions now. It doesn't have clear_cookies but it can use `session: null` to skip saving
+  cookies.
+
 New in `1.30`:
 
 | Ability to ignore tests.

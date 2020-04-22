@@ -259,7 +259,7 @@ class HttpTest(TestClass):
         self.assertTrue("one,two\n"
                         "three,four" in adapter.last_request.text)
 
-    @pytest.mark.skip(reason="Uses external service. Shouldn't be run automatically")
+ #   @pytest.mark.skip(reason="Uses external service. Shouldn't be run automatically")
     def test_use_cookies(self):
         self.populate_file('main.yaml', '''---
                             steps:
@@ -276,20 +276,44 @@ class HttpTest(TestClass):
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
         self.assertTrue(runner.run_tests())
 
-    @pytest.mark.skip(reason="Uses external service. Shouldn't be run automatically")
-    def test_clear_cookies(self):
+  #  @pytest.mark.skip(reason="Uses external service. Shouldn't be run automatically")
+    def test_change_sessions(self):
         self.populate_file('main.yaml', '''---
                                     steps:
                                         - http: 
                                             get: 
                                                 url: 'http://httpbin.org/cookies/set/sessioncookie/123456789'
+                                                session: 'one'
+                                        - http: 
+                                            get: 
+                                                url: 'http://httpbin.org/cookies/set/sessioncookie/987654321'
+                                                session: 'two'
                                         - http:
                                             get:
                                                 url: 'http://httpbin.org/cookies'
-                                                clear_cookies: true
+                                                session: 'one'
                                             register: {reply: '{{ OUTPUT }}'}
                                         - check:
+                                            equals: {the: '{{ reply.cookies.sessioncookie }}', is: '123456789'}
+                                        - http:
+                                            get:
+                                                url: 'http://httpbin.org/cookies'
+                                                session: 'two'
+                                            register: {reply: '{{ OUTPUT }}'}
+                                        - check:
+                                            equals: {the: '{{ reply.cookies.sessioncookie }}', is: '987654321'}
+                                        - http: 
+                                            get: 
+                                                url: 'http://httpbin.org/cookies/set/sessioncookie/123456789'
+                                                session: null
+                                        - http:
+                                            get:
+                                                url: 'http://httpbin.org/cookies'
+                                                session: null
+                                            register: {reply: '{{ OUTPUT }}'}
+                                        - check:   
                                             equals: {the: '{{ reply.cookies }}', is: '{}'}
+                                        
                                     ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
         self.assertTrue(runner.run_tests())
