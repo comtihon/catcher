@@ -55,9 +55,9 @@ class E2ETest(TestClass):
         to_compare = sorted(lines[-3:])  # need to sort it, as output order is not guaranteed in CI
         self.assertEqual('INFO:catcher:Test run 3. Success: 2, Fail: 1. Total: 67%',
                          self.clean_output(lines[-4]))
-        self.assertEqual('Test one.yaml: pass', self.clean_output(to_compare[-3]))
-        self.assertEqual('Test three.yaml: pass', self.clean_output(to_compare[-2]))
-        self.assertEqual('Test two.yaml: fail, on step 2', self.clean_output(to_compare[-1]))
+        self.assertEqual('Test one: pass', self.clean_output(to_compare[-3]))
+        self.assertEqual('Test three: pass', self.clean_output(to_compare[-2]))
+        self.assertEqual('Test two: fail, on step 2', self.clean_output(to_compare[-1]))
 
     def test_check_output_skipp_test(self):
         self.populate_file('one.yaml', '''---
@@ -79,8 +79,8 @@ class E2ETest(TestClass):
         to_compare = sorted(lines[-3:])  # need to sort it, as output order is not guaranteed in CI
         self.assertEqual('INFO:catcher:Test run 2. Success: 1, Fail: 0, Skipped: 1. Total: 100%',
                          self.clean_output(lines[-3]))
-        self.assertEqual('Test one.yaml: skipped', self.clean_output(to_compare[-2]))
-        self.assertEqual('Test two.yaml: pass', self.clean_output(to_compare[-1]))
+        self.assertEqual('Test one: skipped', self.clean_output(to_compare[-2]))
+        self.assertEqual('Test two: pass', self.clean_output(to_compare[-1]))
 
     def test_check_output_run_on_include(self):
         self.populate_step('steps/include.yaml', '''---
@@ -108,8 +108,8 @@ class E2ETest(TestClass):
         to_compare = sorted(lines[-3:])  # need to sort it, as output order is not guaranteed in CI
         self.assertEqual('INFO:catcher:Test run 2. Success: 1, Fail: 1. Total: 50%',
                          self.clean_output(to_compare[-3]))
-        self.assertEqual('Test three.yaml: pass', self.clean_output(to_compare[-2]))
-        self.assertEqual('Test two.yaml: fail, on step 2', self.clean_output(to_compare[-1]))
+        self.assertEqual('Test three: pass', self.clean_output(to_compare[-2]))
+        self.assertEqual('Test two: fail, on step 2', self.clean_output(to_compare[-1]))
 
     def test_check_output_ignored_include(self):
         self.populate_step('steps/include.yaml', '''---
@@ -138,8 +138,8 @@ class E2ETest(TestClass):
         to_compare = sorted(lines[-3:])  # need to sort it, as output order is not guaranteed in CI
         self.assertEqual('INFO:catcher:Test run 2. Success: 1, Fail: 1. Total: 50%',
                          self.clean_output(to_compare[-3]))
-        self.assertEqual('Test three.yaml: pass', self.clean_output(to_compare[-2]))
-        self.assertEqual('Test two.yaml: fail, on step 2', self.clean_output(to_compare[-1]))
+        self.assertEqual('Test three: pass', self.clean_output(to_compare[-2]))
+        self.assertEqual('Test two: fail, on step 2', self.clean_output(to_compare[-1]))
 
     def test_check_output_run_on_action(self):
         self.populate_step('steps/include.yaml', '''---
@@ -170,8 +170,8 @@ class E2ETest(TestClass):
         to_compare = sorted(lines[-3:])  # need to sort it, as output order is not guaranteed in CI
         self.assertEqual('INFO:catcher:Test run 2. Success: 1, Fail: 1. Total: 50%',
                          self.clean_output(to_compare[-3]))
-        self.assertEqual('Test three.yaml: pass', self.clean_output(to_compare[-2]))
-        self.assertEqual('Test two.yaml: fail, on step 2', self.clean_output(to_compare[-1]))
+        self.assertEqual('Test three: pass', self.clean_output(to_compare[-2]))
+        self.assertEqual('Test two: fail, on step 2', self.clean_output(to_compare[-1]))
 
     def test_check_output_ignored_run_on_action(self):
         self.populate_step('steps/include.yaml', '''---
@@ -203,8 +203,8 @@ class E2ETest(TestClass):
         to_compare = sorted(lines[-3:])  # need to sort it, as output order is not guaranteed in CI
         self.assertEqual('INFO:catcher:Test run 2. Success: 1, Fail: 1. Total: 50%',
                          self.clean_output(to_compare[-3]))
-        self.assertEqual('Test three.yaml: pass', self.clean_output(to_compare[-2]))
-        self.assertEqual('Test two.yaml: fail, on step 2', self.clean_output(to_compare[-1]))
+        self.assertEqual('Test three: pass', self.clean_output(to_compare[-2]))
+        self.assertEqual('Test two: fail, on step 2', self.clean_output(to_compare[-1]))
 
     def test_run_summary_with_output(self):
         self.populate_file('main.yaml', '''---
@@ -217,7 +217,7 @@ class E2ETest(TestClass):
         to_compare = sorted(lines[-2:])  # need to sort it, as output order is not guaranteed in CI
         self.assertEqual('INFO:catcher:Test run 1. Success: 1, Fail: 0. Total: 100%',
                          self.clean_output(to_compare[-2]))
-        self.assertEqual('Test main.yaml: pass', self.clean_output(to_compare[-1]))
+        self.assertEqual('Test main: pass', self.clean_output(to_compare[-1]))
 
     def test_run_output_include_only(self):
         self.populate_file('main.yaml', '''---
