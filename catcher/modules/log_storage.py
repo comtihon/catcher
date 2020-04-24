@@ -113,6 +113,8 @@ class LogStorage:
 
     @staticmethod
     def cut_path(tests_path, test_path):
+        if test_path == test_path:
+            return file_utils.get_filename(test_path)
         return test_path.split(tests_path)[1][1:]  # cut tests_path/
 
     @staticmethod
