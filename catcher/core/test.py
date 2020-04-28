@@ -1,41 +1,46 @@
 import traceback
-from abc import ABC
+from typing import Union
 
-from catcher.core import step_factory
 from catcher.steps.step import Step, SkipException
 from catcher.steps.stop import StopException
 from catcher.utils import logger
 from catcher.utils.logger import debug, info
-from catcher.utils.misc import fill_template_str, merge_two_dicts
+from catcher.utils.misc import fill_template_str
+from catcher.steps.check import Operator
+from catcher.core.step_factory import StepFactory
 
 
-class Runnable(ABC):
-    def __init__(self, path, variables, final) -> None:
-        super().__init__()
-        self.path = path
-        self.variables = variables
-        self.final = final
-
-    def run(self, tag=None, raise_stop=False) -> dict:
-        return self.variables
-
-    def run_finally(self, result: bool):
-        pass
-
-
-class Test(Runnable):
+class Test:
     """
     Testcase. Contains variables, includes and steps to run.
+    TODO documentation
     """
 
-    def __init__(self, path: str, includes: dict, variables: dict, config: dict, steps: list, final: list,
-                 modules: dict, override_vars=None) -> None:
-        super().__init__(path, variables, final)
+    def __init__(self,
+                 path: str,
+                 file: str,
+                 includes: dict = None,
+                 variables: dict = None,
+                 config: dict = None,
+                 steps: list = None,
+                 final: list = None,
+                 ignore: Union[bool, str, dict] = None) -> None:
+        self.path = path
+        self.final = final
+        self.file = file
         self.includes = includes
         self.config = config
+        self.variables = variables
         self.steps = steps
-        self.modules = modules
-        self.override_vars = override_vars if override_vars is not None else {}
+        self.ignore = ignore
+        self.include = None  # if this test is include it will refer to `Include` class
+
+    def check_ignored(self):
+        if self.ignore:
+            if not isinstance(self.ignore, bool):
+                self.ignore = Operator.find_operator(self.ignore).operation(self.variables)
+            if self.ignore:
+                raise SkipException('Test ignored')
 
     def run(self, tag=None, raise_stop=False) -> dict:
         for step in self.steps:
@@ -60,11 +65,10 @@ class Test(Runnable):
             if (not result and run_type == 'pass') or (result and run_type == 'fail'):
                 debug('Skip final action')
                 return True
-        actions = step_factory.get_actions(self.path, step, self.modules)
+        actions = StepFactory().get_actions(self.path, step)
         for action_object in actions:
             # override all variables with cmd variables
-            variables = merge_two_dicts(self.variables, self.override_vars)
-            if not self._run_actions(step, action, action_object, variables, raise_stop, ignore_errors):
+            if not self._run_actions(step, action, action_object, self.variables, raise_stop, ignore_errors):
                 return False
         return True
 
@@ -104,14 +108,6 @@ class Test(Runnable):
 
     def __repr__(self) -> str:
         return str(self.steps)
-
-
-class IgnoredTest(Runnable):
-    def __init__(self, path, variables) -> None:
-        super().__init__(path, variables, False)
-
-    def run(self, tag=None, raise_stop=False):
-        raise SkipException('Test ignored')
 
 
 def get_or_default(key: str, body: dict or str, default: any) -> any:

@@ -1,5 +1,4 @@
 import os
-import re
 import subprocess
 from os.path import join
 
@@ -50,14 +49,13 @@ class E2ETest(TestClass):
                             - check: 
                                 equals: {the: 'life', is: 'life'}
                         ''')
-        output = self._run_test(self.test_dir, expected_code=1)
+        output = self._run_test(self.test_dir + ' --no-color', expected_code=1)
         lines = output.strip().split('\n')
         to_compare = sorted(lines[-3:])  # need to sort it, as output order is not guaranteed in CI
-        self.assertEqual('INFO:catcher:Test run 3. Success: 2, Fail: 1. Total: 67%',
-                         self.clean_output(lines[-4]))
-        self.assertEqual('Test one: pass', self.clean_output(to_compare[-3]))
-        self.assertEqual('Test three: pass', self.clean_output(to_compare[-2]))
-        self.assertEqual('Test two: fail, on step 2', self.clean_output(to_compare[-1]))
+        self.assertEqual('INFO:catcher:Test run 3. Success: 2, Fail: 1. Total: 67%', lines[-4])
+        self.assertEqual('Test one: pass', to_compare[-3])
+        self.assertEqual('Test three: pass', to_compare[-2])
+        self.assertEqual('Test two: fail, on step 2', to_compare[-1])
 
     def test_check_output_skipp_test(self):
         self.populate_file('one.yaml', '''---
@@ -74,13 +72,12 @@ class E2ETest(TestClass):
                                         equals: {the: 'life', is: 'life'}
                                     - echo: 'hello world'
                                 ''')
-        output = self._run_test(self.test_dir)
+        output = self._run_test(self.test_dir + ' --no-color')
         lines = output.strip().split('\n')
         to_compare = sorted(lines[-3:])  # need to sort it, as output order is not guaranteed in CI
-        self.assertEqual('INFO:catcher:Test run 2. Success: 1, Fail: 0, Skipped: 1. Total: 100%',
-                         self.clean_output(lines[-3]))
-        self.assertEqual('Test one: skipped', self.clean_output(to_compare[-2]))
-        self.assertEqual('Test two: pass', self.clean_output(to_compare[-1]))
+        self.assertEqual('INFO:catcher:Test run 2. Success: 1, Fail: 0, Skipped: 1. Total: 100%', lines[-3])
+        self.assertEqual('Test one: skipped', to_compare[-2])
+        self.assertEqual('Test two: pass', to_compare[-1])
 
     def test_check_output_run_on_include(self):
         self.populate_step('steps/include.yaml', '''---
@@ -103,13 +100,12 @@ class E2ETest(TestClass):
                                     - check: 
                                         equals: {the: 'life', is: 'life'}
                                 ''')
-        output = self._run_test(self.test_dir, expected_code=1)
+        output = self._run_test(self.test_dir + ' --no-color', expected_code=1)
         lines = output.strip().split('\n')
         to_compare = sorted(lines[-3:])  # need to sort it, as output order is not guaranteed in CI
-        self.assertEqual('INFO:catcher:Test run 2. Success: 1, Fail: 1. Total: 50%',
-                         self.clean_output(to_compare[-3]))
-        self.assertEqual('Test three: pass', self.clean_output(to_compare[-2]))
-        self.assertEqual('Test two: fail, on step 2', self.clean_output(to_compare[-1]))
+        self.assertEqual('INFO:catcher:Test run 2. Success: 1, Fail: 1. Total: 50%', to_compare[-3])
+        self.assertEqual('Test three: pass', to_compare[-2])
+        self.assertEqual('Test two: fail, on step 2', to_compare[-1])
 
     def test_check_output_ignored_include(self):
         self.populate_step('steps/include.yaml', '''---
@@ -133,13 +129,12 @@ class E2ETest(TestClass):
                                             - check: 
                                                 equals: {the: 'life', is: 'life'}
                                         ''')
-        output = self._run_test(self.test_dir, expected_code=1)
+        output = self._run_test(self.test_dir + ' --no-color', expected_code=1)
         lines = output.strip().split('\n')
         to_compare = sorted(lines[-3:])  # need to sort it, as output order is not guaranteed in CI
-        self.assertEqual('INFO:catcher:Test run 2. Success: 1, Fail: 1. Total: 50%',
-                         self.clean_output(to_compare[-3]))
-        self.assertEqual('Test three: pass', self.clean_output(to_compare[-2]))
-        self.assertEqual('Test two: fail, on step 2', self.clean_output(to_compare[-1]))
+        self.assertEqual('INFO:catcher:Test run 2. Success: 1, Fail: 1. Total: 50%', to_compare[-3])
+        self.assertEqual('Test three: pass', to_compare[-2])
+        self.assertEqual('Test two: fail, on step 2', to_compare[-1])
 
     def test_check_output_run_on_action(self):
         self.populate_step('steps/include.yaml', '''---
@@ -165,13 +160,12 @@ class E2ETest(TestClass):
                                             - check: 
                                                 equals: {the: 'life', is: 'life'}
                                         ''')
-        output = self._run_test(self.test_dir, expected_code=1)
+        output = self._run_test(self.test_dir + ' --no-color', expected_code=1)
         lines = output.strip().split('\n')
         to_compare = sorted(lines[-3:])  # need to sort it, as output order is not guaranteed in CI
-        self.assertEqual('INFO:catcher:Test run 2. Success: 1, Fail: 1. Total: 50%',
-                         self.clean_output(to_compare[-3]))
-        self.assertEqual('Test three: pass', self.clean_output(to_compare[-2]))
-        self.assertEqual('Test two: fail, on step 2', self.clean_output(to_compare[-1]))
+        self.assertEqual('INFO:catcher:Test run 2. Success: 1, Fail: 1. Total: 50%', to_compare[-3])
+        self.assertEqual('Test three: pass', to_compare[-2])
+        self.assertEqual('Test two: fail, on step 2', to_compare[-1])
 
     def test_check_output_ignored_run_on_action(self):
         self.populate_step('steps/include.yaml', '''---
@@ -198,13 +192,13 @@ class E2ETest(TestClass):
                                             - check: 
                                                 equals: {the: 'life', is: 'life'}
                                         ''')
-        output = self._run_test(self.test_dir, expected_code=1)
+        output = self._run_test(self.test_dir + ' --no-color', expected_code=1)
         lines = output.strip().split('\n')
         to_compare = sorted(lines[-3:])  # need to sort it, as output order is not guaranteed in CI
         self.assertEqual('INFO:catcher:Test run 2. Success: 1, Fail: 1. Total: 50%',
-                         self.clean_output(to_compare[-3]))
-        self.assertEqual('Test three: pass', self.clean_output(to_compare[-2]))
-        self.assertEqual('Test two: fail, on step 2', self.clean_output(to_compare[-1]))
+                         to_compare[-3])
+        self.assertEqual('Test three: pass', to_compare[-2])
+        self.assertEqual('Test two: fail, on step 2', to_compare[-1])
 
     def test_run_summary_with_output(self):
         self.populate_file('main.yaml', '''---
@@ -212,12 +206,11 @@ class E2ETest(TestClass):
                             - check: 
                                 equals: {the: 'life', is: 'life'}  # na-na, na-na-na
                         ''')
-        output = self._run_test(self.test_dir + ' -p json')
+        output = self._run_test(self.test_dir + ' --no-color -p json')
         lines = output.strip().split('\n')
         to_compare = sorted(lines[-2:])  # need to sort it, as output order is not guaranteed in CI
-        self.assertEqual('INFO:catcher:Test run 1. Success: 1, Fail: 0. Total: 100%',
-                         self.clean_output(to_compare[-2]))
-        self.assertEqual('Test main: pass', self.clean_output(to_compare[-1]))
+        self.assertEqual('INFO:catcher:Test run 1. Success: 1, Fail: 0. Total: 100%', to_compare[-2])
+        self.assertEqual('Test main: pass', to_compare[-1])
 
     def test_run_output_include_only(self):
         self.populate_file('main.yaml', '''---
@@ -240,10 +233,15 @@ class E2ETest(TestClass):
                 steps:
                     - echo: {from: '{{ foo }}'}
                 ''')
-        output = self._run_test(self.test_dir, expected_code=1)
+        output = self._run_test(self.test_dir + ' --no-color', expected_code=1)
         lines = output.strip().split('\n')
-        self.assertEqual('INFO:catcher:Test run 0. Success: 0, Fail: 0. Total: 0%',
-                         self.clean_output(lines[-1]))
+        self.assertEqual('INFO:catcher:Test run 0. Success: 0, Fail: 0. Total: 0%', lines[-1])
+
+    def test_run_output_limited(self):
+        pass
+
+    def test_run_output_final(self):
+        pass
 
     def _run_test(self, args: str, expected_code=0):
         process = subprocess.Popen('python {} {}'.format(__main__.__file__, args).split(' '),
@@ -261,22 +259,3 @@ class E2ETest(TestClass):
     def populate_step(file: str, content: str):
         with open(join(os.getcwd(), TEST_DIR, file), 'w') as f:
             f.write(content)
-
-    @staticmethod
-    def clean_output(string):
-        ansi_regex = r'\x1b(' \
-                     r'(\[\??\d+[hl])|' \
-                     r'([=<>a-kzNM78])|' \
-                     r'([\(\)][a-b0-2])|' \
-                     r'(\[\d{0,2}[ma-dgkjqi])|' \
-                     r'(\[\d+;\d+[hfy]?)|' \
-                     r'(\[;?[hf])|' \
-                     r'(#[3-68])|' \
-                     r'([01356]n)|' \
-                     r'(O[mlnp-z]?)|' \
-                     r'(/Z)|' \
-                     r'(\d+)|' \
-                     r'(\[\?\d;\d0c)|' \
-                     r'(\d;\dR))'
-        ansi_escape = re.compile(ansi_regex, flags=re.IGNORECASE)
-        return ansi_escape.sub('', string)
