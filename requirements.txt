@@ -3,7 +3,7 @@ mock==3.0.*
 pytest==5.4.*
 requests==2.23.*
 urllib3==1.25.*
-requests_mock==1.7.*
+requests_mock==1.8.*
 PyYAML==5.*
 Jinja2==2.11.*
 uuid==1.30
