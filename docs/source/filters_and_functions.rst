@@ -17,7 +17,7 @@ Functions
 | **Important**: In order to use your function you should **name** it starting with `function_`.
 | For example **function_my_fun** will be imported in catcher and can be used as **my_fun** in templates.
 | If function doesn't start with `function_` it will be ignored. Although your template's `function_my_fun` can still
-use ignored function itself.
+ use ignored function itself.
 | You can have multiple functions in the same python file.
 
 Imagine you have a file `/home/user/tests/my_functions.py` with content::

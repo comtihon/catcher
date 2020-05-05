@@ -12,8 +12,31 @@ from catcher.core.step_factory import StepFactory
 
 class Test:
     """
-    Testcase. Contains variables, includes and steps to run.
-    TODO documentation
+    Testcase. Contains variables, includes, steps and final actions.
+
+    :ignore: if true will ignore this test. A condition based on :meth:`catcher.steps.check.Check` can be used to
+     compute ignore condition dynamically.
+
+    :include: other test to run. See :meth:`catcher.core.include.Include`. Can be a string in case of single
+      include or a list of include in case of multiple. Each of them will be run before the test passing variables to
+      each other and, finally, to the test. In case of `run_on_include` include's property is false or `as` alias is set
+      include won't be run before the test. You can run such include via :meth:`catcher.steps.run.Run` step later.
+      See :doc:`includes` for more info.
+
+    :variables: test local variables which override inventory variables. These variables will be available only in this
+     test or in test which includes this test. Variables itself can contain templates.
+     See :doc:`variables` for more info.
+
+    :steps: A list of test actions which will be run one by one. They can use variables and support templates. Each
+     step can register it's output as a new variable. See :meth:`catcher.steps.step.Step` for available options.
+     See :doc:`internal_modules` and `external modules <https://catcher-modules.readthedocs.io/en/latest/index.html>`_
+     for more info.
+
+    :finally: A list of clean up actions which will be run after test finishes execution. Condition for every clean up
+     action run can be set (by default they run in any case).
+
+    See :doc:`tests` for more info and examples.
+
     """
 
     def __init__(self,

@@ -20,6 +20,14 @@ catcher.core.test module
     :undoc-members:
     :show-inheritance:
 
+catcher.core.include module
+---------------------------
+
+.. automodule:: catcher.core.include
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 catcher.core.step\_factory module
 ---------------------------------
 

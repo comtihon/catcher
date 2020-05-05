@@ -57,6 +57,8 @@ Built-in
 
 Built-in functions
 ------------------
+See :meth:`catcher.modules.filter_impl.bifs` for the full list of built in functions and filters.
+
 | 1. ``random_int()`` - will generate a random int for you. The only difference between ``RANDOM_INT`` is - you can set limits
 
 ::
@@ -142,9 +144,9 @@ inventory.yml ::
 test.yml ::
 
     postgres:
-    request:
-        conf: '{{ database_conf }}'
-        query: 'select count(*) from test'
+        request:
+            conf: '{{ database_conf }}'
+            query: 'select count(*) from test'
 
 Variables override priority
 ===========================
