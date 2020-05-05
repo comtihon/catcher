@@ -1,18 +1,23 @@
-from typing import Union, Dict, Callable
+from typing import Union, Optional, List
 
+from catcher.steps import step
 from catcher.steps.external import External
 from catcher.steps.step import Step
+from catcher.utils.misc import merge_two_dicts
+from catcher.utils.module_utils import prepare_modules
 from catcher.utils.singleton import Singleton
 
 
 class StepFactory(metaclass=Singleton):
 
-    def __init__(self, modules: Dict[str, Callable] = None) -> None:
-        self.modules = modules
+    def __init__(self, modules: Optional[List[str]] = None) -> None:
+        if modules is None:
+            modules = []
+        self.modules = merge_two_dicts(prepare_modules(modules, step.registered_steps), step.registered_steps)
 
-    def get_actions(self, path: str, step: dict) -> [Step]:
-        [action] = step.keys()
-        body = step[action]
+    def get_actions(self, path: str, step_to_run: dict) -> [Step]:
+        [action] = step_to_run.keys()
+        body = step_to_run[action]
         steps = []
         if 'actions' in body:
             for action_step in body['actions']:

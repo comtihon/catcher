@@ -1,20 +1,17 @@
 import traceback
 from os.path import join
 
+from catcher.core.holder import VariablesHolder
 from catcher.core.parser import Parser
 from catcher.core.step_factory import StepFactory
 from catcher.core.test import Test
 from catcher.modules.compose import DockerCompose
 from catcher.modules.filters import FiltersHolder
 from catcher.modules.log_storage import LogStorage
-from catcher.steps import step
 from catcher.steps.step import SkipException
 from catcher.utils import logger
 from catcher.utils.file_utils import cut_path
 from catcher.utils.logger import warning, info, debug, OptionalOutput
-from catcher.utils.misc import merge_two_dicts
-from catcher.utils.module_utils import prepare_modules
-from catcher.core.holder import VariablesHolder
 
 
 class Runner:
@@ -28,11 +25,9 @@ class Runner:
                  resources=None,
                  output_format=None,
                  filter_list=None) -> None:
-        if modules is None:
-            modules = []
         # singletons init should be done before services, as singletons maybe used there
         FiltersHolder(filter_list)
-        StepFactory(merge_two_dicts(prepare_modules(modules, step.registered_steps), step.registered_steps))
+        StepFactory(modules)
 
         self.tests_path = tests_path
         self.path = path
