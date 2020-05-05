@@ -8,9 +8,9 @@ from catcher.utils.file_utils import read_source_file, get_filename, get_files
 class ParseResult:
     def __init__(self, test_to_run, run_on_include=None, parse_error=None) -> None:
         super().__init__()
-        self.run_on_include: list = run_on_include
+        self.run_on_include = run_on_include
         self.parse_error = parse_error
-        self.test: Union[str, Test] = test_to_run
+        self.test = test_to_run
 
     @property
     def should_run(self) -> bool:
