@@ -1,7 +1,3 @@
-New in `2.0`:
-
-| **Incompatible** Changed variables override priority: `register -> cmd -> inventory -> env -> test`
-
 New in `1.31`:
 
 | Http step supports multiple sessions now. It doesn't have clear_cookies but it can use `session: null` to skip saving
