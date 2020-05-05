@@ -41,13 +41,11 @@ class VariablesHolder:
         """
         return deepcopy(self._variables)
 
-    def prepare_variables(self, test, global_variables: dict, test_type: str = 'test'):
+    def prepare_variables(self, test, global_variables: dict):
         """
         Create variables for test
-        :param test_type: include can have overrides, which override test's variables.
         :param global_variables:
         :param test: test with test variables
-        :param: test_type: in case of include it should override
         """
         # system env + inventory
         # (test template is filled in based on system, inventory & cmd vars)

@@ -77,7 +77,7 @@ class Runner:
 
     def _run_test(self, test: Test, global_variables: dict, output: str = 'full', test_type='test') -> bool:
         try:
-            self.holder.prepare_variables(test, global_variables, test_type=test_type)
+            self.holder.prepare_variables(test, global_variables)
             logger.log_storage.test_start(test.file, test_type=test_type)
             test.check_ignored()
             with OptionalOutput(output == 'limited'):
