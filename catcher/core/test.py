@@ -1,41 +1,69 @@
 import traceback
-from abc import ABC
+from typing import Union
 
-from catcher.core import step_factory
 from catcher.steps.step import Step, SkipException
 from catcher.steps.stop import StopException
 from catcher.utils import logger
 from catcher.utils.logger import debug, info
-from catcher.utils.misc import fill_template_str, merge_two_dicts
+from catcher.utils.misc import fill_template_str
+from catcher.steps.check import Operator
+from catcher.core.step_factory import StepFactory
 
 
-class Runnable(ABC):
-    def __init__(self, path, variables, final) -> None:
-        super().__init__()
+class Test:
+    """
+    Testcase. Contains variables, includes, steps and final actions.
+
+    :ignore: if true will ignore this test. A condition based on :meth:`catcher.steps.check.Check` can be used to
+     compute ignore condition dynamically.
+
+    :include: other test to run. See :meth:`catcher.core.include.Include`. Can be a string in case of single
+      include or a list of include in case of multiple. Each of them will be run before the test passing variables to
+      each other and, finally, to the test. In case of `run_on_include` include's property is false or `as` alias is set
+      include won't be run before the test. You can run such include via :meth:`catcher.steps.run.Run` step later.
+      See :doc:`includes` for more info.
+
+    :variables: test local variables which override inventory variables. These variables will be available only in this
+     test or in test which includes this test. Variables itself can contain templates.
+     See :doc:`variables` for more info.
+
+    :steps: A list of test actions which will be run one by one. They can use variables and support templates. Each
+     step can register it's output as a new variable. See :meth:`catcher.steps.step.Step` for available options.
+     See :doc:`internal_modules` and `external modules <https://catcher-modules.readthedocs.io/en/latest/index.html>`_
+     for more info.
+
+    :finally: A list of clean up actions which will be run after test finishes execution. Condition for every clean up
+     action run can be set (by default they run in any case).
+
+    See :doc:`tests` for more info and examples.
+
+    """
+
+    def __init__(self,
+                 path: str,
+                 file: str,
+                 includes: dict = None,
+                 variables: dict = None,
+                 config: dict = None,
+                 steps: list = None,
+                 final: list = None,
+                 ignore: Union[bool, str, dict] = None) -> None:
         self.path = path
-        self.variables = variables
         self.final = final
-
-    def run(self, tag=None, raise_stop=False) -> dict:
-        return self.variables
-
-    def run_finally(self, result: bool):
-        pass
-
-
-class Test(Runnable):
-    """
-    Testcase. Contains variables, includes and steps to run.
-    """
-
-    def __init__(self, path: str, includes: dict, variables: dict, config: dict, steps: list, final: list,
-                 modules: dict, override_vars=None) -> None:
-        super().__init__(path, variables, final)
+        self.file = file
         self.includes = includes
         self.config = config
+        self.variables = variables
         self.steps = steps
-        self.modules = modules
-        self.override_vars = override_vars if override_vars is not None else {}
+        self.ignore = ignore
+        self.include = None  # if this test is include it will refer to `Include` class
+
+    def check_ignored(self):
+        if self.ignore:
+            if not isinstance(self.ignore, bool):
+                self.ignore = Operator.find_operator(self.ignore).operation(self.variables)
+            if self.ignore:
+                raise SkipException('Test ignored')
 
     def run(self, tag=None, raise_stop=False) -> dict:
         for step in self.steps:
@@ -60,11 +88,10 @@ class Test(Runnable):
             if (not result and run_type == 'pass') or (result and run_type == 'fail'):
                 debug('Skip final action')
                 return True
-        actions = step_factory.get_actions(self.path, step, self.modules)
+        actions = StepFactory().get_actions(self.path, step)
         for action_object in actions:
             # override all variables with cmd variables
-            variables = merge_two_dicts(self.variables, self.override_vars)
-            if not self._run_actions(step, action, action_object, variables, raise_stop, ignore_errors):
+            if not self._run_actions(step, action, action_object, self.variables, raise_stop, ignore_errors):
                 return False
         return True
 
@@ -104,14 +131,6 @@ class Test(Runnable):
 
     def __repr__(self) -> str:
         return str(self.steps)
-
-
-class IgnoredTest(Runnable):
-    def __init__(self, path, variables) -> None:
-        super().__init__(path, variables, False)
-
-    def run(self, tag=None, raise_stop=False):
-        raise SkipException('Test ignored')
 
 
 def get_or_default(key: str, body: dict or str, default: any) -> any:

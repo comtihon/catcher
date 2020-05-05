@@ -1,5 +1,7 @@
 How to write a test
 ===================
+:meth:`catcher.core.test.Test` documentation can also be useful.
+
 Add one step
 ------------
 To add one step - just populate `steps` array::

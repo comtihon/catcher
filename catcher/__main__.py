@@ -1,7 +1,7 @@
 """Catcher - Microservices automated test tool.
 
 Usage:
-  catcher [-i INVENTORY] <tests> [-l LEVEL] [-e VARS...] [-m MODS...]... [-r RES] [-p FORMAT] [-s SYS_ENV] [-f FILTER]...
+  catcher [-i INVENTORY] <tests> [-l LEVEL] [-e VARS...] [-m MODS...]... [-r RES] [-p FORMAT] [-s SYS_ENV] [-f FILTER]... [--q | --qq] [--no-color]
   catcher -v | --version
   catcher -h | --help
 
@@ -19,6 +19,9 @@ Options:
                                      Is not created by default.
   -f FILTER --filter FILTER          Path to python file with custom filters implementation or python module's path if
                                      installed in the system.
+  --q                                Do not print steps output
+  --qq                               Do not print steps and tests output
+  --no-color                         Do not use colorful output.
 """
 import os
 import sys
@@ -42,7 +45,7 @@ def main(args=None):
         print(usage)
         sys.exit(1)
     path = os.getcwd()
-    logger.configure(arguments['--log-level'])
+    logger.configure(arguments['--log-level'], arguments['--no-color'] is None)
     result = run_tests(path, arguments)
     if result:
         sys.exit(0)
@@ -59,6 +62,9 @@ def run_tests(path: str, arguments: dict):
     output_format = arguments['--format']
     filters = arguments['--filter']
     use_sys_vars = arguments['--system_env']
+    output = 'full' if not arguments['--q'] else 'limited'
+    if arguments['--qq']:
+        output = 'final'
     if use_sys_vars:
         sys_vars = dict(os.environ)
     else:
@@ -66,12 +72,12 @@ def run_tests(path: str, arguments: dict):
     __load_modules(modules)
     runner = Runner(path, file_or_dir, inventory,
                     modules=modules,
-                    environment=__env_to_variables(environment),
+                    cmd_env=__env_to_variables(environment),
                     resources=resources,
                     system_environment=sys_vars,
                     output_format=output_format,
                     filter_list=filters)
-    return runner.run_tests()
+    return runner.run_tests(output=output)
 
 
 def __env_to_variables(environment: list) -> dict:

@@ -17,6 +17,13 @@ def get_filename(filename: str) -> str:
     return ntpath.basename(filename).split('.')[0]
 
 
+def cut_path(tests_path, test_path):
+    if tests_path == test_path:
+        return get_filename(test_path)
+    common = os.path.commonpath([test_path, tests_path])
+    return get_filename(test_path.split(common)[1][1:])
+
+
 # Get list of yaml files in dir and subdirs
 def get_files(path: str) -> list:
     if not os.path.exists(path):
