@@ -58,8 +58,8 @@ class Include:
     def __init__(self, ignore_errors=False, file=None, **kwargs) -> None:
         if 'file' is None:
             raise RuntimeError('Can\'t include unknown file.')
-        self.file = file,
-        self.variables = kwargs.get('test.file', {})
+        self.file = file
+        self.variables = kwargs.get('variables', {})
         self.alias = kwargs.get('as', None)
         self.run_on_include = kwargs.get('run_on_include', self.alias is None)
         self.ignore_errors = ignore_errors

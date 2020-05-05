@@ -72,7 +72,7 @@ def run_tests(path: str, arguments: dict):
     __load_modules(modules)
     runner = Runner(path, file_or_dir, inventory,
                     modules=modules,
-                    environment=__env_to_variables(environment),
+                    cmd_env=__env_to_variables(environment),
                     resources=resources,
                     system_environment=sys_vars,
                     output_format=output_format,

@@ -6,6 +6,7 @@ import test
 from catcher.modules.log_storage import EmptyLogStorage
 from catcher.utils import logger
 from catcher.utils.file_utils import ensure_empty, remove_dir
+from catcher.utils.singleton import Singleton
 
 
 class TestClass(unittest.TestCase):
@@ -25,6 +26,7 @@ class TestClass(unittest.TestCase):
         return join(os.getcwd(), self._test_dir)
 
     def setUp(self):
+        Singleton._instances = {}  # clean singleton between tests
         ensure_empty(test.get_test_dir(self.test_name))
         ensure_empty(join(test.get_test_dir(self.test_name), 'resources'))
 

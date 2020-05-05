@@ -1,55 +1,48 @@
-import os
-from copy import deepcopy
-from typing import Optional, Tuple, List
+from typing import Optional, List, Union
 
-from catcher.utils.logger import debug
-from catcher.utils.file_utils import read_source_file, get_filename, get_files
-from catcher.utils.misc import try_get_object, fill_template_str
 from catcher.core.include import Include
 from catcher.core.test import Test
+from catcher.utils.file_utils import read_source_file, get_filename, get_files
+
+
+class ParseResult:
+    def __init__(self, test_to_run, run_on_include=None, parse_error=None) -> None:
+        super().__init__()
+        self.run_on_include: list = run_on_include
+        self.parse_error = parse_error
+        self.test: Union[str, Test] = test_to_run
+
+    @property
+    def should_run(self) -> bool:
+        return self.parse_error is None
 
 
 class Parser:
 
-    def __init__(self,
-                 path: str,
-                 inventory: Optional[str],
-                 environment: Optional[dict] = None,
-                 resources: Optional[dict] = None,
-                 system_environment=None) -> None:
+    def __init__(self, path: str, inventory_path: Optional[str]) -> None:
         self.path = path
-        self.environment = environment or {}
-        system_vars = system_environment or {}
-        if system_vars:
-            debug('Use system variables: ' + str(list(system_vars.keys())))
-            self._variables = system_vars
-        else:
-            self._variables = {}
-        self._variables = self.read_inventory(inventory)
-        self._variables['CURRENT_DIR'] = self.path
-        self._variables['RESOURCES_DIR'] = resources or os.path.join(self.path, 'resources')
+        self.inventory = inventory_path
 
-    @property
-    def variables(self) -> dict:
-        return deepcopy(self._variables)
-
-    def read_inventory(self, inventory: Optional[str]) -> dict:
-        if inventory is not None:
-            inv_vars = read_source_file(inventory)
-            inv_vars['INVENTORY'] = get_filename(inventory)
-            inv_vars['INVENTORY_FILE'] = inventory
-            return try_get_object(fill_template_str(inv_vars, self._variables))  # fill env vars
+    def read_inventory(self) -> dict:
+        if self.inventory is not None:
+            inv_vars = read_source_file(self.inventory)
+            inv_vars['INVENTORY'] = get_filename(self.inventory)
+            inv_vars['INVENTORY_FILE'] = self.inventory
+            return inv_vars
         return {}
 
-    def read_tests(self, test_path: str) -> List[Tuple[List[Test], Test]]:
+    def read_tests(self, test_path: str) -> List[ParseResult]:
         """
         Parse all tests at path, return pairs of (tests run before the test, test)
         """
         results = []
         for test_file in get_files(test_path):
-            raw_test = self.read_test(test_file)
-            run_on_include = self.fill_includes_recursive(test_file, raw_test, None)
-            results += [(run_on_include, raw_test)]
+            try:
+                raw_test = self.read_test(test_file)
+                run_on_include = self.fill_includes_recursive(test_file, raw_test, None)
+                results += [ParseResult(raw_test, run_on_include=run_on_include)]
+            except Exception as e:
+                results += [ParseResult(test_file, parse_error=str(e))]
         return results
 
     def fill_includes_recursive(self, parent, raw_test, all_includes):
@@ -63,7 +56,7 @@ class Parser:
                 raw_test.includes[include.alias] = test
             if include.run_on_include:
                 run_on_include += [test]
-            return run_on_include + self.fill_includes_recursive(include.file, test, all_includes)
+            run_on_include += self.fill_includes_recursive(include.file, test, all_includes)
         return run_on_include
 
     def read_test(self, test_file: str):

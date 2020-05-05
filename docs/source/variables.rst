@@ -208,6 +208,7 @@ Environment variables
 ---------------------
 | All other variables override environmental variables from steps.
 | ``export FOO=bar``
+
 test.yml::
 
     variables:

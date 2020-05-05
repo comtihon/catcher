@@ -130,6 +130,7 @@ class E2ETest(TestClass):
                                                 equals: {the: 'life', is: 'life'}
                                         ''')
         output = self._run_test(self.test_dir + ' --no-color', expected_code=1)
+        print(output)
         lines = output.strip().split('\n')
         to_compare = sorted(lines[-3:])  # need to sort it, as output order is not guaranteed in CI
         self.assertEqual('INFO:catcher:Test run 2. Success: 1, Fail: 1. Total: 50%', to_compare[-3])
@@ -235,7 +236,9 @@ class E2ETest(TestClass):
                 ''')
         output = self._run_test(self.test_dir + ' --no-color', expected_code=1)
         lines = output.strip().split('\n')
-        self.assertEqual('INFO:catcher:Test run 0. Success: 0, Fail: 0. Total: 0%', lines[-1])
+        self.assertTrue('Circular dependencies' in lines[-3])
+        self.assertEqual('INFO:catcher:Test run 1. Success: 0, Fail: 1. Total: 0%', lines[-2])
+        self.assertEqual('Test main: fail, on step 0', lines[-1])
 
     def test_run_output_limited(self):
         pass

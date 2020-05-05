@@ -2,7 +2,7 @@ from typing import Union, Dict, Callable
 
 from catcher.steps.external import External
 from catcher.steps.step import Step
-from utils.singleton import Singleton
+from catcher.utils.singleton import Singleton
 
 
 class StepFactory(metaclass=Singleton):

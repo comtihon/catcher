@@ -30,6 +30,15 @@ class LogStorage:
         self._data += [{**{'end_time': datetime.now().strftime("%Y-%m-%d %H:%M:%S")}, **self._current_test}]
         self._current_test = None
 
+    def test_parse_fail(self, test: str, output: str):
+        self._data += [{'end_time': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                        'start_time': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                        'file': test,
+                        'comment': None,
+                        'type': 'test',
+                        'output': output,
+                        'status': 'FAIL'}]
+
     def nested_test_in(self):
         """
         If test is run from include
@@ -74,7 +83,7 @@ class LogStorage:
         tests = [t for t in self._data if t.get('type') == 'test']
         out_string = self.calculate_statistics(tests)
         for test in tests:
-            out_string += '\nTest {}: '.format(self.cut_path(path, test['file']))
+            out_string += '\nTest {}: '.format(file_utils.cut_path(path, test['file']))
             # select only step's ends, which belongs to the current test (excluding registered includes run)
             step_finish_only = [o for o in test['output'] if 'success' in o and o['nested'] == 0]
             if test['status'] == 'OK' and test['comment'] != 'Skipped':
@@ -110,12 +119,6 @@ class LogStorage:
             fun = logger.yellow
         out_string += fun('{:.0f}%'.format(percent))
         return out_string
-
-    @staticmethod
-    def cut_path(tests_path, test_path):
-        if test_path == test_path:
-            return file_utils.get_filename(test_path)
-        return test_path.split(tests_path)[1][1:]  # cut tests_path/
 
     @staticmethod
     def clean_step_def(data: dict):

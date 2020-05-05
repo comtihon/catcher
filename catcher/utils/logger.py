@@ -11,7 +11,7 @@ colored_output = True  # use colorama for colored output. Is controlled by --no-
 output_enabled = True  # output/no output switcher. Is controlled by -q/-qq cmd arg
 
 
-class VariableOutput(ContextDecorator):
+class OptionalOutput(ContextDecorator):
     def __init__(self, active: bool):
         self.active = active
 
