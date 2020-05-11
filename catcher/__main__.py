@@ -15,7 +15,7 @@ Options:
   -m MODULES --modules MODULES       specify directories or python packages to search for external modules
   -r RESOURCES --resources RESOURCES set the resources dir [default: ./resources]
   -p FORMAT --format FORMAT          set the format (json/html) for the resulting file, which includes all steps
-                                     execution results, variables and outputs. It is created in the current directory.
+                                     execution results, variables and outputs. It is created in the `reports` directory.
                                      Is not created by default.
   -f FILTER --filter FILTER          Path to python file with custom filters implementation or python module's path if
                                      installed in the system.
