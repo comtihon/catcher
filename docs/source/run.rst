@@ -20,7 +20,7 @@ Local
 
 Docker
 ======
-| It is the most convenient way to run tests. Catcher offers you docker 2 images: `catcher_base`_ and `catcher`.
+| It is the most convenient way to run tests. Catcher offers you docker 2 images: `catcher_base`_ and `catcher`_.
 | catcher_base is the base image with catcher installed. You can use it to build your own docker image.
 | catcher is the full, ready to use image with catcher and all modules from catcher-modules installed.
 
