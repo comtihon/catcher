@@ -2,7 +2,7 @@ Local
 =====
 | Make sure catcher is installed. If not - run `pip install catcher`. This will install basic steps & catcher executable.
 | If you need more steps - check out `catcher-modules <https://github.com/comtihon/catcher_modules>`_.
-F.e. `pip install catcher-modules[kafka]`.
+ F.e. `pip install catcher-modules[kafka]`.
 | It is highly recommended to keep things separated.
 | By default all catcher resources are in `./resources` directory.
 | `Inventory`_ files are in `./inventory`, `substeps`_ are in `./steps`, `modules`_ are in `./modules`. `Tests`_ are in `./tests`.
@@ -14,10 +14,9 @@ F.e. `pip install catcher-modules[kafka]`.
 
 | Run `catcher -h` to check if it is installed and see all options available.
 | To run you test use `catcher tests`. It will run all tests in `tests` directory and subdirectories. You can specify
-the exact test to run it individually: `catcher tests/my_test.yml`.
-
+ the exact test to run it individually: `catcher tests/my_test.yml`.
 | *Useful hint*: Sometimes it is hard to debug the test, even with `--log-level debug` cmd option. Use `--format json` to
-check the input and output value for every step of your test. *(html format is still in development)*.
+ check the input and output value for every step of your test. *(html format is still in development)*.
 
 Docker
 ======
@@ -29,7 +28,7 @@ Docker
 .. _catcher: https://hub.docker.com/repository/docker/comtihon/catcher
 
 | Catcher image supports `tests`, `resources`, `inventory`, `steps` and `reports` for formatted reports.
-Mount your directories during the run to use them. The full command where everything is used will look like this:
+ Mount your directories during the run to use them. The full command where everything is used will look like this:
 
 ::
 
