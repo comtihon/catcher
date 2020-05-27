@@ -79,6 +79,13 @@ def fill_template(source: any, variables: dict, isjson=False, glob=None, globs_a
     return source
 
 
+def fill_template_str(source: any, variables: dict) -> str:
+    rendered = render(str(source), inject_builtins(variables))
+    if rendered != source:
+        return fill_template_str(rendered, variables)
+    return rendered
+
+
 def eval_datetime(astr, glob=None):
     if glob is None:
         glob = globals()
@@ -109,15 +116,11 @@ def format_datetime(iterable):
         return [format_datetime(i) for i in iterable]
 
 
-def fill_template_str(source: any, variables: dict) -> str:
-    return render(str(source), inject_builtins(variables))
-
-
 def inject_builtins(variables: dict) -> dict:
     variables_copy = dict(variables)
     variables_copy['RANDOM_STR'] = str(uuid.uuid4())
     variables_copy['RANDOM_INT'] = random.randint(-2147483648, 2147483648)
-    ts = round(time.time(), 6)   # from timestamp uses rounding, so we should also use it here, to make them compatible
+    ts = round(time.time(), 6)  # from timestamp uses rounding, so we should also use it here, to make them compatible
     variables_copy['NOW_TS'] = ts
     variables_copy['NOW_DT'] = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%dT%H:%M:%S0+0000')
     return variables_copy

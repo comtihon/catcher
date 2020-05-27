@@ -1,6 +1,6 @@
 from catcher.steps.step import Step, update_variables, SkipException
 from catcher.utils.logger import error, info, debug
-from catcher.utils.misc import merge_two_dicts, fill_template_str
+from catcher.utils.misc import merge_two_dicts, fill_template_str, try_get_object
 from catcher.steps.stop import StopException
 from catcher.utils import logger
 
@@ -11,8 +11,8 @@ class Run(Step):
 
     :Input:
 
-    :include: include name
-    :tag: include tag. *Optional* If specified - only steps with this tag will be run. Can also be set up via dot notation: `include: test.tag`.
+    :include: include name. If contains dot - everything after dot will be considered as tag. In case of multiple dots
+      the last one will be considered as tag.
     :variables: Variables to override. *Optional*
 
     :Examples:
@@ -51,6 +51,29 @@ class Run(Step):
         steps:
             - run:
                 include: sign_up.register
+
+    Include one.yaml from main and run only before tag of it. one.before includes two.yaml and runs only run_me tag.
+    ::
+
+        include:
+            file: one.yaml
+            as: one
+        steps:
+            - run: 'one.before'
+
+        include:
+            file: two.yaml
+            as: run_me
+        steps:
+            - run:
+                include: two.run_me
+                tag: before
+            - echo: {from: '{{ bar }}', to: after.output, tag: after}
+
+        steps:
+            - echo: {from: '1', to: foo.output, tag: run_me}
+            - echo: {from: '2', to: baz.output, tag: two}
+            - echo: {from: '3', to: bar.output, tag: three}
     """
 
     def __init__(self, ignore_errors=False, _body=None, run=None, include=None, tag=None, variables=None, **kwargs):
@@ -69,13 +92,13 @@ class Run(Step):
     def action(self, includes: dict, variables: dict) -> dict:
         filled_vars = dict([(k, fill_template_str(v, variables)) for (k, v) in self.variables.items()])
         out = fill_template_str(self.include, variables)
-        test, tag = get_tag(out, self.tag)
+        test, tag = get_tag(out)
         if test not in includes:
             error('No include registered for name ' + test)
             raise Exception('No include registered for name ' + test)
         include = includes[test]
         variables = merge_two_dicts(include.variables, merge_two_dicts(variables, filled_vars))
-        include.variables = variables
+        include.variables = try_get_object(fill_template_str(variables, variables))
         try:
             info('Running {}'.format(test))
             logger.log_storage.nested_test_in()
@@ -95,11 +118,9 @@ class Run(Step):
         return variables
 
 
-def get_tag(include: str, tag: str or None) -> str or None:
-    if tag is not None:
-        return include, tag
+def get_tag(include: str) -> str or None:
     if '.' in include:
         splitted = include.split('.')
-        return splitted[0], splitted[-1:][0]
+        return '.'.join(include.split('.')[:-1]), splitted[-1:][0]
     else:
         return include, None

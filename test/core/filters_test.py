@@ -42,8 +42,8 @@ class FiltersTest(TestClass):
         random.seed(123)
         self.assertTrue(runner.run_tests())
         self.assertTrue(check_file(join(self.test_dir, 'one.output'), '10.32.135.245'))
-        self.assertTrue(check_file(join(self.test_dir, 'two.output'), '3'))
-        self.assertTrue(check_file(join(self.test_dir, 'three.output'), 'one'))
+        self.assertTrue(check_file(join(self.test_dir, 'two.output'), '6'))
+        self.assertTrue(check_file(join(self.test_dir, 'three.output'), 'two'))
 
     def test_custom_filters_available(self):
         self.populate_file('custom_filter.py',
@@ -219,7 +219,7 @@ def _not_a_fun(arg):
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
         random.seed(123)
         self.assertTrue(runner.run_tests())
-        self.assertTrue(check_file(join(self.test_dir, 'one.output'), 'one'))
+        self.assertTrue(check_file(join(self.test_dir, 'one.output'), 'three'))
 
     # random int with args can be called
     def test_random_int(self):
@@ -230,7 +230,7 @@ def _not_a_fun(arg):
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
         random.seed(123)
         self.assertTrue(runner.run_tests())
-        self.assertTrue(check_file(join(self.test_dir, 'one.output'), '2'))
+        self.assertTrue(check_file(join(self.test_dir, 'one.output'), '9'))
 
         # no upper limit
         self.populate_file('main.yaml', '''---
@@ -240,7 +240,7 @@ def _not_a_fun(arg):
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
         random.seed(123)
         self.assertTrue(runner.run_tests())
-        self.assertTrue(check_file(join(self.test_dir, 'one.output'), '7733829868136316427'))
+        self.assertTrue(check_file(join(self.test_dir, 'one.output'), '5186474716495645053'))
 
         # no lower limit
         self.populate_file('main.yaml', '''---
@@ -250,7 +250,7 @@ def _not_a_fun(arg):
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
         random.seed(123)
         self.assertTrue(runner.run_tests())
-        self.assertTrue(check_file(join(self.test_dir, 'one.output'), '-2229762486649458603'))
+        self.assertTrue(check_file(join(self.test_dir, 'one.output'), '-2936754363331581815'))
 
     # faker can be called from catcher
     def test_random_functions(self):

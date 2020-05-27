@@ -1,5 +1,7 @@
 from os.path import join
 
+import requests_mock
+
 from catcher.utils.file_utils import read_file
 
 from catcher.core.runner import Runner
@@ -151,3 +153,93 @@ class IncludeFilesTest(TestClass):
         one = read_file(join(self.test_dir, 'one.output'))
         self.assertEqual(main, one)
         self.assertTrue(one)
+
+    # all level of templates should be resolved when including variables
+    def test_template_in_template(self):
+        self.populate_file('main.yaml', '''---
+                variables:
+                    bar: '{{ RANDOM_STR }}'
+                include: 
+                    - file: one.yaml
+                      as: one
+                steps:
+                    - echo: {from: '{{ bar }}', to: main.output}
+                    - run: one
+                ''')
+        self.populate_file('one.yaml', '''---
+                variables:
+                    foo: '{{ bar }}'
+                include: 
+                    - file: two.yaml
+                      as: two
+                steps:
+                    - echo: {from: '{{ foo }}', to: one.output}
+                    - run: two
+                ''')
+        self.populate_file('two.yaml', '''---
+                variables:
+                    final: '{{ foo }}'
+                steps:
+                    - echo: {from: '{{ final }}', to: two.output}
+                ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        runner.run_tests()
+        main = read_file(join(self.test_dir, 'main.output'))
+        one = read_file(join(self.test_dir, 'one.output'))
+        two = read_file(join(self.test_dir, 'two.output'))
+        self.assertEqual(main, one)
+        self.assertEqual(main, two)
+
+    # all level of templates in resources should be resolved
+    @requests_mock.mock()
+    def test_template_in_template_resource(self, m):
+        self.populate_file('main.yaml', '''---
+                        variables:
+                            bar: '{{ RANDOM_STR }}'
+                        include: 
+                            - file: one.yaml
+                              as: one
+                        steps:
+                            - echo: {from: '{{ bar }}', to: main.output}
+                            - run: one
+                        ''')
+        self.populate_file('one.yaml', '''---
+                        variables:
+                            foo: '{{ bar }}'
+                        steps:
+                            - http: 
+                                post: 
+                                    url: 'http://test.com'
+                                    files:
+                                        file: 'foo.json'
+                        ''')
+        self.populate_resource('foo.json', "{\"key\":\"{{ foo }}\"}")
+        adapter = m.post('http://test.com')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
+        main = read_file(join(self.test_dir, 'main.output'))
+        self.assertTrue("{\"key\":\"" + main + "\"}" in adapter.last_request.text)
+
+    # predefined variable from include should be available in test already filled in,
+    def test_variables_registered_in_include(self):
+        self.populate_file('main.yaml', '''---
+                include: 
+                    - file: one.yaml
+                      as: one
+                steps:
+                    - run: one
+                    - echo: {from: '{{ generated_email }}', to: two.output}
+                ''')
+
+        self.populate_file('one.yaml', '''---
+                variables:
+                    generated_email: '{{ random("email") }}'
+                steps:
+                    - echo: {from: '{{ generated_email }}', to: one.output}
+                ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        runner.run_tests()
+        two = read_file(join(self.test_dir, 'two.output'))
+        one = read_file(join(self.test_dir, 'one.output'))
+        self.assertEqual(two, one)
+        self.assertNotEqual('{{ random("email") }}', one)

@@ -1,11 +1,9 @@
 from os.path import join
 
 import pytest
-import requests
 import requests_mock
 
 from catcher.core.runner import Runner
-from catcher.steps.http import Http
 from test.abs_test_class import TestClass
 
 
@@ -259,7 +257,7 @@ class HttpTest(TestClass):
         self.assertTrue("one,two\n"
                         "three,four" in adapter.last_request.text)
 
- #   @pytest.mark.skip(reason="Uses external service. Shouldn't be run automatically")
+    @pytest.mark.skip(reason="Uses external service. Shouldn't be run automatically")
     def test_use_cookies(self):
         self.populate_file('main.yaml', '''---
                             steps:
@@ -276,7 +274,7 @@ class HttpTest(TestClass):
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
         self.assertTrue(runner.run_tests())
 
-  #  @pytest.mark.skip(reason="Uses external service. Shouldn't be run automatically")
+    @pytest.mark.skip(reason="Uses external service. Shouldn't be run automatically")
     def test_change_sessions(self):
         self.populate_file('main.yaml', '''---
                                     steps:

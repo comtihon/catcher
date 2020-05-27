@@ -1,4 +1,4 @@
-from typing import Optional, List, Union
+from typing import Optional, List
 
 from catcher.core.include import Include
 from catcher.core.test import Test
