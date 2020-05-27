@@ -219,3 +219,27 @@ class IncludeFilesTest(TestClass):
         self.assertTrue(runner.run_tests())
         main = read_file(join(self.test_dir, 'main.output'))
         self.assertTrue("{\"key\":\"" + main + "\"}" in adapter.last_request.text)
+
+    # predefined variable from include should be available in test already filled in,
+    def test_variables_registered_in_include(self):
+        self.populate_file('main.yaml', '''---
+                include: 
+                    - file: one.yaml
+                      as: one
+                steps:
+                    - run: one
+                    - echo: {from: '{{ generated_email }}', to: two.output}
+                ''')
+
+        self.populate_file('one.yaml', '''---
+                variables:
+                    generated_email: '{{ random("email") }}'
+                steps:
+                    - echo: {from: '{{ generated_email }}', to: one.output}
+                ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        runner.run_tests()
+        two = read_file(join(self.test_dir, 'two.output'))
+        one = read_file(join(self.test_dir, 'one.output'))
+        self.assertEqual(two, one)
+        self.assertNotEqual('{{ random("email") }}', one)
