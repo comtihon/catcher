@@ -45,7 +45,7 @@ def main(args=None):
         print(usage)
         sys.exit(1)
     path = os.getcwd()
-    logger.configure(arguments['--log-level'], arguments['--no-color'] is None)
+    logger.configure(arguments['--log-level'], not arguments['--no-color'])
     result = run_tests(path, arguments)
     if result:
         sys.exit(0)

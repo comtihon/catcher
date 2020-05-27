@@ -64,8 +64,7 @@ class RunRegisteredIncludeTest(TestClass):
             as: simple.with_dot
         steps:
             - run: 
-                include: 'simple.with_dot'
-                tag: one
+                include: 'simple.with_dot.one'
         ''')
         self.populate_file('simple_file.yaml', '''---
         variables:
@@ -113,3 +112,65 @@ class RunRegisteredIncludeTest(TestClass):
         runner.run_tests()
         self.assertTrue(check_file(join(self.test_dir, 'foo.output'), 'bar'))
         self.assertTrue(not os.path.exists(join(self.test_dir, 'baz.output')))
+
+    # run tagged include which runs untagged include
+    def test_run_tagged_untagged(self):
+        self.populate_file('main.yaml', '''---
+                include: 
+                    file: one.yaml
+                    as: one
+                steps:
+                    - run: 'one.before'
+                ''')
+        self.populate_file('one.yaml', '''---
+                include: 
+                    file: two.yaml
+                    as: two
+                steps:
+                    - run:
+                        include: two
+                        tag: before
+                    - echo: {from: '{{ bar }}', to: after.output, tag: after}
+                ''')
+        self.populate_file('two.yaml', '''---
+                steps:
+                    - echo: {from: '1', to: foo.output}
+                    - echo: {from: '2', to: baz.output}
+                    - echo: {from: '3', to: bar.output}
+                        ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        runner.run_tests()
+        self.assertTrue(check_file(join(self.test_dir, 'foo.output'), '1'))
+        self.assertTrue(check_file(join(self.test_dir, 'baz.output'), '2'))
+        self.assertTrue(check_file(join(self.test_dir, 'bar.output'), '3'))
+
+    # run tagged include which runs tagged include
+    def test_run_tagged_tagged(self):
+        self.populate_file('main.yaml', '''---
+                        include: 
+                            file: one.yaml
+                            as: one
+                        steps:
+                            - run: 'one.before'
+                        ''')
+        self.populate_file('one.yaml', '''---
+                        include: 
+                            file: two.yaml
+                            as: two
+                        steps:
+                            - run:
+                                include: two.one
+                                tag: before
+                            - echo: {from: '{{ bar }}', to: after.output, tag: after}
+                        ''')
+        self.populate_file('two.yaml', '''---
+                        steps:
+                            - echo: {from: '1', to: foo.output, tag: one}
+                            - echo: {from: '2', to: baz.output, tag: two}
+                            - echo: {from: '3', to: bar.output, tag: three}
+                                ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        runner.run_tests()
+        self.assertTrue(check_file(join(self.test_dir, 'foo.output'), '1'))
+        self.assertTrue(not os.path.exists(join(self.test_dir, 'baz.output')))
+        self.assertTrue(not os.path.exists(join(self.test_dir, 'bar.output')))
