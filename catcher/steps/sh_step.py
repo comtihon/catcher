@@ -1,8 +1,7 @@
-import subprocess
-
 from catcher.steps.step import Step, update_variables
 from catcher.utils.misc import fill_template
 from catcher.utils.logger import debug
+from catcher.utils import external_utils
 
 
 class Sh(Step):
@@ -47,13 +46,10 @@ class Sh(Step):
     @update_variables
     def action(self, includes: dict, variables: dict) -> dict or tuple:
         cmd = fill_template(self._cmd, variables)
-        process = subprocess.Popen(cmd.split(' '),
-                                   cwd=fill_template(self._path, variables),
-                                   stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE,
-                                   universal_newlines=True)
-        stdout, stderr = process.communicate()
-        if process.returncode != int(fill_template(self._return_code, variables)):
-            debug('Process return code {}.\nStderr is {}\nStdout is {}'.format(process.returncode, stderr, stdout))
+        return_code, stdout, stderr = external_utils.run_cmd(cmd.split(' '),
+                                                             variables,
+                                                             fill_template(self._path, variables))
+        if return_code != int(fill_template(self._return_code, variables)):
+            debug('Process return code {}.\nStderr is {}\nStdout is {}'.format(return_code, stderr, stdout))
             raise Exception(stderr)
         return variables, stdout

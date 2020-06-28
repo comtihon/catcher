@@ -4,6 +4,7 @@ import json
 import ntpath
 import os
 import shutil
+from glob import glob
 from os.path import join
 
 import yaml
@@ -18,10 +19,14 @@ def get_filename(filename: str) -> str:
 
 
 def cut_path(tests_path, test_path):
+    return get_filename(cut_part_path(tests_path, test_path))
+
+
+def cut_part_path(tests_path, test_path):
     if tests_path == test_path:
         return get_filename(test_path)
     common = os.path.commonpath([test_path, tests_path])
-    return get_filename(test_path.split(common)[1][1:])
+    return test_path.split(common)[1][1:]
 
 
 # Get list of yaml files in dir and subdirs
@@ -39,6 +44,18 @@ def get_files(path: str) -> list:
     else:
         file.append(path)
     return file
+
+
+def find_resource(path: str, resource_name: str, extension=".*") -> str:
+    files = []
+    pattern = resource_name + extension
+    for d, _, _ in os.walk(path):
+        files.extend(glob(os.path.join(d, pattern)))
+    if len(files) > 1:
+        raise Exception('Found more than 1 resource for {}: {}'.format(resource_name, files))
+    elif not files:
+        raise Exception('No resource found for {}'.format(resource_name))
+    return files[0]
 
 
 def read_source_file(file: str) -> dict:
