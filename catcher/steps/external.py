@@ -1,9 +1,8 @@
 import json
-import subprocess
 
 from catcher.steps.step import Step, update_variables
-from catcher.utils.logger import debug, warning
 from catcher.utils.misc import fill_template_str
+from catcher.utils import external_utils
 
 
 class External(Step):
@@ -23,12 +22,4 @@ class External(Step):
         :return: script's output
         """
         json_args = fill_template_str(json.dumps(self.data), variables)
-        p = subprocess.Popen([self.module, json_args], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        if p.wait() == 0:
-            out = p.stdout.read().decode()
-            debug(out)
-            return variables, json.loads(out)
-        else:
-            out = p.stdout.read().decode()
-            warning(out)
-            raise Exception('Execution failed.')
+        return variables, external_utils.run_cmd_simple(self.module, variables, args=[json_args])

@@ -80,6 +80,51 @@ class Hello(ExternalStep):
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None, modules=[self.test_dir])
         self.assertTrue(runner.run_tests())
 
+    def test_run_jar(self):
+        self.copy_resource('MyClass.jar')
+        self.populate_file('main.yaml', '''---
+                                        variables:
+                                            person: 'John Doe'
+                                        steps:
+                                            - MyClass.jar:
+                                                say: '{{ person }}'
+                                                register: {greeting: '{{ OUTPUT }}'}
+                                            - check: {equals: {the: '{{ greeting.strip() }}', is: 'hello John Doe'}}
+                                        ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None, modules=[self.test_resources])
+        self.assertTrue(runner.run_tests())
+
+    # make sure javac is available in the PATH to pass this test
+    def test_compile_and_run_java(self):
+        self.copy_resource('MyClass.java')
+        self.copy_resource('OtherClass.java')
+        self.populate_file('main.yaml', '''---
+                                variables:
+                                    person: 'John Doe'
+                                steps:
+                                    - MyClass.java:
+                                        say: '{{ person }}'
+                                        register: {greeting: '{{ OUTPUT }}'}
+                                    - check: {equals: {the: '{{ greeting.strip() }}', is: 'hello John Doe'}}
+                                ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None, modules=[self.test_resources])
+        self.assertTrue(runner.run_tests())
+
+    # make sure kotlinc is available in the PATH to pass this test
+    def test_compile_and_run_kotlin(self):
+        self.copy_resource('hello.kt')
+        self.populate_file('main.yaml', '''---
+                                        variables:
+                                            person: 'John Doe'
+                                        steps:
+                                            - hello.kt:
+                                                say: '{{ person }}'
+                                                register: {greeting: '{{ OUTPUT }}'}
+                                            - check: {equals: {the: '{{ greeting.strip() }}', is: 'hello John Doe'}}
+                                        ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None, modules=[self.test_resources])
+        self.assertTrue(runner.run_tests())
+
     def write_module(self, name: str, body: str):
         self.populate_file(name, body)
         path = join(self.test_dir, name)

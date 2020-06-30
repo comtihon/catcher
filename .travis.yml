@@ -9,6 +9,7 @@ python:
 before_install:
 - sudo apt-get update
 - sudo apt-get install jq
+- sudo snap install kotlin --classic
 install:
 - pip install -e "file://`pwd`#egg=catcher[compose]"
 - python setup.py install
