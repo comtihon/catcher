@@ -62,9 +62,12 @@ def _prepare_cmd(file: str, args: list = None, variables=None) -> Tuple[List[str
         cmd = ['python', file]
     if file.endswith('.js'):  # node js executable
         cmd = ['node', file]
-    # TODO Kotlin/Scala compilation?
+    # TODO Scala compilation?
     if file.endswith('.java'):  # java source file (need to compile)
         cmd = ['java', _compile_java(file, variables)]
+        cwd = variables['RESOURCES_DIR']  # compiled java class should be run from resources
+    if file.endswith('.kt'):  # kotlin source file (need to compile)
+        cmd = ['java', '-jar', _compile_kotlin(file, variables)]
         cwd = variables['RESOURCES_DIR']  # compiled java class should be run from resources
     if file.endswith('.jar'):  # executable jar
         cmd = ['java', '-jar', file]
@@ -87,6 +90,18 @@ def _compile_java(file, variables):
     class_file = file_utils.find_resource(resource_dir, file_utils.get_filename(file), '.class')
     module = file_utils.cut_part_path(resource_dir, class_file).replace('/', '.')
     return module.split('.class')[0]
+
+
+def _compile_kotlin(file, variables):
+    resource_dir = variables['RESOURCES_DIR']
+    filename = file_utils.get_filename(file)
+    return_code, stdout, stderr = run_cmd('kotlinc {}.kt -include-runtime -d {}.jar'.format(filename, filename),
+                                          variables,
+                                          cwd=resource_dir,
+                                          shell=True)  # compile everything
+    if return_code != 0:
+        raise Exception("Can't compile {}. Out: {}, Err: {}".format(file, stdout, stderr))
+    return filename + '.jar'
 
 
 def _parse_output(output: str):

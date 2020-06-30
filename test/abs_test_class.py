@@ -8,6 +8,7 @@ from catcher.modules.log_storage import EmptyLogStorage
 from catcher.utils import logger
 from catcher.utils.file_utils import ensure_empty, remove_dir
 from catcher.utils.singleton import Singleton
+from test import resources
 
 
 class TestClass(unittest.TestCase):
@@ -32,7 +33,7 @@ class TestClass(unittest.TestCase):
 
     @property
     def global_resource_dir(self):  # global resource dir (part of project)
-        return join(os.getcwd(), '../resources')
+        return os.path.dirname(resources.__file__)
 
     def setUp(self):
         Singleton._instances = {}  # clean singleton between tests
