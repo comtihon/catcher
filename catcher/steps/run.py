@@ -100,7 +100,7 @@ class Run(Step):
         variables = merge_two_dicts(include.variables, merge_two_dicts(variables, filled_vars))
         include.variables = try_get_object(fill_template_str(variables, variables))
         try:
-            info('Running {}'.format(test))
+            info('Running {}.{}'.format(test, '' if tag is None else tag))
             logger.log_storage.nested_test_in()
             variables = include.run(tag=tag, raise_stop=True)
             logger.log_storage.nested_test_out()
