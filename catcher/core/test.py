@@ -1,3 +1,4 @@
+import time
 import traceback
 from typing import Union
 
@@ -97,13 +98,14 @@ class Test:
 
     def _run_actions(self, step, action, action_object, variables, raise_stop, ignore_errors) -> bool:
         action_name = get_action_name(action, action_object, variables)
+        start = time.process_time()
         try:
             logger.log_storage.new_step(step, variables)
             action_object.check_skip(variables)
             self.variables = action_object.action(self.includes, variables)
             # repeat for run (variables were computed after name)
             action_name = get_action_name(action, action_object, self.variables)
-            info('Step ' + action_name + logger.green(' OK'))
+            info('Step ' + action_name + get_timing(start) + logger.green(' OK'))
             logger.log_storage.step_end(step, self.variables)
             return True
         except StopException as e:  # stop a test without error
@@ -111,7 +113,7 @@ class Test:
                 logger.log_storage.step_end(step, variables, success=False, output=str(e))
                 raise e
             debug('Skip ' + action_name + ' due to ' + str(e))
-            info('Step ' + action_name + logger.green(' OK'))
+            info('Step ' + action_name + get_timing(start) + logger.green(' OK'))
             logger.log_storage.step_end(step, self.variables, success=True, output=str(e))
             return False  # stop current test
         except SkipException as e:  # skip this step
@@ -120,11 +122,11 @@ class Test:
             return True
         except Exception as e:
             if ignore_errors:  # continue actions & steps execution
-                debug('Step ' + action_name + logger.red(' failed') + ', but we ignore it')
+                debug('Step ' + action_name + get_timing(start) + logger.red(' failed') + ', but we ignore it')
                 logger.log_storage.step_end(step, variables, success=True)
                 return True
             else:
-                info('Step ' + action_name + logger.red(' failed: ') + str(e))
+                info('Step ' + action_name + get_timing(start) + logger.red(' failed: ') + str(e))
                 debug(traceback.format_exc())
                 logger.log_storage.step_end(step, variables, success=False, output=str(e))
                 raise e
@@ -144,3 +146,10 @@ def get_action_name(action_type: str, action: Step, variables: dict):
     if action.name is not None:
         return fill_template_str(action.name, variables)
     return action_type
+
+
+def get_timing(start_time) -> str:
+    delta = time.process_time() - start_time
+    if delta > 60:
+        return ' [{:.0f}m {:.0f}s]'.format(delta / 60, delta - 60 * int(delta / 60))
+    return ' [{:.0f}s]'.format(delta)

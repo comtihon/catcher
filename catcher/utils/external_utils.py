@@ -25,17 +25,19 @@ def run_cmd(cmd: Union[List[str], str], variables, cwd=None, shell=False):
 def run_cmd_simple(cmd: str,
                    variables: dict,
                    env=None,
-                   args: List[str] = None) -> Union[dict, str]:
+                   args: List[str] = None,
+                   libraries=None) -> Union[dict, str]:
     """
     Run cmd with variables written in environment.
     :param args: cmd arguments
     :param cmd: to run
     :param variables: variables
     :param env: custom environment
+    :param libraries: additional libraries used for source compilation
     :return: output in json (if can be parsed) or plaintext
     """
     env = _prepare_env(variables, env=env)
-    cmd, cwd = _prepare_cmd(cmd, args, variables)
+    cmd, cwd = _prepare_cmd(cmd, args, variables, libraries=libraries)
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env, cwd=cwd)
     if p.wait() == 0:
         out = p.stdout.read().decode()
@@ -55,19 +57,20 @@ def _prepare_env(variables, env=None):
     return env
 
 
-def _prepare_cmd(file: str, args: list = None, variables=None) -> Tuple[List[str], Optional[str]]:
+def _prepare_cmd(file: str, args: list = None, variables=None, libraries=None) -> Tuple[List[str], Optional[str]]:
     cmd = None
     cwd = None
     if file.endswith('.py'):  # python executable
         cmd = ['python', file]
     if file.endswith('.js'):  # node js executable
         cmd = ['node', file]
-    # TODO Scala compilation?
+    # TODO Scala/Groovy compilation?
     if file.endswith('.java'):  # java source file (need to compile)
-        cmd = ['java', _compile_java(file, variables)]
+        classpath = _form_classpath_args(libraries)
+        cmd = ['java'] + classpath + [_compile_java(file, variables, libraries=libraries)]
         cwd = variables['RESOURCES_DIR']  # compiled java class should be run from resources
     if file.endswith('.kt'):  # kotlin source file (need to compile)
-        cmd = ['java', '-jar', _compile_kotlin(file, variables)]
+        cmd = ['java', '-jar', _compile_kotlin(file, variables, libraries=libraries)]
         cwd = variables['RESOURCES_DIR']  # compiled java class should be run from resources
     if file.endswith('.jar'):  # executable jar
         cmd = ['java', '-jar', file]
@@ -79,9 +82,10 @@ def _prepare_cmd(file: str, args: list = None, variables=None) -> Tuple[List[str
     return cmd, cwd
 
 
-def _compile_java(file, variables):
+def _compile_java(file, variables, libraries=None):
     resource_dir = variables['RESOURCES_DIR']
-    return_code, stdout, stderr = run_cmd('javac -d . *.java',
+    classpath = _form_classpath(libraries)
+    return_code, stdout, stderr = run_cmd('javac {} -d . *.java'.format(classpath),
                                           variables,
                                           cwd=resource_dir,
                                           shell=True)  # compile everything
@@ -92,7 +96,7 @@ def _compile_java(file, variables):
     return module.split('.class')[0]
 
 
-def _compile_kotlin(file, variables):
+def _compile_kotlin(file, variables, libraries=None):
     resource_dir = variables['RESOURCES_DIR']
     filename = file_utils.get_filename(file)
     return_code, stdout, stderr = run_cmd('kotlinc {}.kt -include-runtime -d {}.jar'.format(filename, filename),
@@ -109,3 +113,20 @@ def _parse_output(output: str):
         return json.loads(output)
     except JSONDecodeError:
         return output
+
+
+def _form_classpath(libraries) -> str:
+    if libraries is None:
+        return ''
+    else:
+        cp = '.:' + ':'.join(libraries)
+        if cp.endswith('*'):
+            return '-cp "{}"'.format(cp)
+        return '-cp ' + cp
+
+
+def _form_classpath_args(libraries) -> list:
+    if libraries is None:
+        return []
+    else:
+        return ['-cp'] + ['.:' + ':'.join(libraries)]
