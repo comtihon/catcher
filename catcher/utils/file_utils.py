@@ -6,6 +6,7 @@ import os
 import shutil
 from glob import glob
 from os.path import join
+from typing import List
 
 import yaml
 
@@ -46,16 +47,14 @@ def get_files(path: str) -> list:
     return file
 
 
-def find_resource(path: str, resource_name: str, extension=".*") -> str:
+def find_resource(path: str, resource_name: str, extension=".*") -> List[str]:
     files = []
     pattern = resource_name + extension
     for d, _, _ in os.walk(path):
         files.extend(glob(os.path.join(d, pattern)))
-    if len(files) > 1:
-        raise Exception('Found more than 1 resource for {}: {}'.format(resource_name, files))
-    elif not files:
+    if not files:
         raise Exception('No resource found for {}'.format(resource_name))
-    return files[0]
+    return files
 
 
 def read_source_file(file: str) -> dict:

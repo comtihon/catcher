@@ -92,6 +92,11 @@ def _compile_java(file, variables, libraries=None):
     if return_code != 0:
         raise Exception("Can't compile {}. Out: {}, Err: {}".format(file, stdout, stderr))
     class_file = file_utils.find_resource(resource_dir, file_utils.get_filename(file), '.class')
+    if len(class_file) > 1:
+        debug('Found more than 1 resource for {}: {}. Use last.'.format(file_utils.get_filename(file), class_file))
+        class_file = class_file[-1]
+    else:
+        class_file = class_file[0]
     module = file_utils.cut_part_path(resource_dir, class_file).replace('/', '.')
     return module.split('.class')[0]
 
