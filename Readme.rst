@@ -19,7 +19,7 @@ Support your team with a good Catcher!
 What is catcher?
 ----------------
 Catcher is a flexible end to end test tool, that can be used for automated microservices or data pipelines testing.
-It helps you to check either one service or whole system interaction.
+It helps you to check either one service or whole system interaction from the front-end to the back-end.
 With the help of Catcher you can easily mock external services your system relies on. Catcher is not about only http, it
 can check different services, such as Kafka, Postgres, CouchBase, Mongodb, Elastic, S3, emails and others.
 
@@ -44,7 +44,9 @@ Testing - How it works?
 
 Installation
 ------------
-| To install catcher with all internal `modules`_ run `sudo pip install catcher-modules[all]`.
+| You can run catcher in `docker`_ with all libraries, drivers and steps already installed and configured.
+
+| To install catcher locally with all internal `modules`_ run `sudo pip install catcher-modules[all]`.
 | This will install `catcher`_ and `catcher-modules`_ package.
 | To install just catcher run `sudo pip install catcher`.
 | To install specific catcher-module use `pip install catcher-modules[kafka]`. See `catcher-modules-index`_ for all
@@ -54,6 +56,7 @@ Installation
 .. _modules: https://github.com/comtihon/catcher_modules
 .. _catcher-modules: https://pypi.org/project/catcher-modules
 .. _catcher-modules-index: https://catcher-modules.readthedocs.io/en/latest/source/catcher_modules.html#module-catcher_modules
+.. _docker: https://hub.docker.com/repository/docker/comtihon/catcher
 
 Changelog is `here <https://github.com/comtihon/catcher/blob/master/Changelog.rst>`_.
 
@@ -71,13 +74,13 @@ Usage
 
     ---
     steps:
-    - http: {get: {url: 'http://my_cache_service.com/save?key=foo&value=bar'}}
-    - redis:
-        request:
-            get: 'foo'
-        register: {foo: '{{ OUTPUT }}'}
-    - check:
-        equals: {the: '{{ foo }}', is: 'bar'}
+        - http: {get: {url: 'http://my_cache_service.com/save?key=foo&value=bar'}}
+        - redis:
+            request:
+                get: 'foo'
+            register: {foo: '{{ OUTPUT }}'}
+        - check:
+            equals: {the: '{{ foo }}', is: 'bar'}
 
 * Run catcher `catcher my_test_file.yml`.
 
@@ -96,6 +99,7 @@ Why catcher?
 * apply :meth:`catcher.steps.check` to the steps results;
 * write test for development, change inventory and test stage/uat/prod after deploy;
 * test all your `microservices`_ with ease;
+* use `selenium`_ steps to involve front-end in your e2e tests;
 * `modular`_ architecture
 * perfect for big data `pipelines`_ testing with `prepare-expect`_
 * automate your testing!
@@ -109,3 +113,4 @@ See `readthedocs`_.
 .. _modular: https://catcher-test-tool.readthedocs.io/en/latest/source/modules.html
 .. _prepare-expect: https://catcher-modules.readthedocs.io/en/latest/source/prepare_expect.html
 .. _pipelines: https://catcher-modules.readthedocs.io/en/latest/source/airflow.html
+.. _selenium: https://catcher-modules.readthedocs.io/en/latest/source/selenium.html
