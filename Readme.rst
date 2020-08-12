@@ -65,7 +65,7 @@ Customization
 Catcher can be easily customized to serve your needs.
 
 1. You can write your own functions and filters and use them in your step's `templates <https://catcher-test-tool.readthedocs.io/en/latest/source/filters_and_functions.html>`_.
-2. You can create your own `steps <https://catcher-test-tool.readthedocs.io/en/latest/source/modules.html>`_ (as python script or any executable)
+2. You can create your own `steps <https://catcher-test-tool.readthedocs.io/en/latest/source/modules.html>`_ (in Python, Java, Kotlin, JS, jar-files or any executable)
 3. You can write your steps in catcher itself and `include <https://catcher-test-tool.readthedocs.io/en/latest/source/includes.html#run-on-action>`_ them from other tests.
 
 Usage
