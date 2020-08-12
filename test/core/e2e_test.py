@@ -130,12 +130,25 @@ class E2ETest(TestClass):
                                                 equals: {the: 'life', is: 'life'}
                                         ''')
         output = self._run_test(self.test_dir + ' --no-color', expected_code=1)
-        print(output)
         lines = output.strip().split('\n')
         to_compare = sorted(lines[-3:])  # need to sort it, as output order is not guaranteed in CI
         self.assertEqual('INFO:catcher:Test run 2. Success: 1, Fail: 1. Total: 50%', to_compare[-3])
         self.assertEqual('Test three: pass', to_compare[-2])
         self.assertEqual('Test two: fail, on step 2', to_compare[-1])
+
+    def test_failed_include_ignore_test(self):
+        self.populate_file('two.yaml', '''---
+                                        include: non_existent.yaml
+                                        ignore: true
+                                        steps:
+                                            - echo: 'hello world'
+                                        ''')
+        output = self._run_test(self.test_dir + ' --no-color')
+        print(output)
+        lines = output.strip().split('\n')
+        to_compare = sorted(lines[-3:])  # need to sort it, as output order is not guaranteed in CI
+        self.assertEqual('INFO:catcher:Test run 1. Success: 0, Fail: 0, Skipped: 1. Total: 100%', to_compare[0])
+        self.assertEqual('INFO:catcher:Test two skipped.', to_compare[1])
 
     def test_check_output_run_on_action(self):
         self.populate_step('steps/include.yaml', '''---

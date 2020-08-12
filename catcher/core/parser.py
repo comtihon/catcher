@@ -1,5 +1,7 @@
 from typing import Optional, List
 
+from catcher.steps.step import SkipException
+
 from catcher.core.include import Include
 from catcher.core.test import Test
 from catcher.utils.file_utils import read_source_file, get_filename, get_files
@@ -39,6 +41,9 @@ class Parser:
         for test_file in get_files(test_path):
             try:
                 raw_test = self.read_test(test_file)
+                if raw_test.ignore:  # ignore the test - do not need to check imports (they may be missing)
+                    results += [ParseResult(raw_test, run_on_include=[])]
+                    continue
                 run_on_include = self.fill_includes_recursive(test_file, raw_test, None)
                 results += [ParseResult(raw_test, run_on_include=run_on_include)]
             except Exception as e:
