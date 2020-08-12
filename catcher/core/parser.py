@@ -1,7 +1,5 @@
 from typing import Optional, List
 
-from catcher.steps.step import SkipException
-
 from catcher.core.include import Include
 from catcher.core.test import Test
 from catcher.utils.file_utils import read_source_file, get_filename, get_files
