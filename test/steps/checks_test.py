@@ -97,6 +97,21 @@ class ChecksTest(TestClass):
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
         self.assertTrue(runner.run_tests())
 
+    def test_contains_string(self):
+        self.populate_file('main.yaml', '''---
+                variables:
+                    word: 'hello'
+                    word2: 'incorrect'
+                    phrase: 'first hello world'
+                steps:
+                    - check: 
+                        contains: {the: '{{ word }}', in: '{{ phrase }}'}
+                    - check: 
+                        contains: {the: '{{ word2 }}', not_in: '{{ phrase }}'}
+                ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
+
     # test if `or` works
     def test_or(self):
         self.populate_file('main.yaml', '''---
