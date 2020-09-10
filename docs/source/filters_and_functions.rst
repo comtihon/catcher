@@ -71,7 +71,7 @@ In this case you have both `my_custom` function and `increment` filter available
         - postgres:
             request:
                 conf: '{{ postgres }}'
-                query: 'select count(*) from test'
+                sql: 'select count(*) from test'
             register: {documents: '{{ OUTPUT.count }}'}
         - kafka:
             produce:

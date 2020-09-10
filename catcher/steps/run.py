@@ -7,7 +7,8 @@ from catcher.utils import logger
 
 class Run(Step):
     """
-    Run include on demand
+    Run another test, included later. Is useful when you need to run the same code from different tests or to
+    repeat the same steps inside one test but with different input variables.
 
     :Input:
 
@@ -28,21 +29,27 @@ class Run(Step):
             - run: sign_up
             # .... some steps
 
-    Run `sign_up` with username overridden
+    Run `sign_up` include test twice for 2 different users
     ::
 
         include:
             file: register_user.yaml
             as: sign_up
+        variables:
+            users: ['{{ random("email") }}', '{{ random("email") }}']
         steps:
             # .... some steps
             - run:
                 include: sign_up
                 variables:
-                    username: test
+                    user: '{{ users[0] }}'
             # .... some steps
+            - run:
+                include: sign_up
+                variables:
+                    user: '{{ users[1] }}'
 
-    Include `sign_up` and run all steps with tag `register` from it. Use dot notation.
+    Include `sign_up` and run all steps with tag `register` from it.
     ::
 
         include:
@@ -52,14 +59,16 @@ class Run(Step):
             - run:
                 include: sign_up.register
 
-    Include one.yaml from main and run only before tag of it. one.before includes two.yaml and runs only run_me tag.
-    ::
+    Include one.yaml from main and run only **before** tag of it. **main.yaml** -> **one.yaml** -> **two.yaml**.
+    main.yaml ::
 
         include:
             file: one.yaml
             as: one
         steps:
             - run: 'one.before'
+
+    one.yaml ::
 
         include:
             file: two.yaml
@@ -69,6 +78,8 @@ class Run(Step):
                 include: two.run_me
                 tag: before
             - echo: {from: '{{ bar }}', to: after.output, tag: after}
+
+    two.yaml ::
 
         steps:
             - echo: {from: '1', to: foo.output, tag: run_me}

@@ -63,11 +63,11 @@ Catcher will help you::
                       - equals: {the: '{{ MESSAGE.device_id }}', is: '{{ device_id }}'}
                       - equals: {the: '{{ MESSAGE.value }}', is: '{{ metric2 }}'}
         - postgres:  # check Saver put 2 metrics in Postgres
-            query: 'select value from metrics where device_id == {{ device_id }}'
+            sql: 'select value from metrics where device_id == {{ device_id }}'
             register: {metrics: '{{ OUTPUT.value }}'}
         - run: metrics_check
         - postgres:  # check Saver put event in Postgres
-            query:  'select count(*) from events where device_id = {{ device_id }} and value = {{ metric2 }}'
+            sql:  'select count(*) from events where device_id = {{ device_id }} and value = {{ metric2 }}'
             register: {event: '{{ OUTPUT.count }}'}
         - check: '{{ event == 1 }}'
         - http:  # request statistics from Assessor
