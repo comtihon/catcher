@@ -10,7 +10,7 @@ Create a project structure
  sources, json post bodies and what not. See :doc:`resources` for more info.
 | **steps** - Place substeps in this directory. Substeps are Catcher test files which hold common actions, needed in
  different tests. They shouldn't be run standalone, like tests, but they can be included in different tests instead.
- See :doc:`substeps` for more info.
+ See :doc:`includes` for more info.
 | **reports** - Catcher will dump the whole test action log (including variables) here, if you specify `format` parameter.
  Is not mandatory, Catcher will create this directory if needed. See :doc:`reports` for more info.
 

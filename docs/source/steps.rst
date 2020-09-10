@@ -9,7 +9,7 @@ check - collection of different checks
     :members:
     :undoc-members:
     :show-inheritance:
-    :exclude-members: action, Operator, Check
+    :exclude-members: action, Operator, Check, determine_source, operation, to_long_form, operator
 
 echo - write data to stdout or file
 -----------------------------------

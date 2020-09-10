@@ -1,7 +1,7 @@
 Reports - Catcher's trace files
 ===============================
 
-Sometimes even with `-l debug` flag output is not that clear. What is your test doing? Why the variable has exact this
+Sometimes even with ``-l debug`` flag output is not that clear. What is your test doing? Why the variable has exact this
 value and where does it come from? Test reports have all answers.
 
 How to create
@@ -37,11 +37,11 @@ The test itself::
 As you may see the main test already has a random **email** defined in the variables section. And somewhere in the middle
 of the test it changes. Let's form a report to find where.
 
-Run Catcher with `--format json` (only **json** format is supported for now)::
+Run Catcher with ``--format json`` (only **json** format is supported for now)::
 
     catcher -i inventory/dev_inventory.yaml --format json tests/my_complex_test.yaml
 
-It will run your test and create a report file in `reports` directory.
+It will run your test and create a report file in ``reports`` directory.
 
 How to read
 -----------

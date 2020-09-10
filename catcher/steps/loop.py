@@ -10,7 +10,8 @@ from catcher.utils.misc import fill_template_str, try_get_objects
 
 class Loop(Step):
     """
-    Repeat one or several actions till the condition is true or for each element of the collection.
+    Repeat one or several actions till the condition is true or for each element of the collection. Is useful, when you
+    need to wait for some process to start or for async execution to finish.
 
     :Input:
 

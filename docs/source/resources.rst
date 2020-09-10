@@ -4,6 +4,7 @@ Resources
 Usage
 -----
 Resources can be used in different steps during the tests.
+
 **resources/data/user.json**::
 
     {
@@ -27,6 +28,7 @@ Templates in resources
 ----------------------
 Sharing static resources between tests is not that useful. That's why resources fully support templates.
 You can use any placeholder to pass your variable from test's variables to the resource.
+
 **resources/messages/user_message.json** ::
 
     {
@@ -49,6 +51,7 @@ Advanced templating
 Templating is not only about putting values in the placeholders. You can even generate data. Imagine you need a csv file
 for the `prepare <https://catcher-modules.readthedocs.io/en/latest/source/prepare_expect.html>`_ step to populate your
 database before tests with all the users.
+
 **resources/data/users.csv**::
 
     user_id,email

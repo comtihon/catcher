@@ -42,26 +42,29 @@ Now you have local python37 installation which you can use after activation.
 
 Catcher installation
 --------------------
-| Catcher has 2 python packages: the `core <https://pypi.org/project/catcher/>`_ which contains most basic steps, executable
- and core logic and the external `modules <https://pypi.org/project/catcher-modules/>`_ package which contains external modules
- like database, message queue, aws services and other tools support.
-| To install the core - run `pip install catcher`. After it you should be able to run catcher from command line. Check it
- with `catcher -h`.
-| **Important:** if you are using conda - make sure you installed Catcher in the environment and that the environment is
+Catcher has 2 python packages: the `core <https://pypi.org/project/catcher/>`_ which contains most basic steps, executable
+and core logic and the external `modules <https://pypi.org/project/catcher-modules/>`_ package which contains external modules
+like database, message queue, aws services and other tools support.
+
+To install the core - run **pip install catcher**. After it you should be able to run catcher from command line. Check it
+ with **catcher -h**.
+
+**Important:** if you are using conda - make sure you installed Catcher in the environment and that the environment is
  activated every time you are going to run Catcher.
 
-| External modules are installed separately on demand, as probably you don't need all of them. Also, some external modules
- require drivers and client libraries, needed to be installed locally as well (see readme for more information). F.e. to
- install only kafka module you need to run `pip install catcher-modules[kafka]`. In case you need multiple modules - use
- comma to separate them: `pip install catcher-modules[kafka,s3]`
+External modules are installed separately on demand, as probably you don't need all of them. Also, some external modules
+require drivers and client libraries, needed to be installed locally as well (see readme for more information).
+
+To install only kafka module you need to run **pip install catcher-modules[kafka]**. In case you need multiple modules - use
+comma to separate them: **pip install catcher-modules[kafka,s3]**
 
 Run Catcher
 -----------
-| By default all Catcher resources are in `./resources` directory. They are used in steps (http/message bodies, data for queries, selenium source files).
-| `Inventory`_ files are in `./inventory`. They are used for environment specific variables like database configuration and services endpoints.
-| `Substeps`_ are in `./steps`. They are part of the tests, written in Catcher to be included in tests.
-| `Tests`_ are in `./tests`. They are your tests.
-| `Reports`_ are in `./reports`. This directory is stored for Catcher tests traces. See :doc:`reports` for more info.
+* By default all Catcher :doc:`resources` are in **./resources** directory. They are used in steps (http/message bodies, data for queries, selenium source files).
+* `Inventory`_ files are in **./inventory**. They are used for environment specific variables like database configuration and services endpoints.
+* `Substeps`_ are in **./steps**. They are part of the tests, written in Catcher to be included in tests.
+* `Tests`_ are in **./tests**. They are your tests.
+* `Reports`_ are in **./reports**. This directory is stored for Catcher tests traces. See :doc:`reports` for more info.
 
 .. _Substeps: https://catcher-test-tool.readthedocs.io/en/latest/source/includes.html
 .. _Inventory: https://catcher-test-tool.readthedocs.io/en/latest/source/inventory.html
@@ -77,9 +80,11 @@ Docker
 Docker run doesn't require Catcher or Python to be installed. Catcher's docker image will be pulled by Docker automatically.
 Just make sure you have Docker installed.
 
-| It is the most convenient way to run tests. Catcher offers you docker 2 images: `catcher_base`_ and `catcher`_.
-| catcher_base is the base image with only catcher-core installed. You can use it to build your own docker image.
-| catcher is the full, ready to use image with Catcher and all modules from catcher-modules installed.
+It is the most convenient way to run tests. Catcher offers you docker 2 images: `catcher_base`_ and `catcher`_.
+
+**catcher_base** is the base image with only catcher-core installed. You can use it to build your own docker image.
+
+**catcher** is the full, ready to use image with Catcher and all modules from catcher-modules installed.
 
 .. _catcher_base: https://hub.docker.com/repository/docker/comtihon/catcher_base
 .. _catcher: https://hub.docker.com/repository/docker/comtihon/catcher
@@ -87,7 +92,7 @@ Just make sure you have Docker installed.
 | Catcher image supports `tests`, `resources`, `inventory`, `steps` and `reports` for formatted reports.
  Mount your directories during the run to use them. The full command where everything is used will look like this:
 
-::
+ ::
 
     docker run -v $(pwd)/inventory:/opt/catcher/inventory
                -v $(pwd)/resources:/opt/catcher/resources

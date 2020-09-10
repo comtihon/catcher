@@ -100,6 +100,7 @@ html_theme_options = {
     'github_repo': 'catcher',
     'github_button': True,
     'badge_branch': 'master',
+    'page_width': 'auto',
     'travis_button': True
 }
 

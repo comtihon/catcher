@@ -8,8 +8,13 @@ Variables from inventory, ``variables`` block or command line ``-e`` argument
 Computed
 --------
 
-| Registered in steps variables via ``register: {var_name: var_value}``.
-| ``var_value`` can be a variable itself like: ``register: {email: '{{ user }}@test.com'}``
+Registered in steps variables by using **register** keyword in every step::
+
+    register: {var_name: var_value}
+
+``var_value`` can be a variable itself like::
+
+    register: {email: '{{ user }}@test.com'}
 
 Inherited
 ---------
