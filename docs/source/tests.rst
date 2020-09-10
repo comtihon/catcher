@@ -1,6 +1,43 @@
-How to write a test
-===================
+How to write a test cheat sheet
+===============================
 :meth:`catcher.core.test.Test` documentation can also be useful.
+
+Create a project structure
+--------------------------
+| **tests** - Here all the tests will live. Feel free to use subdirectories.
+| **inventory** - Place your inventory files here. See :doc:`inventory` for more info.
+| **resources** - It is for all resources, which are used in tests: RabbitMQ json messages, Postgres ddl, Selenium Java
+ sources, json post bodies and what not. See :doc:`resources` for more info.
+| **steps** - Place substeps in this directory. Substeps are Catcher test files which hold common actions, needed in
+ different tests. They shouldn't be run standalone, like tests, but they can be included in different tests instead.
+ See :doc:`substeps` for more info.
+| **reports** - Catcher will dump the whole test action log (including variables) here, if you specify `format` parameter.
+ Is not mandatory, Catcher will create this directory if needed. See :doc:`reports` for more info.
+
+Check steps you may need
+------------------------
+Catcher has:
+
+1. built-in steps, which you get with common `catcher <https://github.com/comtihon/catcher>`_ installation
+2. external steps from `catcher-modules <https://github.com/comtihon/catcher_modules>`_ package, which you need to install individually
+3. custom steps in different languages, which you can use as external on your own. See :doc:`modules` for more info
+
+For 1 and 2 see :doc:`steps`.
+
+Install Catcher
+---------------
+You have 2 options:
+
+| Install catcher locally. Good option if you are planning to develop catcher tests heavily.
+| By running `pip install catcher` you will get the **core** catcher installed. If you need some **external** modules
+| like f.e. Kafka, Postgres, S3 you need to install them separately by running `pip install catcher-modules[kafka]`.
+| Some external modules require additional drivers and libraries needed to be installed (like oracle or mssql db step).
+
+| If you are just going to give a try or need CI to run Catcher - you can use Catcher's docker
+| `image <https://hub.docker.com/repository/docker/comtihon/catcher>`_. It comes with all modules, libraries and drivers already
+| included.
+
+See :doc:`run` for more information.
 
 Add one step
 ------------
@@ -21,7 +58,7 @@ It is not so useful. Lets add two real steps::
         - postgres:
             request:
               conf: 'dbname=test user=test host=localhost password=test'
-              query: 'select * from test where id=1'
+              sql: 'select * from test where id=1'
 
 But it is still not useful, as we need to check the test's result.
 
@@ -53,7 +90,7 @@ and test::
         - postgres:
             request:
               conf: '{{ postgres_conf }}'
-              query: 'select * from test where id={{ data_id }};'
+              sql: 'select * from test where id={{ data_id }};'
 
 Here we used `data_service_url` and `postgres_conf` variables, defined in the `test_inventory` and
 `data_id` defined in test. We can also register variables on the fly, which is extremely useful for
@@ -82,7 +119,7 @@ Let's register postgres read result and compare it with expected one::
         - postgres:
             request:
               conf: '{{ postgres_conf }}'
-              query: 'select * from test where id={{ data_id }};'
+              sql: 'select * from test where id={{ data_id }};'
             register: {document: '{{ OUTPUT }}'}
         - check:
             equals: {the: '{{ document.value }}', is: 'foo'}
@@ -95,7 +132,7 @@ With `register` step you can register part of output::
         - postgres:
             request:
               conf: '{{ postgres_conf }}'
-              query: 'select * from test where id={{ data_id }};'
+              sql: 'select * from test where id={{ data_id }};'
             register: {foo: '{{ OUTPUT.value }}'}
         - check:
             equals: {the: '{{ foo }}', is: 'foo'}
@@ -106,7 +143,7 @@ and you can also register multiple variables::
         - postgres:
             request:
               conf: '{{ postgres_conf }}'
-              query: 'select * from test where id={{ data_id }};'
+              sql: 'select * from test where id={{ data_id }};'
             register: {foo: '{{ OUTPUT.value }}', id: '{{ OUTPUT.id }}'}
         - check:
             equals:
@@ -123,11 +160,11 @@ You can compact similar steps in one with `actions`::
       - postgres:
           request:
             conf: '{{ pg_conf }}'
-            query: 'insert into test(id, num) values({{ id }}, {{ num }});'
+            sql: 'insert into test(id, num) values({{ id }}, {{ num }});'
       - postgres:
           request:
             conf: '{{ pg_conf }}'
-            query: 'select * from test where id={{ id }};'
+            sql: 'select * from test where id={{ id }};'
           register: {document: '{{ OUTPUT }}'}
 
 to::
@@ -138,10 +175,10 @@ to::
           actions:
             - request:
                 conf: '{{ pg_conf }}'
-                query: 'insert into test(id, num) values({{ id }}, {{ num }});'
+                sql: 'insert into test(id, num) values({{ id }}, {{ num }});'
             - request:
                 conf: '{{ pg_conf }}'
-                query: 'select * from test where id={{ id }};'
+                sql: 'select * from test where id={{ id }};'
               register: {document: '{{ OUTPUT }}'}
 
 Name your steps
@@ -167,7 +204,7 @@ Which is not so useful if you have lots of steps. Name them::
         - postgres:
             request:
               conf: '{{ postgres_conf }}'
-              query: 'select * from test where id={{ data_id }};'
+              sql: 'select * from test where id={{ data_id }};'
             register: {document: '{{ OUTPUT }}'}
             name: 'check data in postgres'
         - check:
@@ -190,14 +227,14 @@ You can ignore a step's errors and continue the test::
           actions:
             - request:
                 conf: '{{ pg_conf }}'
-                query: 'create table test(id serial PRIMARY KEY, num integer);'
+                sql: 'create table test(id serial PRIMARY KEY, num integer);'
               ignore_errors: true
             - request:
                 conf: '{{ pg_conf }}'
-                query: 'insert into test(id, num) values({{ id }}, {{ num }});'
+                sql: 'insert into test(id, num) values({{ id }}, {{ num }});'
             - request:
                 conf: '{{ pg_conf }}'
-                query: 'select * from test where id={{ id }}'
+                sql: 'select * from test where id={{ id }}'
               register: {document: '{{ OUTPUT }}'}
 
 It is extremely useful, when you need to wait for some resource to be initialised::
@@ -212,7 +249,7 @@ It is extremely useful, when you need to wait for some resource to be initialise
             name: 'check db'
             request:
               conf: '{{ postgres_conf }}'
-              query: "select 1"
+              sql: "select 1"
             ignore_errors: true
             register: {ready: '{{ OUTPUT }}'}
         max_cycle: 120  # 2 minutes
@@ -227,7 +264,7 @@ New in `1.17.0` - you can now use `Wait.for` instead::
                 postgres:
                     request:
                         conf: '{{ postgres_conf }}'
-                        query: 'select 1;'
+                        sql: 'select 1;'
         - other_steps
 
 In this case `other_steps` will be executed only when `select 1;` becomes true. Test will fail after 30 seconds,
@@ -251,7 +288,7 @@ Example::
         - postgres:
             request:
                 conf: 'test:test@localhost:5433/test'
-                query: "insert into loans(value) values(1000) where user_id == '{{ user_id }}';"
+                sql: "insert into loans(value) values(1000) where user_id == '{{ user_id }}';"
             name: 'Update user loan for facebook user'
             skip_if:
                 equals: {the: '{{ registration_type }}', is_not: 'facebook'}
@@ -328,13 +365,13 @@ Run test, do a cleanup, if test passes - notify google chat. ::
         - postgres:
             request:
                 conf: '{{ postgres_conf }}'
-                query: "insert into loans(value) values(1000) where user_id == '{{ user_id }}';"
+                sql: "insert into loans(value) values(1000) where user_id == '{{ user_id }}';"
             name: 'Update user loan for facebook user'
     finally:
         - postgres:
             request:
                 conf: '{{ postgres_conf }}'
-                query: "delete from loans(value) where user_id == '{{ user_id }}';"
+                sql: "delete from loans(value) where user_id == '{{ user_id }}';"
             name: 'Clean up user'
         - http:
             post:

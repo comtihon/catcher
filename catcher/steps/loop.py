@@ -10,6 +10,8 @@ from catcher.utils.misc import fill_template_str, try_get_objects
 
 class Loop(Step):
     """
+    Repeat one or several actions till the condition is true or for each element of the collection.
+
     :Input:
 
     :while: perform action while the condition is true
@@ -22,9 +24,9 @@ class Loop(Step):
 
     :foreach: iterate data structure
 
-    - in: variable or static list. `ITEM` variable can be used to access each element of the data structure.
+    - in: variable or static list. **ITEM** variable can be used to access each element of the data structure.
             Data structure can be list, dict or any other python data structure which supports iteration.
-    - do: the aciton to be performed. Can be a list of actions or single one.
+    - do: the action to be performed. Can be a list of actions or single one.
 
     :Examples:
 

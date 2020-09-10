@@ -19,7 +19,7 @@ Built-in
 --------
 | 1. ``OUTPUT`` - operation's output. Can be used for new variables registration
 
-::
+ ::
 
     - http:
         post: 
@@ -29,7 +29,7 @@ Built-in
 
 | 2. ``ITEM`` - item of a list. Used in ``any`` and ``all`` checks and ``foreach`` loops
 
-::
+ ::
 
     variables:
         list: [{n: 1, k: 'a'}, {n: 2, k: 'a'}, {n: 3, k: 'a'}]
@@ -41,7 +41,7 @@ Built-in
 
 | 3. ``NOW_TS`` - return timestamp. **Deprecated**, use function `now_ts()` instead.
 
-::
+ ::
 
     steps:
       - echo: {from: '{{ NOW_TS }}', register: {now: '{{ OUTPUT }}'}}
@@ -61,7 +61,7 @@ See :meth:`catcher.modules.filter_impl.bifs` for the full list of built in funct
 
 | 1. ``random_int()`` - will generate a random int for you. The only difference between ``RANDOM_INT`` is - you can set limits
 
-::
+ ::
 
     steps:
         - echo: {from: '{{ random_int(1, 10) }}', to: one.output}  # write a random int between 1 and 10 to the file
@@ -70,7 +70,7 @@ See :meth:`catcher.modules.filter_impl.bifs` for the full list of built in funct
 
 | 2. ``random_choice()`` - syntax sugar for ``{{ list[random_var] }}``. Take random element from a list
 
-::
+ ::
 
     variables:
         my_list: ['one', 'two', 'three']
@@ -79,7 +79,7 @@ See :meth:`catcher.modules.filter_impl.bifs` for the full list of built in funct
 
 | 3. `Faker <https://github.com/joke2k/faker>`_ random data. With all available built-in providers imported. Type of the random data is set as an argument
 
-::
+ ::
 
     steps:
         - echo: {from: '{{ random("ipv4_private") }}', to: one.output}  # write random ipv4 address to file
@@ -91,7 +91,7 @@ Please see `providers <https://faker.readthedocs.io/en/stable/providers.html>`_ 
 
 | 4. ``hash(algorithm)`` - hash the data using selected algorithm. Please check `hashlib <https://docs.python.org/3/library/hashlib.html>`_ docs for all algorithms available.
 
-::
+ ::
 
     variables:
         my_var: 'my_value'
@@ -110,7 +110,7 @@ Environment variables
 | There is a full support for environment variables in inventory files and in steps.
 | In steps you can just access them.
 
-::
+ ::
 
     steps:
         - check: {equals: {the: '{{ FOO }}', is: '1'}}
@@ -118,7 +118,7 @@ Environment variables
 | If you run ``export FOO=1`` before - this step will pass.
 | Since `1.21.2` predefined variables support templates as well.
 
-::
+ ::
 
     variables:
         foo: '{{ FOO }}'
@@ -146,7 +146,7 @@ test.yml ::
     postgres:
         request:
             conf: '{{ database_conf }}'
-            query: 'select count(*) from test'
+            sql: 'select count(*) from test'
 
 Variables override priority
 ===========================

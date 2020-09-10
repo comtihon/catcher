@@ -10,7 +10,8 @@ from catcher.utils.logger import debug
 
 class Wait(Step):
     """
-    Wait for some time before the next step
+    Wait for a static delay or until some substep finished successfully. Is extremely useful for testing asnyc systems
+    or when you are waiting for some service to launch.
 
     :Input:
 
@@ -30,7 +31,7 @@ class Wait(Step):
 
         wait: {minutes: 1, seconds: 30}
 
-    Wait for http to be ready. Will run the http for 5 seconds or till it finishes successfully
+    Wait for http to be ready. Will repeat inner **http** step till is succeeded or fails after 5 seconds
     ::
 
         wait:

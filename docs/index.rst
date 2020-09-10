@@ -4,16 +4,18 @@
    :maxdepth: 2
    :caption: Contents:
 
+   source/tests
+   source/run
+   source/steps
+   source/variables
+   source/reports
+   source/inventory
+   source/resources
    source/filters_and_functions
    source/includes
-   source/internal_modules
-   source/inventory
+   source/modules
    source/microservices
    source/migrations
-   source/modules
-   source/run
-   source/tests
-   source/variables
 
 Indices and tables
 ==================

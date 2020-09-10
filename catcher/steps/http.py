@@ -13,9 +13,12 @@ from catcher.utils import file_utils
 
 class Http(Step):
     """
+    Perform an http request: from just getting the information from the server to pushing a file to it.
+
     :Input:
 
-    :<method>: http method. See https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html for details
+    :<method>: http method. Most frequent are get/post/put/delete.
+     See `docs <https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html>`_ for details
 
     - headers: Dictionary with custom headers. *Optional*
     - url: url to call

@@ -1,5 +1,6 @@
 from catcher.utils import module_utils
 from catcher.utils.singleton import Singleton
+from catcher.utils.logger import info, debug
 
 
 class FiltersHolder(metaclass=Singleton):
@@ -20,11 +21,14 @@ class FiltersHolder(metaclass=Singleton):
         :param custom_modules: list of paths to python files where filters of functions are defined.
         """
         for filter_module in custom_modules:
+            info('Loading {}'.format(filter_module))
             funs = module_utils.get_all_functions(filter_module)
             for fun_name, fun in funs.items():
                 if fun_name.startswith('function'):
                     import_name = '_'.join(fun_name.split('_')[1:])
+                    debug('Adding function {}'.format(import_name))
                     self.functions[import_name] = fun
                 elif fun_name.startswith('filter'):
                     import_name = '_'.join(fun_name.split('_')[1:])
+                    debug('Adding filter {}'.format(import_name))
                     self.filters[import_name] = fun

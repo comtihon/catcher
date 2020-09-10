@@ -9,6 +9,8 @@ from catcher.utils.misc import fill_template, fill_template_str
 
 class Echo(Step):
     """
+    Print a string constant, variable or file to the console or file.
+
     :Input:
 
     :from: data source. Can be variable or constant string
