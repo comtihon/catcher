@@ -3,15 +3,23 @@ from catcher.utils.singleton import Singleton
 from catcher.utils.logger import info, debug
 
 
-class FiltersHolder(metaclass=Singleton):
+class FiltersFactory(metaclass=Singleton):
     def __init__(self, custom_modules=None) -> None:
         super().__init__()
-        self.filters = {}
-        self.functions = {}
+        self._filters = {}
+        self._functions = {}
         if not custom_modules:
             custom_modules = []
         custom_modules.append('catcher.modules.filter_impl.bifs')
         self._import_custom(custom_modules)
+
+    @property
+    def filters(self):
+        return self._filters
+
+    @property
+    def functions(self):
+        return self._functions
 
     def _import_custom(self, custom_modules):
         """
@@ -27,8 +35,8 @@ class FiltersHolder(metaclass=Singleton):
                 if fun_name.startswith('function'):
                     import_name = '_'.join(fun_name.split('_')[1:])
                     debug('Adding function {}'.format(import_name))
-                    self.functions[import_name] = fun
+                    self._functions[import_name] = fun
                 elif fun_name.startswith('filter'):
                     import_name = '_'.join(fun_name.split('_')[1:])
                     debug('Adding filter {}'.format(import_name))
-                    self.filters[import_name] = fun
+                    self._filters[import_name] = fun

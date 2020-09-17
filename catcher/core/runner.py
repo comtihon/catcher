@@ -1,17 +1,18 @@
+import os
 import traceback
 from os.path import join
 
-from catcher.core.holder import VariablesHolder
+from catcher.core.var_holder import VariablesHolder
 from catcher.core.parser import Parser
 from catcher.core.step_factory import StepFactory
 from catcher.core.test import Test
-from catcher.modules.compose import DockerCompose
-from catcher.modules.filters import FiltersHolder
+from catcher.core.filters_factory import FiltersFactory
 from catcher.modules.log_storage import LogStorage
 from catcher.steps.step import SkipException
 from catcher.utils import logger
 from catcher.utils.file_utils import cut_path
 from catcher.utils.logger import warning, info, debug, OptionalOutput
+from catcher.core.mod_factory import ModulesFactory
 
 
 class Runner:
@@ -26,18 +27,18 @@ class Runner:
                  output_format=None,
                  filter_list=None) -> None:
         # singletons init should be done before services, as singletons maybe used there
-        FiltersHolder(filter_list)
+        FiltersFactory(custom_modules=filter_list)
         StepFactory(modules)
+        ModulesFactory(resources_dir=resources or os.path.join(path, 'resources'))
 
         self.tests_path = tests_path
         self.path = path
-        self._compose = DockerCompose(resources)
         self.parser = Parser(path, inventory)
-        self.holder = VariablesHolder(path,
-                                      system_environment=system_environment,
-                                      inventory_vars=self.parser.read_inventory(),
-                                      cmd_env=cmd_env,
-                                      resources=resources)
+        self.var_holder = VariablesHolder(path,
+                                          system_environment=system_environment,
+                                          inventory_vars=self.parser.read_inventory(),
+                                          cmd_env=cmd_env,
+                                          resources=resources)
         if output_format:
             logger.log_storage = LogStorage(output_format)
 
@@ -47,11 +48,11 @@ class Runner:
         :param output: 'full' - all output possible. 'limited' - only test end report & summary. 'final' - only summary.
         """
         try:
-            self._compose.up()
+            [mod.before() for mod in ModulesFactory().modules.values()]
             results = []
             for parse_result in self.parser.read_tests(self.tests_path):
                 if parse_result.should_run:  # parse successful
-                    variables = self.holder.variables  # each test has it's own copy of global variables
+                    variables = self.var_holder.variables  # each test has it's own copy of global variables
                     variables['TEST_NAME'] = parse_result.test.file  # variables are shared between test and includes
                     with OptionalOutput(output == 'final'):
                         for include in parse_result.run_on_include:  # run all includes before the main test.
@@ -68,11 +69,11 @@ class Runner:
         finally:
             logger.log_storage.write_report(join(self.path, 'reports'))
             logger.log_storage.print_summary(self.tests_path)
-            self._compose.down()
+            [mod.after() for mod in ModulesFactory().modules.values()]
 
     def _run_test(self, test: Test, global_variables: dict, output: str = 'full', test_type='test') -> bool:
         try:
-            self.holder.prepare_variables(test, global_variables)
+            self.var_holder.prepare_variables(test, global_variables)
             logger.log_storage.test_start(test.file, test_type=test_type)
             test.check_ignored()
             with OptionalOutput(output == 'limited'):
