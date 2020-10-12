@@ -6,7 +6,7 @@ from shutil import copyfile
 import test
 from catcher.modules.log_storage import EmptyLogStorage
 from catcher.utils import logger
-from catcher.utils.file_utils import ensure_empty, remove_dir
+from catcher.utils.file_utils import ensure_empty, remove_dir, ensure_dir
 from catcher.utils.singleton import Singleton
 from test import resources
 
@@ -48,7 +48,9 @@ class TestClass(unittest.TestCase):
             f.write(content)
 
     def populate_resource(self, file: str, content: str):
-        with open(join(self.test_resources, file), 'w') as f:
+        filename = join(self.test_resources, file)
+        ensure_dir(os.path.dirname(os.path.abspath(filename)))
+        with open(filename, 'w') as f:
             f.write(content)
 
     def copy_resource(self, resource_name):
