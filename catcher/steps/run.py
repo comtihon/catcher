@@ -1,6 +1,6 @@
 from catcher.steps.step import Step, update_variables, SkipException
 from catcher.utils.logger import error, info, debug
-from catcher.utils.misc import merge_two_dicts, fill_template_str, try_get_object
+from catcher.utils.misc import merge_two_dicts, fill_template_str, try_get_object, fill_template
 from catcher.steps.stop import StopException
 from catcher.utils import logger
 
@@ -101,7 +101,7 @@ class Run(Step):
 
     @update_variables
     def action(self, includes: dict, variables: dict) -> dict:
-        filled_vars = dict([(k, fill_template_str(v, variables)) for (k, v) in self.variables.items()])
+        filled_vars = dict([(k, fill_template(v, variables)) for (k, v) in self.variables.items()])
         out = fill_template_str(self.include, variables)
         test, tag = get_tag(out)
         if test not in includes:

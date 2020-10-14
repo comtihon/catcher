@@ -1,8 +1,5 @@
 import os
-import random
 from os.path import join
-
-from faker import Faker
 
 from catcher.core.runner import Runner
 from test.abs_test_class import TestClass
@@ -130,3 +127,33 @@ class VariablesTest(TestClass):
                 ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None, system_environment=dict(os.environ))
         self.assertTrue(runner.run_tests())
+
+    def test_var_in_run_as_obj(self):
+        self.populate_resource('test.csv', "email,id\n"
+                                           "{%- for user in users %}\n"
+                                           "{{ user.email }},{{ user.id }}\n"
+                                           "{%- endfor -%}"
+                               )
+        self.populate_file('main.yaml', '''---
+                                variables:
+                                    users:
+                                        - email: 'first@test.de'
+                                          id: 1
+                                        - email: 'second@test.de'
+                                          id: 2
+                                include: 
+                                    file: one.yaml
+                                    as: one
+                                steps:
+                                    - run: 
+                                        include: 'one'
+                                        variables:
+                                            users: '{{ users[:1] }}'
+                                ''')
+        self.populate_file('one.yaml', '''---
+                                steps:
+                                    - echo: {from_file: 'test.csv', to: res.output}
+                                ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        runner.run_tests()
+        self.assertTrue(check_file(join(self.test_dir, 'res.output'), 'email,id\nfirst@test.de,1'))
