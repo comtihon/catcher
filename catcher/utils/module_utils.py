@@ -1,12 +1,15 @@
 import importlib
-import ntpath
+import importlib.util
+import inspect
 import os
 import pkgutil
-from importlib import machinery
+import sys
+from contextlib import contextmanager
+from inspect import getmembers, isfunction
 from os.path import join
 from pydoc import locate
 from types import ModuleType
-from inspect import getmembers, isfunction
+from typing import Union
 
 from catcher.utils.logger import warning, error, debug
 
@@ -91,12 +94,30 @@ def get_all_functions(module: str) -> dict:
         return dict([o for o in getmembers(mod) if isfunction(o[1])])
 
 
+def get_all_classes(module: Union[str, ModuleType]) -> dict:
+    if isinstance(module, str):
+        module = sys.modules[module]
+    return dict(inspect.getmembers(module, inspect.isclass))
+
+
+@contextmanager
+def add_to_path(p):
+    import sys
+    old_path = sys.path
+    sys.path = sys.path[:]
+    sys.path.insert(0, p)
+    try:
+        yield
+    finally:
+        sys.path = old_path
+
+
 def __load_python_package_by_path(path: str):
-    name = ntpath.basename(path)
-    loader = importlib.machinery.SourceFileLoader(name, path)
-    mod = ModuleType(loader.name)
-    loader.exec_module(mod)
-    return mod
+    with add_to_path(os.path.dirname(path)):
+        spec = importlib.util.spec_from_file_location(path, path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
 
 
 def __load_python_package_installed(package: str):

@@ -10,3 +10,4 @@ uuid==1.30
 Faker==4.1.*
 colorama==0.4.*
 networkx==2.4
+grpcio==1.32.*

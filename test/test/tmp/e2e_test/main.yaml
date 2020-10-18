@@ -1,0 +1,5 @@
+---
+                        steps:
+                            - check: 
+                                equals: {the: 'life', is: 'life'}  # na-na, na-na-na
+                        

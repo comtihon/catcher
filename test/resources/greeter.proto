@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+message HelloRequest {
+  string name = 1;
+}
+
+message HelloResponse {
+  string name = 1;
+}
+
+message SearchResponse {
+  Result result = 1;
+}
+
+message Result {
+  string url = 1;
+  string title = 2;
+  string snippets = 3;
+}
+
+service Greeter {
+    rpc Echo(HelloRequest) returns (HelloResponse) {}
+    rpc Greet(SearchResponse) returns (HelloResponse) {}
+}
