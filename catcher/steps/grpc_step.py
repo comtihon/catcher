@@ -69,7 +69,7 @@ class GRPC(Step):
             self.url = call['url']
             self.method = method.lower()
             self.schema = call.get('schema')
-            self.data = call.get('data')
+            self.data = call.get('data', {})
 
     @update_variables
     def action(self, includes: dict, variables: dict) -> dict or tuple:
