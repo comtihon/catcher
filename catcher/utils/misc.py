@@ -45,7 +45,7 @@ def try_get_object(source: str or dict or list):
             if isinstance(evaled, ModuleType) or callable(evaled):  # for standalone 'string' var or 'id' bif
                 return source
             source = evaled
-        except Exception as e:
+        except Exception:
             try:  # try json object '{"key" : "value"}'
                 source = json.loads(source)
             except ValueError:
