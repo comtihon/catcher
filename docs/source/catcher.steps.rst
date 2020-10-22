@@ -52,6 +52,14 @@ catcher.steps.http module
     :undoc-members:
     :show-inheritance:
 
+grpc - perform a remote procedure call request
+----------------------------------------------
+
+.. automodule:: catcher.steps.grpc_step
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 catcher.steps.run module
 ------------------------
 
