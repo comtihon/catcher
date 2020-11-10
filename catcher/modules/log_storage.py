@@ -1,3 +1,4 @@
+import json
 from copy import deepcopy
 from datetime import datetime
 from catcher.modules.formatter import formatter_factory
@@ -120,23 +121,38 @@ class LogStorage:
         out_string += fun('{:.0f}%'.format(percent))
         return out_string
 
-    @staticmethod
-    def clean_step_def(data: dict):
+    def clean_step_def(self, data: dict):
         """ Keep only step definition """
         [step_name] = data.keys()
         step = data[step_name]
         if isinstance(step, str):  # simple step like {'echo': 'hello'}
             return data
-        step_def = step.copy()
-        for k in step.keys():
-            if k.startswith('_'):
-                del step_def[k]
+        step_def = self.clean_not_renderable_recursive(step)
         return {step_name: step_def}
+
+    def clean_not_renderable_recursive(self, data):
+        step_def = data.copy()
+        for k, v in data.items():
+            if isinstance(v, dict):
+                step_def[k] = self.clean_not_renderable_recursive(v)
+            elif isinstance(v, list):
+                step_def[k] = [self.clean_not_renderable_recursive(t) for t in v]
+            elif not self.is_jsonable(v):
+                del step_def[k]
+        return step_def
 
     @staticmethod
     def clean_vars(variables: dict):
         """ Clean _get_action(s) non-json serializable functions """
         return deepcopy({k: v for k, v in variables.items() if not callable(v)})
+
+    @staticmethod
+    def is_jsonable(x):
+        try:
+            json.dumps(x)
+            return True
+        except (TypeError, OverflowError):
+            return False
 
 
 class EmptyLogStorage(LogStorage):

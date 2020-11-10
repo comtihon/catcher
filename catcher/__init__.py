@@ -1,3 +1,3 @@
 APPNAME = 'catcher'
 APPAUTHOR = 'Valerii Tikhonov'
-APPVSN = '1.33.0'
+APPVSN = '1.33.1'
