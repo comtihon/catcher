@@ -131,6 +131,8 @@ class LogStorage:
         return {step_name: step_def}
 
     def clean_not_renderable_recursive(self, data):
+        if not hasattr(data, 'copy'):  # list with primitives [1, 2, 3] should be ignored
+            return data
         step_def = data.copy()
         for k, v in data.items():
             if isinstance(v, dict):
