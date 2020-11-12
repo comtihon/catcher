@@ -1,4 +1,8 @@
-FROM python:3.7-slim-buster
+FROM python:3.7-alpine
+
+RUN apk update \
+  && apk add gcc g++ linux-headers
+
 
 COPY catcher catcher
 COPY requirements.txt requirements.txt
