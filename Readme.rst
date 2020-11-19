@@ -153,6 +153,10 @@ Why catcher?
 
 Changelog is `here <https://github.com/comtihon/catcher/blob/master/Changelog.rst>`_.
 
+Contributors:
+-------------
+* Many thanks to `Ekaterina Belova <https://github.com/kbelova>`_ for core & modules contribution.
+
 .. _readthedocs: https://catcher-test-tool.readthedocs.io/en/latest/
 .. _microservices: https://catcher-test-tool.readthedocs.io/en/latest/source/microservices.html
 .. _modular: https://catcher-test-tool.readthedocs.io/en/latest/source/modules.html
