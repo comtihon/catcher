@@ -11,7 +11,7 @@ from jinja2 import Template, UndefinedError
 
 from catcher.utils import module_utils
 from catcher.utils.logger import debug
-from catcher.modules.filters import FiltersHolder
+from catcher.core.filters_factory import FiltersFactory
 
 
 def merge_two_dicts(x, y):
@@ -128,7 +128,7 @@ def inject_builtins(variables: dict) -> dict:
 
 def render(source: str, variables: dict) -> str:
     template = Template(source)
-    holder = FiltersHolder()
+    holder = FiltersFactory()
     for filter_mod, value in holder.filters.items():
         template.environment.filters[filter_mod] = value
     for fun_mod, value in holder.functions.items():

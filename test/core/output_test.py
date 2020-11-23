@@ -245,6 +245,53 @@ class OutputTest(TestClass):
             self.assertEqual('echo', list(steps[6]['step'].keys())[0])
             self.assertEqual('echo', list(steps[7]['step'].keys())[0])
 
+    def test_recursive_render_dict(self):
+        self.populate_file('main.yaml', '''---
+                        steps:
+                          - wait:                                                                                                                                                                                                                
+                                name: 'Waiting for postgres'                                                                                                                                                                                               
+                                seconds: 30                                                                                                                                                                                                                
+                                for:                                                                                                                                                                                                                 
+                                  echo: {from: '1', to: foo.output}
+                        ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None, output_format='json')
+        self.assertTrue(runner.run_tests())
+        reports = [f for f in listdir(join(self.test_dir, 'reports'))
+                   if isfile(join(self.test_dir, 'reports', f)) and f.startswith('report')]
+        self.assertEqual(1, len(reports))
+        with open(join(self.test_dir, 'reports', reports[0]), 'r') as fp:
+            obj = json.load(fp)
+            self.assertEqual(1, len(obj))
+            output = obj[0]['output']
+            steps = [o for o in output if 'step' in o]
+            self.assertEqual('wait', list(steps[0]['step'].keys())[0])
+            self.assertEqual('echo', list(steps[0]['step']['wait']['for'].keys())[0])
+
+    def test_recursive_render_list(self):
+        self.populate_file('main.yaml', '''---
+                                steps:
+                                  - wait:                                                                                                                                                                                                                
+                                        name: 'Waiting for postgres'                                                                                                                                                                                               
+                                        seconds: 30                                                                                                                                                                                                                
+                                        for:                                                                                                                                                                                                                 
+                                          - echo: {from: '1', to: foo.output}
+                                          - echo: {from: '2', to: foo.output}
+                                ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None, output_format='json')
+        self.assertTrue(runner.run_tests())
+        reports = [f for f in listdir(join(self.test_dir, 'reports'))
+                   if isfile(join(self.test_dir, 'reports', f)) and f.startswith('report')]
+        self.assertEqual(1, len(reports))
+        with open(join(self.test_dir, 'reports', reports[0]), 'r') as fp:
+            obj = json.load(fp)
+            self.assertEqual(1, len(obj))
+            output = obj[0]['output']
+            steps = [o for o in output if 'step' in o]
+            self.assertEqual('wait', list(steps[0]['step'].keys())[0])
+            self.assertEqual('echo', list(steps[0]['step']['wait']['for'][0].keys())[0])
+            self.assertEqual('echo', list(steps[0]['step']['wait']['for'][1].keys())[0])
+
+
     # py36 has dict insert ordering, while older implementations have some other.
     @staticmethod
     def _compare_operations(operation, *expectations):

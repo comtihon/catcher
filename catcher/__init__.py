@@ -1,3 +1,3 @@
 APPNAME = 'catcher'
-APPAUTHOR = 'Valerii Tikhonov'
-APPVSN = '1.31.10'
+APPAUTHOR = 'Valerii Tikhonov, Ekaterina Belova'
+APPVSN = '1.33.1'

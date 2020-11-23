@@ -5,6 +5,7 @@ from catcher.steps.step import Step, update_variables
 from catcher.utils.file_utils import read_file
 from catcher.utils.logger import info
 from catcher.utils.misc import fill_template, fill_template_str
+from catcher.utils import file_utils
 
 
 class Echo(Step):
@@ -15,7 +16,7 @@ class Echo(Step):
 
     :from: data source. Can be variable or constant string
     :from_file: file in resources.
-    :to: output to file. *Optional* If not set - stdout will be used.
+    :to: output to file. *Optional* If not set - stdout will be used. **Not** resources-related
 
     Has short from which just prints variable to stdout.
 
@@ -56,13 +57,17 @@ class Echo(Step):
     def action(self, includes: dict, variables: dict) -> tuple:
         if self.source_file:  # read from file
             resources = variables['RESOURCES_DIR']
-            out = fill_template_str(read_file(os.path.join(resources, self.source_file)), variables)
+            out = fill_template_str(read_file(join(resources, fill_template_str(self.source_file, variables))),
+                                    variables)
         else:
             out = fill_template(self.source, variables)
         if self.dst is None:
             info(out)
         else:
             dst = fill_template(self.dst, variables)
-            with open(join(self.path, dst), 'w') as f:
+            path = fill_template(self.path, variables)
+            filename = join(path, dst)
+            file_utils.ensure_dir(os.path.dirname(os.path.abspath(filename)))
+            with open(filename, 'w') as f:
                 f.write(str(out))
         return variables, out

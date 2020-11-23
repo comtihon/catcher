@@ -35,6 +35,14 @@ http - perform http request
     :noindex:
     :exclude-members: action
 
+grpc - perform a remote procedure call request
+----------------------------------------------
+
+.. autoclass:: catcher.steps.grpc_step.GRPC
+    :members:
+    :noindex:
+    :exclude-members: action
+
 sh - run shell command
 ----------------------
 

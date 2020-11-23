@@ -95,7 +95,7 @@ def filter_asstr(param):
     return str(misc.try_get_objects(param))
 
 
-def function_random(param):
+def function_random(param, locale=None):
     """
     Call `Faker <https://github.com/joke2k/faker>`_ and return it's result. Is used to generate random data.
     F.e. ::
@@ -103,8 +103,9 @@ def function_random(param):
         - echo: {from: '{{ random("email") }}', to: one.output}
 
     :param param: Faker's provider name.
+    :param locale: Faker's locale param
     """
-    fake = Faker()
+    fake = Faker(locale=locale)
     for modname, importer in module_utils.get_submodules_of('faker.providers'):  # add all known providers
         fake.add_provider(importer.find_module(modname).load_module(modname))
     if hasattr(fake, param):
