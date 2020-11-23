@@ -26,7 +26,12 @@ def cut_path(tests_path, test_path):
 def cut_part_path(tests_path, test_path):
     if tests_path == test_path:
         return get_filename(test_path)
-    common = os.path.commonpath([test_path, tests_path])
+    # quick fix: fail with include step: can't mix absolute and relative path
+    # TODO need to be rewritten
+    try:
+        common = os.path.commonpath([test_path, tests_path])
+    except ValueError:
+        return get_filename(test_path)
     return test_path.split(common)[1][1:]
 
 
