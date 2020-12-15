@@ -26,10 +26,11 @@ class Runner:
                  resources=None,
                  output_format=None,
                  filter_list=None) -> None:
-        # singletons init should be done before services, as singletons maybe used there
+        # singletons init should be done before services (like vars holder), as singletons maybe used there
+        # modules should be done before filters, as requirements module installs dependencies for custom bifs
+        ModulesFactory(resources_dir=resources or os.path.join(path, 'resources'))
         FiltersFactory(custom_modules=filter_list)
         StepFactory(modules)
-        ModulesFactory(resources_dir=resources or os.path.join(path, 'resources'))
 
         self.tests_path = tests_path
         self.path = path
