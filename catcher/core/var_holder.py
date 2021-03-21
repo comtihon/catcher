@@ -3,7 +3,7 @@ from copy import deepcopy
 from typing import Optional
 
 from catcher.utils.logger import debug
-from catcher.utils.misc import report_override, merge_two_dicts, fill_template_recursive
+from catcher.utils.misc import try_get_object, fill_template_str, report_override, merge_two_dicts
 
 
 class VariablesHolder:
@@ -28,7 +28,7 @@ class VariablesHolder:
             self._variables = system_vars
         else:
             self._variables = {}
-        inventory = fill_template_recursive(inventory_vars, self._variables)  # fill env vars
+        inventory = try_get_object(fill_template_str(inventory_vars, self._variables))  # fill env vars
         self._cmd_env = cmd_env or {}
         self._variables.update(inventory)
         self._variables['CURRENT_DIR'] = path
@@ -49,8 +49,8 @@ class VariablesHolder:
         """
         # system env + inventory
         # (test template is filled in based on system, inventory & cmd vars)
-        test.variables = fill_template_recursive(test.variables,
-                                                 merge_two_dicts(global_variables, self._cmd_env))
+        test.variables = try_get_object(fill_template_str(test.variables,
+                                                          merge_two_dicts(global_variables, self._cmd_env)))
         # test local
         global_variables.update(test.variables)
         # include vars override test local
@@ -62,7 +62,7 @@ class VariablesHolder:
     @staticmethod
     def _prepare_include_vars(test, global_variables):
         if test.include:
-            include_vars = fill_template_recursive(test.include.variables, global_variables)
+            include_vars = try_get_object(fill_template_str(test.include.variables, global_variables))
         else:
             include_vars = {}
         override_keys = report_override(test.variables, include_vars)
