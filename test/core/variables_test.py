@@ -157,3 +157,16 @@ class VariablesTest(TestClass):
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
         runner.run_tests()
         self.assertTrue(check_file(join(self.test_dir, 'res.output'), 'email,id\nfirst@test.de,1'))
+
+    def test_json_in_variable(self):
+        self.populate_file('inventory.yml', '''---
+        complex_conf:
+          field: 'value'
+          json_field: '{"host": "http://minio:9000","aws_access_key_id":"minio","aws_secret_access_key":"minio123"}'
+        ''')
+        self.populate_file('main.yaml', '''---
+                steps:
+                    - echo: {from: '{{ complex_conf }}'}
+                ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), join(self.test_dir, 'inventory.yml'))
+        self.assertTrue(runner.run_tests())

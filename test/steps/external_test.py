@@ -125,6 +125,35 @@ class Hello(ExternalStep):
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None, modules=[self.test_resources])
         self.assertTrue(runner.run_tests())
 
+    def test_python_module_with_json(self):
+        self.write_module('print.py', '''from catcher.steps.external_step import ExternalStep
+from catcher.steps.step import update_variables
+
+class Print(ExternalStep):
+
+    @update_variables
+    def action(self, includes: dict, variables: dict) -> (dict, str):
+        body = self.simple_input(variables)
+        data = body['the']
+        return variables, 'data is: {}'.format(data)
+                    ''')
+        self.populate_file('inventory.yml', '''---
+                complex_conf:
+                  field: 'value'
+                  json_field: '{"host": "http://minio:9000","aws_access_key_id":"minio","aws_secret_access_key":"minio123"}'
+                ''')
+        self.populate_file('main.yaml', '''---
+                    steps:
+                        - print:
+                            the: '{{ complex_conf }}'
+                    ''')
+        load_external_actions(join(self.test_dir, 'print.py'))
+        runner = Runner(self.test_dir,
+                        join(self.test_dir, 'main.yaml'),
+                        join(self.test_dir, 'inventory.yml'),
+                        modules=[self.test_dir])
+        self.assertTrue(runner.run_tests())
+
     def write_module(self, name: str, body: str):
         self.populate_file(name, body)
         path = join(self.test_dir, name)

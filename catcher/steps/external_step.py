@@ -1,8 +1,7 @@
-import json
 from abc import abstractmethod
 
 from catcher.steps.step import Step
-from catcher.utils.misc import fill_template_str, try_get_objects
+from catcher.utils.misc import fill_template_recursive
 
 
 class ExternalStep(Step):
@@ -25,8 +24,7 @@ class ExternalStep(Step):
         :return: python object
 
         """
-        json_args = fill_template_str(json.dumps(self.data), variables)
-        return try_get_objects(json_args)
+        return fill_template_recursive(self.data, variables)
 
     @abstractmethod
     def action(self, includes: dict, variables: dict) -> dict or tuple:
