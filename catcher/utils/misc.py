@@ -57,7 +57,8 @@ def try_get_object(source: str or dict or list):
 def fill_template_recursive(source: Union[dict, list, str], variables: dict, glob=None, globs_added=None) \
         -> Union[dict, list, str]:
     if isinstance(source, dict):
-        return dict([(k, fill_template_recursive(v, variables, glob, globs_added)) for k, v in source.items()])
+        return dict([(fill_template_recursive(k, variables, glob, globs_added),
+                      fill_template_recursive(v, variables, glob, globs_added)) for k, v in source.items()])
     if isinstance(source, list):
         return [fill_template_recursive(v, variables, glob, globs_added) for v in source]
     return fill_template(source, variables, glob, globs_added)
