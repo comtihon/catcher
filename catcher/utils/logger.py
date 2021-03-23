@@ -71,31 +71,36 @@ def get_logger() -> Logger:
 
 
 def debug(msg: str):
-    log_storage.output('debug', msg)
+    if logging.DEBUG >= logging.root.level:
+        log_storage.output('debug', msg)
     if output_enabled:
         get_logger().debug(_nested_output(msg))
 
 
 def info(msg: str):
-    log_storage.output('info', msg)
+    if logging.INFO >= logging.root.level:
+        log_storage.output('info', msg)
     if output_enabled:
         get_logger().info(_nested_output(msg))
 
 
 def warning(msg: str):
-    log_storage.output('warning', msg)
+    if logging.WARNING >= logging.root.level:
+        log_storage.output('warning', msg)
     if output_enabled:
         get_logger().warning(_nested_output(msg))
 
 
 def error(msg: str):
-    log_storage.output('error', msg)
+    if logging.ERROR >= logging.root.level:
+        log_storage.output('error', msg)
     if output_enabled:
         get_logger().error(_nested_output(msg))
 
 
 def critical(msg: str):
-    log_storage.output('critical', msg)
+    if logging.CRITICAL >= logging.root.level:
+        log_storage.output('critical', msg)
     if output_enabled:
         get_logger().critical(_nested_output(msg))
 

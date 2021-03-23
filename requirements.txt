@@ -1,14 +1,14 @@
 docopt==0.6.*
 mock==3.0.*
 pytest==5.4.*
-requests==2.24.*
+requests==2.25.*
 urllib3==1.25.*
 requests_mock==1.8.*
 PyYAML==5.*
 Jinja2==2.11.*
 uuid==1.30
-Faker==4.1.*
+Faker==5.0.*
 colorama==0.4.*
 networkx==2.4
-grpcio==1.32.*
+grpcio==1.34.*
 grpcio-tools==1.32.*

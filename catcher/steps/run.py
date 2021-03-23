@@ -1,6 +1,6 @@
 from catcher.steps.step import Step, update_variables, SkipException
 from catcher.utils.logger import error, info, debug
-from catcher.utils.misc import merge_two_dicts, fill_template_str, try_get_object, fill_template
+from catcher.utils.misc import merge_two_dicts, fill_template_str, fill_template, fill_template_recursive
 from catcher.steps.stop import StopException
 from catcher.utils import logger
 
@@ -109,7 +109,7 @@ class Run(Step):
             raise Exception('No include registered for name ' + test)
         include = includes[test]
         variables = merge_two_dicts(include.variables, merge_two_dicts(variables, filled_vars))
-        include.variables = try_get_object(fill_template_str(variables, variables))
+        include.variables = fill_template_recursive(variables, variables)
         try:
             info('Running {}.{}'.format(test, '' if tag is None else tag))
             logger.log_storage.nested_test_in()

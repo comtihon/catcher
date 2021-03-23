@@ -80,6 +80,37 @@ class Loop(Step):
                               data: '{{ ITEM|tojson }}'
                     - echo: {from: '{{ ITEM }}', to: '{{ ITEM["filename"] }}.output'}
 
+    Iterate over several different configurations.
+    ::
+        variables:
+            db_1: 'test:test@localhost:5433/db1'
+            db_2:
+                url: 'test:test@localhost:5434/db2'
+                type: postgres
+            db_3:
+                dbname: 'db3'
+                user: 'test'
+                password: 'test'
+                host: 'localhost'
+                port: 5435
+                type: 'postgres'
+        steps:
+            - loop:
+                foreach:
+                    in: '["{{ db_1 }}", {{ db_2 }}, {{ db_3 }}]'
+                    do:
+                        - postgres:
+                            request:
+                                conf: '{{ ITEM }}'
+                                query: 'select count(*) from test'
+                            register: {documents: '{{ OUTPUT }}'}
+                        - check:
+                            equals: {the: '{{ documents.count }}', is: 2}
+
+
+    Note that db_1 template has additional quotes ``"{{ db_1 }}"``. Your **in** should contain valid object. As db_1 is
+    just a string - it should be put in quotes. Otherwise **in** value will be corrupted.
+    Always make sure your in value is valid. It may also have some difficulties with json as string.
     """
 
     def __init__(self, _get_action=None, _get_actions=None, **kwargs):
@@ -122,6 +153,7 @@ class Loop(Step):
             if not isinstance(loop_var, collections.Iterable):
                 raise ValueError(str(loop_var) + ' is not iterable')
             for entry in loop_var:
+                debug('Looping over {}'.format(entry))
                 output['ITEM'] = entry
                 output = self.__run_actions(includes, output)
         return output
