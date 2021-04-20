@@ -154,6 +154,56 @@ class IncludeFilesTest(TestClass):
         self.assertEqual(main, one)
         self.assertTrue(one)
 
+    def test_run_override_computed(self):
+        self.populate_file('main.yaml', '''---
+                include: 
+                    - file: one.yaml
+                      as: one
+                steps:
+                    - echo: {from: '{{ RANDOM_STR }}', to: main.output, register: {uuid: '{{ OUTPUT }}'}}
+                    - run: 
+                        include: one
+                        variables: 
+                            id: '{{ uuid }}'
+                ''')
+        self.populate_file('one.yaml', '''---
+                variables:
+                    id: 1234
+                steps:
+                    - echo: {from: '{{ id }}', to: one.output}
+                ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        runner.run_tests()
+        main = read_file(join(self.test_dir, 'main.output'))
+        one = read_file(join(self.test_dir, 'one.output'))
+        self.assertEqual(main, one)
+        self.assertTrue(one)
+
+    def test_run_override_main(self):
+        self.populate_file('main.yaml', '''---
+                variables:
+                    id: '{{ RANDOM_STR }}'
+                include: 
+                    - file: one.yaml
+                      as: one
+                steps:
+                    - echo: {from: '{{ id }}', to: main.output}
+                    - run: 
+                        include: one
+                ''')
+        self.populate_file('one.yaml', '''---
+                variables:
+                    id: 1234
+                steps:
+                    - echo: {from: '{{ id }}', to: one.output}
+                ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        runner.run_tests()
+        main = read_file(join(self.test_dir, 'main.output'))
+        one = read_file(join(self.test_dir, 'one.output'))
+        self.assertEqual(main, one)
+        self.assertTrue(one)
+
     # all level of templates should be resolved when including variables
     def test_template_in_template(self):
         self.populate_file('main.yaml', '''---
