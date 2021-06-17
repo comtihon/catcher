@@ -1,3 +1,4 @@
+import ipaddress
 import random
 from os.path import join
 
@@ -6,7 +7,7 @@ from faker import Faker
 
 from test.abs_test_class import TestClass
 from catcher.core.runner import Runner
-from test.test_utils import check_file
+from test.test_utils import check_file, read_file
 from catcher.utils.singleton import Singleton
 
 
@@ -41,7 +42,7 @@ class FiltersTest(TestClass):
         Faker.seed(4321)
         random.seed(123)
         self.assertTrue(runner.run_tests())
-        self.assertTrue(check_file(join(self.test_dir, 'one.output'), '10.32.135.245'))
+        ipaddress.ip_address(read_file(join(self.test_dir, 'one.output')))
         self.assertTrue(check_file(join(self.test_dir, 'two.output'), '1'))
         self.assertTrue(check_file(join(self.test_dir, 'three.output'), 'three'))
 
@@ -261,4 +262,4 @@ def _not_a_fun(arg):
         ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
         self.assertTrue(runner.run_tests())
-        self.assertTrue(check_file(join(self.test_dir, 'one.output'), '10.32.135.245'))
+        ipaddress.ip_address(read_file(join(self.test_dir, 'one.output')))
