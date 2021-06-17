@@ -6,6 +6,7 @@ import time
 import uuid
 from collections.abc import Iterable
 from types import ModuleType
+from typing import Union
 
 from jinja2 import Template, UndefinedError
 
@@ -53,7 +54,17 @@ def try_get_object(source: str or dict or list):
     return source
 
 
-def fill_template(source: any, variables: dict, isjson=False, glob=None, globs_added=None) -> any:
+def fill_template_recursive(source: Union[dict, list, str], variables: dict, glob=None, globs_added=None) \
+        -> Union[dict, list, str]:
+    if isinstance(source, dict):
+        return dict([(fill_template_recursive(k, variables, glob, globs_added),
+                      fill_template_recursive(v, variables, glob, globs_added)) for k, v in source.items()])
+    if isinstance(source, list):
+        return [fill_template_recursive(v, variables, glob, globs_added) for v in source]
+    return fill_template(source, variables, glob, globs_added)
+
+
+def fill_template(source: str, variables: dict, isjson=False, glob=None, globs_added=None) -> str:
     if not globs_added:
         globs_added = set()
     if isinstance(source, str):
