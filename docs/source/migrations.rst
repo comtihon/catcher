@@ -22,8 +22,8 @@ Migration
         - postgres:
             request:
                 conf: '{{ migrations_postgres }}'
-                query: "select count(*) from migration where hash = '{{ TEST_NAME }}';"
-            register: {result: '{{ OUTPUT }}'}
+                sql: "select count(*) from migration where hash = '{{ TEST_NAME }}';"
+            register: {result: '{{ OUTPUT.count }}'}
             tag: check
             name: 'check_migration_{{ TEST_NAME }}'
         - stop:
@@ -34,7 +34,7 @@ Migration
         - postgres:
             request:
                 conf: '{{ migrations_postgres }}'
-                query: "insert into migration(id, hash) values(1, '{{ TEST_NAME }}');"
+                sql: "insert into migration(id, hash) values(1, '{{ TEST_NAME }}');"
             tag: commit
             name: 'commit_migration_{{ TEST_NAME }}'
 
@@ -58,7 +58,7 @@ Migration
       - postgres:
           request:
             conf: '{{ service1_postgres }}'
-            query: "insert into templates(name, path) values({{ new_template }}, {{template_path}});"
+            sql: "insert into templates(name, path) values({{ new_template }}, {{template_path}});"
           name: 'enable {{ new_template }} for service1'
       - couchbase:
           request:

@@ -48,3 +48,34 @@ class ChecksTest(TestClass):
                         ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
         self.assertTrue(runner.run_tests())
+
+    def test_read_write_to_file_template(self):
+        self.populate_resource('foo/baz/bar.json', '123')
+        self.populate_file('main.yaml', '''---
+                        variables:
+                            filename: foo/baz/bar.json
+                        steps:
+                            - echo: {from_file: '{{ filename }}', to: 'resources/{{ filename.replace("/baz/", "/bar/")}}'}
+                        ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
+        self.assertTrue(check_file(join(self.test_dir, 'resources/foo/bar/bar.json'), '123'))
+
+    def test_read_python_file(self):
+        self.populate_resource('config.py', '''
+my_var = 123
+my_dict = dict(first=1, second=2)
+my_list = [1,2,3]        
+        ''')
+        self.populate_file('main.yaml', '''---
+                                steps:
+                                    - echo:
+                                        from_file: "config.py"
+                                        register: {"data": "{{ OUTPUT }}"}
+                                    - check: {equals: {the: '{{ data.my_var }}', is: 123}}
+                                    - check: {equals: {the: '{{ data.my_dict.first }}', is: 1}}
+                                    - check: {equals: {the: '{{ data.my_dict.second }}', is: 2}}
+                                    - check: {equals: {the: '{{ data.my_list[0] }}', is: 1}}
+                                ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())

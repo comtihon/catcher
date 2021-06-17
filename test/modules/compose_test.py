@@ -1,4 +1,3 @@
-import os
 from os.path import join
 
 import requests_mock

@@ -1,15 +1,18 @@
-from copy import deepcopy
+import os
+import traceback
 from os.path import join
 
-from catcher.utils import logger
-from catcher.core.test import Test, Include
-from catcher.modules.compose import DockerCompose
-from catcher.steps import step
-from catcher.utils.file_utils import get_files, read_source_file, get_filename
-from catcher.utils.logger import warning, info, debug
-from catcher.utils.misc import merge_two_dicts, try_get_object, fill_template_str, report_override
-from catcher.utils.module_utils import prepare_modules
+from catcher.core.var_holder import VariablesHolder
+from catcher.core.parser import Parser
+from catcher.core.step_factory import StepFactory
+from catcher.core.test import Test
+from catcher.core.filters_factory import FiltersFactory
 from catcher.modules.log_storage import LogStorage
+from catcher.steps.step import SkipException
+from catcher.utils import logger
+from catcher.utils.file_utils import cut_path
+from catcher.utils.logger import warning, info, debug, OptionalOutput
+from catcher.core.mod_factory import ModulesFactory
 
 
 class Runner:
@@ -18,120 +21,87 @@ class Runner:
                  tests_path: str,
                  inventory: str or None,
                  modules=None,
-                 environment=None,
+                 cmd_env=None,
                  system_environment=None,
                  resources=None,
-                 output_format=None) -> None:
-        if modules is None:
-            modules = []
-        self.environment = environment if environment is not None else {}
-        self.system_vars = system_environment if system_environment is not None else {}
+                 output_format=None,
+                 filter_list=None) -> None:
+        # singletons init should be done before services (like vars holder), as singletons maybe used there
+        # modules should be done before filters, as requirements module installs dependencies for custom bifs
+        ModulesFactory(resources_dir=resources or os.path.join(path, 'resources'))
+        FiltersFactory(custom_modules=filter_list)
+        StepFactory(modules)
+
         self.tests_path = tests_path
         self.path = path
-        self.inventory = inventory
-        self.all_includes = []
-        self.modules = merge_two_dicts(prepare_modules(modules, step.registered_steps), step.registered_steps)
-        self._compose = DockerCompose(resources)
-        self.resources = resources
+        self.parser = Parser(path, inventory)
+        self.var_holder = VariablesHolder(path,
+                                          system_environment=system_environment,
+                                          inventory_vars=self.parser.read_inventory(),
+                                          cmd_env=cmd_env,
+                                          resources=resources)
         if output_format:
             logger.log_storage = LogStorage(output_format)
 
-    def run_tests(self) -> bool:
+    def run_tests(self, output: str = 'full') -> bool:
+        """
+        Run the testcase
+        :param output: 'full' - all output possible. 'limited' - only test end report & summary. 'final' - only summary.
+        """
         try:
-            self._compose.up()
-            if self.system_vars:
-                debug('Use system variables: ' + str(list(self.system_vars.keys())))
-                variables = self.system_vars
-            else:
-                variables = {}
-            if self.inventory is not None:
-                inv_vars = read_source_file(self.inventory)
-                inv_vars['INVENTORY'] = get_filename(self.inventory)
-                variables = try_get_object(fill_template_str(inv_vars, variables))  # fill env vars
-            variables['CURRENT_DIR'] = self.path
-            variables['RESOURCES_DIR'] = self.resources or self.path + '/resources'
-            test_files = get_files(self.tests_path)
+            [mod.before() for mod in ModulesFactory().modules.values()]
             results = []
-            for file in test_files:
-                self.all_includes = []
-                try:
-                    variables['TEST_NAME'] = file
-                    test = self.prepare_test(file, variables)
-                    logger.log_storage.test_start(file)
-                    test.run()
-                    results.append(True)
-                    info('Test ' + file + ' passed.')
-                    logger.log_storage.test_end(file, True)
-                except Exception as e:
-                    warning('Test ' + file + ' failed: ' + str(e))
+            for parse_result in self.parser.read_tests(self.tests_path):
+                if parse_result.should_run:  # parse successful
+                    variables = self.var_holder.variables  # each test has it's own copy of global variables
+                    variables['TEST_NAME'] = parse_result.test.file  # variables are shared between test and includes
+                    with OptionalOutput(output == 'final'):
+                        for include in parse_result.run_on_include:  # run all includes before the main test.
+                            self._run_test(include, variables, output=output, test_type='include')
+                        result = self._run_test(parse_result.test, variables, output=output)
+                        results.append(result)
+                        self._run_finally(parse_result.test, result)
+                else:  # parse failed (dependency/parsing problem)
+                    warning('Test ' + cut_path(self.tests_path, parse_result.test) +
+                            logger.red(' failed: ') + str(parse_result.parse_error))
+                    logger.log_storage.test_parse_fail(parse_result.test, parse_result.parse_error)
                     results.append(False)
-                    logger.log_storage.test_end(file, False, str(e))
             return all(results)
         finally:
-            logger.log_storage.write_report(self.path)
-            self._compose.down()
+            logger.log_storage.write_report(join(self.path, 'reports'))
+            logger.log_storage.print_summary(self.tests_path)
+            [mod.after() for mod in ModulesFactory().modules.values()]
 
-    def prepare_test(self, file: str, variables: dict, override_vars: None or dict = None) -> Test:
-        body = read_source_file(file)
-        registered_includes = self.process_includes(body.get('include', []), variables)
-        tests_variables = try_get_object(fill_template_str(body.get('variables', {}),
-                                                           merge_two_dicts(variables, self.environment)))
-        variables = merge_two_dicts(variables, tests_variables)  # override variables with test's variables
-        if override_vars:
-            override_keys = report_override(variables, override_vars)
-            if override_keys:
-                debug('Overriding these variables: ' + str(override_keys))
-            variables = merge_two_dicts(variables, override_vars)
-        return Test(self.path,
-                    registered_includes,
-                    deepcopy(variables),  # each test has independent variables
-                    body.get('config', {}),
-                    body.get('steps', []),
-                    self.modules,
-                    self.environment)
+    def _run_test(self, test: Test, global_variables: dict, output: str = 'full', test_type='test') -> bool:
+        try:
+            self.var_holder.prepare_variables(test, global_variables)
+            logger.log_storage.test_start(test.file, test_type=test_type)
+            test.check_ignored()
+            with OptionalOutput(output == 'limited'):
+                test.run()
+            info(test_type.capitalize() + ' ' + cut_path(self.tests_path, test.file) + logger.green(' passed.'))
+            logger.log_storage.test_end(test.file, True, test_type=test_type)
+            return True
+        except SkipException:
+            info(test_type.capitalize() + ' ' + cut_path(self.tests_path, test.file) + logger.yellow(' skipped.'))
+            logger.log_storage.test_end(test.file, True, end_comment='Skipped', test_type=test_type)
+            return True
+        except Exception as e:
+            warning(test_type.capitalize() + ' ' + cut_path(self.tests_path, test.file) +
+                    logger.red(' failed: ') + str(e))
+            debug(traceback.format_exc())
+            logger.log_storage.test_end(test.file, False, str(e), test_type=test_type)
+            return False
 
-    def process_includes(self,
-                         includes: list or str or dict,
-                         variables: dict,
-                         registered_includes: dict or None = None) -> (dict, dict):
-        if registered_includes is None:
-            registered_includes = {}
-        if isinstance(includes, str) or isinstance(includes, dict):  # single include
-            self.process_include(includes, registered_includes, variables)
-        elif isinstance(includes, list):  # an array of includes
-            for i in includes:  # run all includes and save includes with alias
-                variables = self.process_include(i, registered_includes, variables)
-        return registered_includes
-
-    def process_include(self, include_file: str or dict, includes: dict, variables: dict) -> dict:
-        include_file = self.path_from_root(include_file)
-        self.check_circular(include_file)
-        include = Include(**include_file)
-        self.all_includes.append(include)
-        include.test = self.prepare_test(include.file, variables, include.variables)
-        if include.alias is not None:
-            includes[include.alias] = include.test
-        if include.run_on_include:
+    def _run_finally(self, test, result: bool):
+        if test and test.final:
+            logger.log_storage.test_start(test.file, test_type='{}_cleanup'.format(test.file))
             try:
-                logger.log_storage.test_start(include_file['file'], test_type='include')
-                debug('Run include: ' + str(include.test))
-                res = include.test.run()
-                logger.log_storage.test_end(include.test.path, True, res, test_type='include')
-                return res
+                test.run_finally(result)
+                info('Test ' + cut_path(self.tests_path, test.file) + ' [cleanup] ' + logger.green(' passed.'))
+                logger.log_storage.test_end(test.file, True, test_type='{} [cleanup]'.format(test.file))
             except Exception as e:
-                logger.log_storage.test_end(include.test.path, False, str(e), test_type='include')
-                if not include.ignore_errors:
-                    raise Exception('Include ' + include.file + ' failed: ' + str(e))
-        return include.test.variables
-
-    def check_circular(self, current_include: dict):
-        path = current_include['file']
-        if [include for include in self.all_includes if include.file == path]:
-            raise Exception('Circular dependencies for ' + path)
-
-    def path_from_root(self, include_file: str or dict) -> dict:
-        if isinstance(include_file, str):
-            return {'file': join(self.path, include_file)}
-        else:
-            include_file['file'] = join(self.path, include_file['file'])
-            return include_file
+                warning('Test ' + cut_path(self.tests_path, test.file) + ' [cleanup] ' +
+                        logger.red(' failed: ') + str(e))
+                debug(traceback.format_exc())
+                logger.log_storage.test_end(test.file, False, test_type='{} [cleanup]'.format(test.file))

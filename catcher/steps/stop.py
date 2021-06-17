@@ -37,6 +37,7 @@ class Stop(Step):
                     conf: '{{ migrations_postgres }}'
                     query: "insert into migration(id, hash) values(1, '{{ TEST_NAME }}');"
     """
+
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self.end_if = kwargs['if']

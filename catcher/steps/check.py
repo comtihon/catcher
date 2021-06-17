@@ -113,7 +113,10 @@ class Contains(Operator):
         body = self.subject[self.body]
         source = fill_template(self.determine_source(body), variables)
         subject = fill_template(body['the'], variables)
-        result = subject in source
+        if isinstance(source, str):
+            result = str(subject) in source
+        else:
+            result = subject in source
         if self.negative:
             result = not result
         if not result:

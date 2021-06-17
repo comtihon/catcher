@@ -1,8 +1,8 @@
-.. image:: https://travis-ci.org/comtihon/catcher.svg?branch=master
-    :target: https://travis-ci.org/comtihon/catcher
+.. image:: https://travis-ci.com/comtihon/catcher.svg?branch=master
+    :target: https://travis-ci.com/comtihon/catcher
 .. image:: https://img.shields.io/pypi/v/catcher.svg
     :target: https://pypi.python.org/pypi/catcher
-.. image:: https://img.shields.io/pypi/pyversions/catcher_modules.svg
+.. image:: https://img.shields.io/pypi/pyversions/catcher.svg
     :target: https://pypi.python.org/pypi/catcher
 .. image:: https://img.shields.io/pypi/wheel/catcher.svg
     :target: https://pypi.python.org/pypi/catcher
@@ -18,114 +18,147 @@ Support your team with a good Catcher!
 
 What is catcher?
 ----------------
-Catcher is a flexible tool, that can be used for: automated end-to-end testing, running universal migrations, 
-performing complex business actions.  
-It helps you to check either one service or whole system interaction.
+Catcher is a flexible end to end test tool, that can be used for automated microservices or data pipelines testing.
+It helps you to check either one service or whole system interaction from the front-end to the back-end.
 With the help of Catcher you can easily mock external services your system relies on. Catcher is not about only http, it
-can check Kafka, Postgres, CouchBase, Mongodb.
+can check different services, such as Kafka, Postgres, CouchBase, Mongodb, Elastic, S3, emails and others.
 
+Quickstart and documentation
+----------------------------
+1. Check, how to write a `test <https://catcher-test-tool.readthedocs.io/en/latest/source/tests.html>`_.
+2. Get to know how to `install <https://catcher-test-tool.readthedocs.io/en/latest/source/run.html>`_ and run Catcher.
+3. List all `steps <https://catcher-test-tool.readthedocs.io/en/latest/source/steps.html>`_ and select those you need.
+4. Learn more about `variables <https://catcher-test-tool.readthedocs.io/en/latest/source/variables.html>`_ and `resources <https://catcher-test-tool.readthedocs.io/en/latest/source/resources.html>`_
+5. Read how to trace and debug your test using `reports <https://catcher-test-tool.readthedocs.io/en/latest/source/reports.html>`_
 
-Testing - How it works?
------------------------
+For more information check `readthedocs`_.
 
-1. You implement new business requirements, touching one ore more services (external and internal)
-2. You write `tests`_ file in `YAML`_ or `JSON`_ formats where you describe data movement in your system
-3. You run your tests in any environment (from dev to prod) just changing `inventory`_ files.
-4. Bob (your colleague) implements his own business logic, which requires your test (or part of it) to be run.
-5. Bob writes his test in YAML and includes your test (or certain steps) to be run before or during his test.
-6. John (your devOps) decides to automate tests and makes CI run all tests on every microservice deploy.
-7. Your business logic is tested automatically and you will know if some of your services interact incorrectly.
-8. Profit.
+Very quick start
+----------------
+You can run Catcher in `docker`_ with all libraries, drivers and steps already installed and configured. It allows
+you to try Catcher without installing anything.
 
-.. _YAML: https://wikipedia.org/wiki/YAML
-.. _JSON: https://www.json.org/
-.. _inventory: https://catcher-test-tool.readthedocs.io/en/latest/source/inventory.html
-.. _tests: https://catcher-test-tool.readthedocs.io/en/latest/source/tests.html
+Just run the minimal command::
 
+    docker run -v $(pwd)/inventory:/opt/catcher/inventory
+               -v $(pwd)/tests:/opt/catcher/tests
+                catcher -i inventory/my_inventory.yml tests
 
-Migration - How it works?
--------------------------
-Every new feature in microservices require several migration steps in more than one service. But it is much better to
-create one migration script for all services (kafka, aws, databases) to prevent code duplication and keep all instructions
-in one place. See more in `migrations`_
+It will ask Catcher to run everything within your local **tests** folder using **inventory/my_inventory.yml**. For more
+information please check run `instructions <https://catcher-test-tool.readthedocs.io/en/latest/source/run.html>`_
 
-.. _migrations: https://catcher-test-tool.readthedocs.io/en/latest/source/migrations.html
+.. _docker: https://hub.docker.com/repository/docker/comtihon/catcher
 
+How does it look like?
+----------------------
 
-Complex business actions - How it works?
-----------------------------------------
-| If in your company you need to perform some complex business actions - use catcher to automate them.
-| F.e. before business review you need to register a new user and it requires you to make 10 http request and send 2 kafka messages.
-| Do you really like to spend 10-20 minutes of your time on doing these steps one by one?
-| Write a catcher script `register_new_user.yaml` and call it manually:
-| `catcher -i inventory.yaml register_new_user.yaml -e user_name=test_22.04.2018`.
+Imagine you have a **user_service** which saves users in **postgre** and posts them to **kafka** topic, where they are
+consumed by another service, which sends them emails.
+You mention your environment in the inventory files.
 
+local.yml::
 
-Installation
-------------
-| To install catcher with all internal `modules`_ run `sudo pip install catcher-modules[all]`.
-| This will install `catcher`_ and `catcher-modules`_ package.
-| To install just catcher run `sudo pip install catcher`.
-| To install specific catcher-module use `pip install catcher-modules[kafka]`. See `catcher-modules-index`_ for all
-  available modules.
+    kafka_server: '127.0.0.1:9092'
+    postgres: 'test:test@localhost:5433/test'
+    user_service: 'http://127.0.0.1:9090'
+    email_config:
+        host: '127.0.0.1:12345'
+        user: 'local_user'
+        pass: 'local_pass'
 
-.. _catcher: https://pypi.org/project/catcher
-.. _modules: https://github.com/comtihon/catcher_modules
-.. _catcher-modules: https://pypi.org/project/catcher-modules
-.. _catcher-modules-index: https://catcher-modules.readthedocs.io/en/latest/source/catcher_modules.html#module-catcher_modules
+develop.yml::
 
-New in `1.22.0`:
+    kafka_server: 'kafka.dev.mycompany.com:9092'
+    postgres: 'dev:dev@postgres.dev.mycompany.com:5433/test'
+    user_service: 'http://user_service.dev.mycompany.com:9090'
+    email_config:
+        host: 'imap.google.com'
+        user: 'my_user@google.com'
+        pass: 'my_pass'
 
-| Hash filters.
+You write a test::
 
-New in `1.20.0`:
+    variables: # here you specify test-local variables
+        users:
+            - email: '{{ test_user@my_company.com }}'
+              name: '{{ random("name") }}' # templates fully supported
+            - email: '{{ random("email") }}'
+              name: '{{ random("name") }}'
+    steps: # here you write steps which Catcher executed one by one until it fails
+        - http:
+            post:
+                url: '{{ user_service }}/sign_up' # user_service value is taken from active inventory which you specify at runtime
+                body: '{{ users[0] }}' # send first user from variables as a POST body
+                headers: {Content-Type: 'application/json'}
+                response_code: 2xx # will accept 200-299 codes
+            name: 'Register {{ users[0].email }} as a new user' # name your step properly (Optional)
+            register: {user_id: '{{ OUTPUT.id }}'}  # register new variable user_id as id param from json response
+        - postgres: # check if user was saved in the database
+            request:
+                conf: '{{ postgres }}'
+                sql: 'select * from users where user_id = {{ user_id }}'  # user_id from previous step will be used in this template
+            register: {email_in_db: '{{ OUTPUT.email }}'}  # load full user data and register only email as a new variable
+        - check: # compare email from the database with real user email
+            equals: {the: '{{ users[0].email }}', is: '{{ email_id_db }}'}}  # checks the equality between two strings. Templates supported.
+        - kafka:
+            consume:  # check if user_service pushed newly created user to kafka
+                server: '{{ kafka_server }}' # kafka_server value is taken from active inventory
+                topic: 'new_users'
+                where: # filter all messages except messages for our user
+                    equals: {the: '{{ MESSAGE.user_id }}', is: '{{ user_id }}'}
+        - email: # check if email was sent for this user
+              receive:
+                  config: '{{ email_conf }}'
+                  filter: {unread: true, subject: 'Welcome {{ users[0].name }}'} # select all unread and filter by subject
+                  ack: true  # mark as read
+                  limit: 1
+              register: {messages: '{{ OUTPUT }}'}  # register all messages found (0 or 1)
+        - check: '{{ messages |length > 0 }}' # short form of compare - we should have more than 0 messages co pass this step
+    finally:
+        - postgres: # delete user from database to cleanup after test finishes (no matter successfully or not)
+            request:
+                conf: '{{ postgres }}'
+                sql: 'delete from users where user_id = {{ user_id }}'
 
-| Save output to file as json, including step definitions and variables before and after. Useful for debugging.
-| `catcher -p json test.yml`
+For local environment run it as::
 
-New in `1.19.0`:
+    catcher -i inventories/local.yml tests/my_test.yml
 
-| To have `docker-compose` support install `catcher[compose]` instead.
-| This will make catcher run `docker-compose up` in your resources directory, if docker-compose file was found.
+For dev::
 
-Usage
------
-* Write catcher script (see `tests`_). F.e.::
+    catcher -i inventories/develop.yml tests/my_test.yml
 
-    ---
-    steps:
-    - http: {get: {url: 'http://my_cache_service.com/save?key=foo&value=bar'}}
-    - redis:
-        request:
-            get: 'foo'
-        register: {foo: '{{ OUTPUT }}'}
-    - check:
-        equals: {the: '{{ foo }}', is: 'bar'}
+See `microservices`_ for more complex example.
 
-* Run catcher `catcher my_test_file.yml`.
+Customization
+-------------
+Catcher can be easily customized to serve your needs.
 
-| You can also specify `inventory`_ with `-i` to test against different environments, custom `module`_ paths with `-m`
-  to include your own modules. Run `catcher -h` to get full list of available options.
-
-.. _module: https://catcher-test-tool.readthedocs.io/en/latest/source/modules.html
+1. You can write your own functions and filters and use them in your step's `templates <https://catcher-test-tool.readthedocs.io/en/latest/source/filters_and_functions.html>`_.
+2. You can create your own `modules <https://catcher-test-tool.readthedocs.io/en/latest/source/modules.html>`_ (in Python, Java, Kotlin, JS, jar-files or any executable)
+3. You can write your steps in catcher itself and `include <https://catcher-test-tool.readthedocs.io/en/latest/source/includes.html#run-on-action>`_ them from other tests.
 
 Why catcher?
 ------------
 
 * don't repeat test code. Write one test and call its steps from another;
 * compute and override variables to check your data and compose new flexible requests;
-* apply :meth:`catcher.steps.check` to the steps results;
-* write test for development, change inventory and test stage/uat/prod after deploy;
+* write test for development, change inventory and test stage/uat/prod with no changes;
+* test your data pipelines with `Airflow <https://catcher-modules.readthedocs.io/en/latest/source/airflow.html>`_ step;
+* test your front-end <-> back-end integration with `Selenium <https://catcher-modules.readthedocs.io/en/latest/source/selenium.html>`_ step;
 * test all your `microservices`_ with ease;
-* automate your testing!
 * `modular`_ architecture
-* perfect for big data pipelines testing with `prepare-expect`_
+* bulk-prepare and bulk-check data for you tests with `prepare-expect`_ step
+* automate your testing!
 
-Quickstart and documentation
-----------------------------
-See `readthedocs`_.
+Changelog is `here <https://github.com/comtihon/catcher/blob/master/Changelog.rst>`_.
+
+Contributors:
+-------------
+* Many thanks to `Ekaterina Belova <https://github.com/kbelova>`_ for core & modules contribution.
 
 .. _readthedocs: https://catcher-test-tool.readthedocs.io/en/latest/
 .. _microservices: https://catcher-test-tool.readthedocs.io/en/latest/source/microservices.html
 .. _modular: https://catcher-test-tool.readthedocs.io/en/latest/source/modules.html
 .. _prepare-expect: https://catcher-modules.readthedocs.io/en/latest/source/prepare_expect.html
+.. _selenium: https://catcher-modules.readthedocs.io/en/latest/source/selenium.html

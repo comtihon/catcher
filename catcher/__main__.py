@@ -1,7 +1,7 @@
 """Catcher - Microservices automated test tool.
 
 Usage:
-  catcher [-i INVENTORY] <tests> [-l LEVEL] [-e VARS...] [-m MODS...] [-r RES] [-p FORMAT] [-s SYS_ENV]
+  catcher [-i INVENTORY] <tests> [-l LEVEL] [-e VARS...] [-m MODS...]... [-r RES] [-p FORMAT] [-s SYS_ENV] [-f FILTER]... [--q | --qq] [--no-color]
   catcher -v | --version
   catcher -h | --help
 
@@ -14,12 +14,18 @@ Options:
   -s SYS_ENV --system_env SYS-ENV    use system environment variables as variables [default: true]
   -m MODULES --modules MODULES       specify directories or python packages to search for external modules
   -r RESOURCES --resources RESOURCES set the resources dir [default: ./resources]
-  -p FORMAT --format FORMAT          set the format (json/html) for the resulting file, which includes all steps
-                                     execution results, variables and outputs. It is created in the current directory.
+  -p FORMAT --format FORMAT          set the format (json) for the resulting file, which includes all steps
+                                     execution results, variables and outputs. It is created in the `reports` directory.
                                      Is not created by default.
+  -f FILTER --filter FILTER          Path to python file with custom filters implementation or python module's path if
+                                     installed in the system.
+  --q                                Do not print steps output
+  --qq                               Do not print steps and tests output
+  --no-color                         Do not use colorful output.
 """
 import os
 import sys
+from distutils.util import strtobool
 
 from docopt import docopt, DocoptExit
 
@@ -28,6 +34,9 @@ from catcher.core.runner import Runner
 from catcher.utils import logger
 from catcher.utils.logger import warning
 from catcher.utils.module_utils import load_external_actions
+from colorama import init
+
+init()
 
 
 def main(args=None):
@@ -37,7 +46,7 @@ def main(args=None):
         print(usage)
         sys.exit(1)
     path = os.getcwd()
-    logger.configure(arguments['--log-level'])
+    logger.configure(arguments['--log-level'], not arguments['--no-color'])
     result = run_tests(path, arguments)
     if result:
         sys.exit(0)
@@ -52,19 +61,24 @@ def run_tests(path: str, arguments: dict):
     modules = arguments['--modules']
     resources = arguments['--resources']
     output_format = arguments['--format']
+    filters = arguments['--filter']
     use_sys_vars = arguments['--system_env']
-    if use_sys_vars:
+    output = 'full' if not arguments['--q'] else 'limited'
+    if arguments['--qq']:
+        output = 'final'
+    if strtobool(use_sys_vars):
         sys_vars = dict(os.environ)
     else:
         sys_vars = None
     __load_modules(modules)
     runner = Runner(path, file_or_dir, inventory,
                     modules=modules,
-                    environment=__env_to_variables(environment),
+                    cmd_env=__env_to_variables(environment),
                     resources=resources,
                     system_environment=sys_vars,
-                    output_format=output_format)
-    return runner.run_tests()
+                    output_format=output_format,
+                    filter_list=filters)
+    return runner.run_tests(output=output)
 
 
 def __env_to_variables(environment: list) -> dict:

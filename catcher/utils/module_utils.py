@@ -1,13 +1,17 @@
 import importlib
-import ntpath
+import importlib.util
+import inspect
 import os
 import pkgutil
-from importlib import machinery
+import sys
+from contextlib import contextmanager
+from inspect import getmembers, isfunction
 from os.path import join
 from pydoc import locate
 from types import ModuleType
+from typing import Union
 
-from catcher.utils.logger import warning, error
+from catcher.utils.logger import warning, error, debug
 
 
 def prepare_modules(module_paths: list, available: dict) -> dict:
@@ -47,9 +51,9 @@ def load_external_actions(package: str):
     Load all classes from a package
     """
     if package.endswith('.py'):
-        __load_python_package_by_path(package)
+        return __load_python_package_by_path(package)
     else:
-        __load_python_package_installed(package)
+        return __load_python_package_installed(package)
 
 
 def get_all_subclasses_of(clazz) -> list:
@@ -65,18 +69,64 @@ def is_package_installed(package: str) -> bool:
         return False
 
 
+def add_package_to_globals(package: str, glob=None, warn_missing_package=True) -> dict:
+    if glob is None:
+        glob = globals()
+    try:
+        mod = importlib.import_module(package)
+        glob[package] = mod
+    except ImportError as e:
+        if warn_missing_package:
+            warning(str(e))
+        else:
+            debug(str(e))
+    return glob
+
+
+def get_all_functions(module: str) -> dict:
+    mod = load_external_actions(module)
+    if isinstance(mod, list):
+        res = {}
+        for m in mod:
+            res = {**res, **dict([o for o in getmembers(m) if isfunction(o[1])])}
+        return res
+    else:
+        return dict([o for o in getmembers(mod) if isfunction(o[1])])
+
+
+def get_all_classes(module: Union[str, ModuleType]) -> dict:
+    if isinstance(module, str):
+        module = sys.modules[module]
+    return dict(inspect.getmembers(module, inspect.isclass))
+
+
+@contextmanager
+def add_to_path(p):
+    import sys
+    old_path = sys.path
+    sys.path = sys.path[:]
+    sys.path.insert(0, p)
+    try:
+        yield
+    finally:
+        sys.path = old_path
+
+
 def __load_python_package_by_path(path: str):
-    name = ntpath.basename(path)
-    loader = importlib.machinery.SourceFileLoader(name, path)
-    mod = ModuleType(loader.name)
-    loader.exec_module(mod)
+    with add_to_path(os.path.dirname(path)):
+        spec = importlib.util.spec_from_file_location(path, path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
 
 
 def __load_python_package_installed(package: str):
     modules = locate(package)
     if modules is None:
         return  # package not installed
-    for importer, modname, ispkg in pkgutil.walk_packages(path=modules.__path__,
-                                                          prefix=modules.__name__ + '.',
-                                                          onerror=lambda x: None):
-        importlib.import_module(modname)
+    if not hasattr(modules, '__path__'):
+        return modules
+    return [importlib.import_module(modname)
+            for importer, modname, ispkg in pkgutil.walk_packages(path=modules.__path__,
+                                                                  prefix=modules.__name__ + '.',
+                                                                  onerror=lambda x: None)]

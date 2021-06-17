@@ -1,5 +1,6 @@
 from os.path import join
 
+import pytest
 import requests_mock
 
 from catcher.core.runner import Runner
@@ -145,6 +146,172 @@ class HttpTest(TestClass):
         self.populate_file('main.yaml', '''---
                                     steps:
                                         - http: {get: {url: 'http://test.com', response_code: 2xx-3xx}}
+                                    ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
+
+    @requests_mock.mock()
+    def test_send_json_via_headers(self, m):
+        adapter = m.post('http://test.com')
+
+        self.populate_file('main.yaml', '''---
+                                    variables:
+                                        body: {'foo': 'bar'}
+                                    steps:
+                                        - http: 
+                                            post: 
+                                                url: 'http://test.com'
+                                                headers: {Content-Type: 'application/json'}
+                                                body: '{{ body }}'
+                                    ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
+        self.assertEqual({'foo': 'bar'}, adapter.last_request.json())
+
+    @requests_mock.mock()
+    def test_send_json_directly(self, m):
+        adapter = m.post('http://test.com')
+
+        self.populate_file('main.yaml', '''---
+                                    variables:
+                                        body: {'foo': 'bar'}
+                                    steps:
+                                        - http: 
+                                            post: 
+                                                url: 'http://test.com'
+                                                body: '{{ body |tojson }}'
+                                    ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
+        self.assertEqual({'foo': 'bar'}, adapter.last_request.json())
+
+    @requests_mock.mock()
+    def test_upload_file(self, m):
+        self.populate_file('main.yaml', '''---
+                                    steps:
+                                        - http: 
+                                            post: 
+                                                url: 'http://test.com'
+                                                files:
+                                                    file: 'foo.csv'
+                                                    type: 'text/csv'
+                                    ''')
+        self.populate_resource('foo.csv', "one,two\n"
+                                          "three,four"
+                               )
+
+        adapter = m.post('http://test.com')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
+        self.assertTrue('Content-Type: text/csv' in adapter.last_request.text)
+        self.assertTrue("one,two\n"
+                        "three,four" in adapter.last_request.text)
+
+    @requests_mock.mock()
+    def test_upload_multiple(self, m):
+        self.populate_file('main.yaml', '''---
+                                    steps:
+                                        - http: 
+                                            post: 
+                                                url: 'http://test.com'
+                                                files:
+                                                    - file1: 'one.json'
+                                                      type: 'application/json'
+                                                    - file2: 'foo.csv'
+                                                      type: 'text/csv'
+                                    ''')
+        self.populate_resource('one.json', "{\"key\":\"value\"}")
+        self.populate_resource('foo.csv', "one,two\n"
+                                          "three,four"
+                               )
+        adapter = m.post('http://test.com')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
+        self.assertTrue('Content-Type: text/csv' in adapter.last_request.text)
+        self.assertTrue('Content-Type: application/json' in adapter.last_request.text)
+        self.assertTrue("{\"key\":\"value\"}" in adapter.last_request.text)
+        self.assertTrue("one,two\n"
+                        "three,four" in adapter.last_request.text)
+
+    @requests_mock.mock()
+    def test_upload_template(self, m):
+        self.populate_file('main.yaml', '''---
+                                    variables:
+                                        var: 'one'
+                                    steps:
+                                        - http: 
+                                            post: 
+                                                url: 'http://test.com'
+                                                files:
+                                                    file: 'foo.csv'
+                                                    type: 'text/csv'
+                                    ''')
+        self.populate_resource('foo.csv', "{{var}},two\n"
+                                          "three,four"
+                               )
+
+        adapter = m.post('http://test.com')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
+        self.assertTrue('Content-Type: text/csv' in adapter.last_request.text)
+        self.assertTrue("one,two\n"
+                        "three,four" in adapter.last_request.text)
+
+    @pytest.mark.skip(reason="Uses external service. Shouldn't be run automatically")
+    def test_use_cookies(self):
+        self.populate_file('main.yaml', '''---
+                            steps:
+                                - http: 
+                                    get: 
+                                        url: 'http://httpbin.org/cookies/set/sessioncookie/123456789'
+                                - http:
+                                    get:
+                                        url: 'http://httpbin.org/cookies'
+                                    register: {reply: '{{ OUTPUT }}'}
+                                - check:
+                                    equals: {the: '{{ reply.cookies.sessioncookie }}', is: '123456789'}
+                            ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
+
+    @pytest.mark.skip(reason="Uses external service. Shouldn't be run automatically")
+    def test_change_sessions(self):
+        self.populate_file('main.yaml', '''---
+                                    steps:
+                                        - http: 
+                                            get: 
+                                                url: 'http://httpbin.org/cookies/set/sessioncookie/123456789'
+                                                session: 'one'
+                                        - http: 
+                                            get: 
+                                                url: 'http://httpbin.org/cookies/set/sessioncookie/987654321'
+                                                session: 'two'
+                                        - http:
+                                            get:
+                                                url: 'http://httpbin.org/cookies'
+                                                session: 'one'
+                                            register: {reply: '{{ OUTPUT }}'}
+                                        - check:
+                                            equals: {the: '{{ reply.cookies.sessioncookie }}', is: '123456789'}
+                                        - http:
+                                            get:
+                                                url: 'http://httpbin.org/cookies'
+                                                session: 'two'
+                                            register: {reply: '{{ OUTPUT }}'}
+                                        - check:
+                                            equals: {the: '{{ reply.cookies.sessioncookie }}', is: '987654321'}
+                                        - http: 
+                                            get: 
+                                                url: 'http://httpbin.org/cookies/set/sessioncookie/123456789'
+                                                session: null
+                                        - http:
+                                            get:
+                                                url: 'http://httpbin.org/cookies'
+                                                session: null
+                                            register: {reply: '{{ OUTPUT }}'}
+                                        - check:   
+                                            equals: {the: '{{ reply.cookies }}', is: '{}'}
+                                        
                                     ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
         self.assertTrue(runner.run_tests())

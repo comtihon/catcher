@@ -8,8 +8,13 @@ Variables from inventory, ``variables`` block or command line ``-e`` argument
 Computed
 --------
 
-| Registered in steps variables via ``register: {var_name: var_value}``.
-| ``var_value`` can be a variable itself like: ``register: {email: '{{ user }}@test.com'}``
+Registered in steps variables by using **register** keyword in every step::
+
+    register: {var_name: var_value}
+
+``var_value`` can be a variable itself like::
+
+    register: {email: '{{ user }}@test.com'}
 
 Inherited
 ---------
@@ -19,7 +24,7 @@ Built-in
 --------
 | 1. ``OUTPUT`` - operation's output. Can be used for new variables registration
 
-::
+ ::
 
     - http:
         post: 
@@ -29,7 +34,7 @@ Built-in
 
 | 2. ``ITEM`` - item of a list. Used in ``any`` and ``all`` checks and ``foreach`` loops
 
-::
+ ::
 
     variables:
         list: [{n: 1, k: 'a'}, {n: 2, k: 'a'}, {n: 3, k: 'a'}]
@@ -39,26 +44,29 @@ Built-in
                 of: '{{ list }}'
                 equals: {the: '{{ ITEM.k }}', is: 'a'}
 
-| 3. ``NOW_TS`` - return timestamp
+| 3. ``NOW_TS`` - return timestamp. **Deprecated**, use function `now_ts()` instead.
 
-::
+ ::
 
     steps:
       - echo: {from: '{{ NOW_TS }}', register: {now: '{{ OUTPUT }}'}}
 
-| 4. ``NOW_DT`` - return current date in ``yyyy-mm-ddTHH:MM:SS0+0000``
+| 4. ``NOW_DT`` - return current date for UTC timezone in ``yyyy-mm-ddTHH:MM:SS0`` format.  **Deprecated**, use function `now()` instead.
 | 5. ``RANDOM_STR`` - return random string in uuid format
 | 6. ``RANDOM_INT`` - return random int [-2147483648, 2147483648]
 | 7. ``TEST_NAME`` - name of the current test
 | 8. ``CURRENT_DIR`` - current directory
-| 9. ``INVENTORY`` - current inventory.
-| 10. ``RESOURCES_DIR`` - resources directory. Can be specified via ``-r`` param. Default is ``./resources``.
+| 9. ``INVENTORY`` - current inventory filename.
+| 10. ``INVENTORY_FILE`` - full path to the current inventory.
+| 11. ``RESOURCES_DIR`` - resources directory. Can be specified via ``-r`` param. Default is ``./resources``.
 
 Built-in functions
 ------------------
+See :meth:`catcher.modules.filter_impl.bifs` for the full list of built in functions and filters.
+
 | 1. ``random_int()`` - will generate a random int for you. The only difference between ``RANDOM_INT`` is - you can set limits
 
-::
+ ::
 
     steps:
         - echo: {from: '{{ random_int(1, 10) }}', to: one.output}  # write a random int between 1 and 10 to the file
@@ -67,7 +75,7 @@ Built-in functions
 
 | 2. ``random_choice()`` - syntax sugar for ``{{ list[random_var] }}``. Take random element from a list
 
-::
+ ::
 
     variables:
         my_list: ['one', 'two', 'three']
@@ -76,7 +84,7 @@ Built-in functions
 
 | 3. `Faker <https://github.com/joke2k/faker>`_ random data. With all available built-in providers imported. Type of the random data is set as an argument
 
-::
+ ::
 
     steps:
         - echo: {from: '{{ random("ipv4_private") }}', to: one.output}  # write random ipv4 address to file
@@ -88,7 +96,7 @@ Please see `providers <https://faker.readthedocs.io/en/stable/providers.html>`_ 
 
 | 4. ``hash(algorithm)`` - hash the data using selected algorithm. Please check `hashlib <https://docs.python.org/3/library/hashlib.html>`_ docs for all algorithms available.
 
-::
+ ::
 
     variables:
         my_var: 'my_value'
@@ -96,13 +104,18 @@ Please see `providers <https://faker.readthedocs.io/en/stable/providers.html>`_ 
         - echo: {from: '{{ "test" | hash("sha1") }}', register: {sha1: '{{ OUTPUT }}'}}
         - echo: {from: '{{ my_var | hash("md5") }}', register: {md5: '{{ OUTPUT }}'}}
 
+Custom functions and filters
+----------------------------
+If you need some customisation but don't want to create a custom module - you can try a filter/function. Please
+check this `page <https://catcher-test-tool.readthedocs.io/en/latest/source/filters_and_functions.html>`_ for more info.
+
 Environment variables
 ---------------------
 
 | There is a full support for environment variables in inventory files and in steps.
 | In steps you can just access them.
 
-::
+ ::
 
     steps:
         - check: {equals: {the: '{{ FOO }}', is: '1'}}
@@ -110,7 +123,7 @@ Environment variables
 | If you run ``export FOO=1`` before - this step will pass.
 | Since `1.21.2` predefined variables support templates as well.
 
-::
+ ::
 
     variables:
         foo: '{{ FOO }}'
@@ -136,9 +149,9 @@ inventory.yml ::
 test.yml ::
 
     postgres:
-    request:
-        conf: '{{ database_conf }}'
-        query: 'select count(*) from test'
+        request:
+            conf: '{{ database_conf }}'
+            sql: 'select count(*) from test'
 
 Variables override priority
 ===========================
@@ -202,6 +215,7 @@ Environment variables
 ---------------------
 | All other variables override environmental variables from steps.
 | ``export FOO=bar``
+
 test.yml::
 
     variables:

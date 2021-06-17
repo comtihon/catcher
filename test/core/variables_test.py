@@ -1,8 +1,5 @@
 import os
-import random
 from os.path import join
-
-from faker import Faker
 
 from catcher.core.runner import Runner
 from test.abs_test_class import TestClass
@@ -13,21 +10,44 @@ class VariablesTest(TestClass):
     def __init__(self, method_name):
         super().__init__('variables_test', method_name)
 
-    # variables, passed via cmd `e` options should override all variables
-    def test_cmd_override_all(self):
+    # newly registered variables override everything
+    def test_register_override_cmd(self):
         self.populate_file('main.yaml', '''---
         variables:
             foo: baz
         steps:
             - echo: 
                 actions: 
-                    - {from: 'hello', register: {foo: 'bar'}}
+                    - {from: 'bar', register: {foo: '{{ OUTPUT }}'}}
                     - {from: '{{ foo }}', to: one.output}
             
         ''')
-        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None, environment={'foo': 'bad'})
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None, cmd_env={'foo': 'bad'})
+        runner.run_tests()
+        self.assertTrue(check_file(join(self.test_dir, 'one.output'), 'bar'))
+
+    # variables, passed via cmd `e` options should override all variables
+    def test_cmd_override_all(self):
+        self.populate_file('inventory.yml', '''---
+                foo2: baz
+                ''')
+        self.populate_file('main.yaml', '''---
+        variables:
+            foo: baz
+        steps:
+            - echo: 
+                actions: 
+                    - {from: '{{ foo }}', to: one.output}
+                    - {from: '{{ foo2 }}', to: two.output}
+
+        ''')
+        runner = Runner(self.test_dir,
+                        join(self.test_dir, 'main.yaml'),
+                        join(self.test_dir, 'inventory.yml'),
+                        cmd_env={'foo': 'bad', 'foo2': 'bad'})
         runner.run_tests()
         self.assertTrue(check_file(join(self.test_dir, 'one.output'), 'bad'))
+        self.assertTrue(check_file(join(self.test_dir, 'two.output'), 'bad'))
 
     # test computed variables available later
     def test_computed_available_later(self):
@@ -108,72 +128,45 @@ class VariablesTest(TestClass):
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None, system_environment=dict(os.environ))
         self.assertTrue(runner.run_tests())
 
-    # faker can be called from catcher
-    def test_random_functions(self):
-        Faker.seed(4321)
+    def test_var_in_run_as_obj(self):
+        self.populate_resource('test.csv', "email,id\n"
+                                           "{%- for user in users %}\n"
+                                           "{{ user.email }},{{ user.id }}\n"
+                                           "{%- endfor -%}"
+                               )
         self.populate_file('main.yaml', '''---
-        steps:
-            - echo: {from: '{{ random("ipv4_private") }}', to: one.output}
-        ''')
+                                variables:
+                                    users:
+                                        - email: 'first@test.de'
+                                          id: 1
+                                        - email: 'second@test.de'
+                                          id: 2
+                                include: 
+                                    file: one.yaml
+                                    as: one
+                                steps:
+                                    - run: 
+                                        include: 'one'
+                                        variables:
+                                            users: '{{ users[:1] }}'
+                                ''')
+        self.populate_file('one.yaml', '''---
+                                steps:
+                                    - echo: {from_file: 'test.csv', to: res.output}
+                                ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
-        self.assertTrue(runner.run_tests())
-        self.assertTrue(check_file(join(self.test_dir, 'one.output'), '10.32.135.245'))
+        runner.run_tests()
+        self.assertTrue(check_file(join(self.test_dir, 'res.output'), 'email,id\nfirst@test.de,1'))
 
-    # random int with args can be called
-    def test_random_int(self):
-        random.seed(123)
+    def test_json_in_variable(self):
+        self.populate_file('inventory.yml', '''---
+        complex_conf:
+          field: 'value'
+          json_field: '{"host": "http://minio:9000","aws_access_key_id":"minio","aws_secret_access_key":"minio123"}'
+        ''')
         self.populate_file('main.yaml', '''---
-        steps:
-            - echo: {from: '{{ random_int(1, 10) }}', to: one.output}
-        ''')
-        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+                steps:
+                    - echo: {from: '{{ complex_conf }}'}
+                ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), join(self.test_dir, 'inventory.yml'))
         self.assertTrue(runner.run_tests())
-        self.assertTrue(check_file(join(self.test_dir, 'one.output'), '2'))
-
-        random.seed(123)
-        # no upper limit
-        self.populate_file('main.yaml', '''---
-        steps:
-            - echo: {from: '{{ random_int(1) }}', to: one.output}
-        ''')
-        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
-        self.assertTrue(runner.run_tests())
-        self.assertTrue(check_file(join(self.test_dir, 'one.output'), '7733829868136316427'))
-
-        random.seed(123)
-        # no lower limit
-        self.populate_file('main.yaml', '''---
-        steps:
-            - echo: {from: '{{ random_int(range_to=1) }}', to: one.output}
-        ''')
-        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
-        self.assertTrue(runner.run_tests())
-        self.assertTrue(check_file(join(self.test_dir, 'one.output'), '-2229762486649458603'))
-
-    # random choice on a list can be called
-    def test_random_choice(self):
-        random.seed(123)
-        self.populate_file('main.yaml', '''---
-        variables:
-            my_list: ['one', 'two', 'three']
-        steps:
-            - echo: {from: '{{ random_choice(my_list) }}', to: one.output}
-        ''')
-        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
-        self.assertTrue(runner.run_tests())
-        self.assertTrue(check_file(join(self.test_dir, 'one.output'), 'one'))
-
-    # hash function is properly called
-    def test_hash(self):
-        self.populate_file('main.yaml', '''---
-        variables:
-            my_var: test
-        steps:
-            - echo: {from: '{{ "test" | hash("sha1") }}', to: one.output}
-            - echo: {from: '{{ my_var | hash("sha1") }}', to: two.output}
-        ''')
-        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
-        self.assertTrue(runner.run_tests())
-        self.assertTrue(check_file(join(self.test_dir, 'one.output'), 'a94a8fe5ccb19ba61c4c0873d391e987982fbbd3'))
-        self.assertTrue(check_file(join(self.test_dir, 'two.output'), 'a94a8fe5ccb19ba61c4c0873d391e987982fbbd3'))
-

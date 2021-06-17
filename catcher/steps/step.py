@@ -1,3 +1,4 @@
+import types
 from abc import abstractmethod
 from functools import wraps
 
@@ -18,7 +19,12 @@ class MetaStep(type):
         return cls
 
 
-SERVICE_KEYS = ['register', 'ignore_errors', 'name', 'tag']
+SERVICE_KEYS = ['register', 'ignore_errors', 'name', 'tag', 'skip_if', 'run_if']
+
+
+class SkipException(Exception):
+    def __init__(self, message):
+        super().__init__(message)
 
 
 class Step(object, metaclass=MetaStep):
@@ -29,7 +35,9 @@ class Step(object, metaclass=MetaStep):
     :name: Set name for this step. Is used for passed steps output. *Optional*
     :ignore_errors: Do not stop the test if this step fails. Can be useful with running includes. *Optional*
     :tag: Tag this step to be called via `run` with tag. *Optional*
-
+    :skip_if: Skip condition. This step will be skipped if condition is true. *Optional*
+    :run_if: Run type for final action. *Optional*. 'pass' will run action only if test passes,
+             'fail' will run action only if test fails. 'always' will always run action. It is the default value.
     :actions: Each step can have one ore multiple actions. In case of one action `actions` list is
                 not necessary and you can use short form. Also - in case of several actions each should have its
                 own properties like `register`, `tag` etc...
@@ -53,6 +61,7 @@ class Step(object, metaclass=MetaStep):
               - post:  # fill some personal data
                   url: '{{ user_service_url }}/data'
                   body: {gender: 'M', age: 22, firstName: 'John', lastName: 'Doe'}
+
 
     :Examples:
 
@@ -96,12 +105,61 @@ class Step(object, metaclass=MetaStep):
 
         http: {get: {url: 'http://test.com', response_code: 200}, ignore_errors: true}
 
+    Skip one step based on variable got
+    ::
+
+        steps:
+            - http:
+                get:
+                    url: '{{ my_web_service }}/api/v1/users?id={{ user_id }}'
+                register: {registration_type: '{{ OUTPUT.data.registration }}'}
+                name: 'Determine registration type for user {{ user_id }}'
+            - postgres:
+                request:
+                    conf: 'test:test@localhost:5433/test'
+                    query: "insert into loans(value) values(1000) where user_id == '{{ user_id }}';"
+                name: 'Update user loan for facebook user'
+                skip_if:
+                    equals: {the: '{{ registration_type }}', is_not: 'facebook'}
+            - couchbase:
+                request:
+                    conf:
+                        bucket: loans
+                        host: localhost
+                    put:
+                        key: '{{ user_id }}'
+                        value: {value: 1000}
+                skip_if:
+                    equals: {the: '{{ registration_type }}', is_not: 'other'}
+
+    Run step and do some clean up after
+    ::
+
+        steps:
+            - http:
+                get:
+                    url: '{{ my_web_service }}/api/v1/users?id={{ user_id }}'
+                register: {registration_type: '{{ OUTPUT.data.registration }}'}
+                name: 'Determine registration type for user {{ user_id }}'
+            - postgres:
+                request:
+                    conf: '{{ postgres_conf }}'
+                    query: "insert into loans(value) values(1000) where user_id == '{{ user_id }}';"
+                name: 'Update user loan for facebook user'
+        finally:
+            - postgres:
+                request:
+                    conf: '{{ postgres_conf }}'
+                    query: "delete from loans(value) where user_id == '{{ user_id }}';"
+                name: 'Clean up user'
+
     """
 
-    def __init__(self, register=None, name=None, ignore_errors=False, **kwargs) -> None:
+    def __init__(self, register=None, name=None, ignore_errors=False, skip_if=None, **kwargs) -> None:
         self.register = register
         self.name = name
         self.ignore_errors = ignore_errors
+        self.skip_if = skip_if
 
     @abstractmethod
     def action(self, includes: dict, variables: dict) -> dict or tuple:
@@ -124,9 +182,9 @@ class Step(object, metaclass=MetaStep):
                         host: localhost
                         port: 5433
                     query: 'select count(*) from test'
-            register: {documents: '{{ OUTPUT }}'}
+            register: {documents: '{{ OUTPUT.count }}'}
 
-        in_data will be
+        step's input will be
         ::
 
             {'request' : {'conf': {'dbname': 'test', 'user': 'test', 'password': 'test', 'host': 'localhost', 'port': 5433},
@@ -135,6 +193,14 @@ class Step(object, metaclass=MetaStep):
 
         """
         pass
+
+    def check_skip(self, variables: dict):
+        if self.skip_if is None:
+            return False
+        from catcher.steps.check import Operator
+        operator = Operator.find_operator(self.skip_if)
+        if operator.operation(variables):
+            raise SkipException('Skipped due to {}'.format(self.skip_if))
 
     @staticmethod
     def filter_predefined_keys(kwargs: dict):

@@ -3,6 +3,7 @@ import os
 
 def check_file(file: str, expected: str) -> bool:
     if not os.path.exists(file):
+        print('file {} doesn\'t exist'.format(file))
         return False
     with open(file, 'r') as f:
         content = f.read()
