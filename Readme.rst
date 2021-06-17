@@ -1,5 +1,5 @@
-.. image:: https://travis-ci.org/comtihon/catcher.svg?branch=master
-    :target: https://travis-ci.org/comtihon/catcher
+.. image:: https://travis-ci.com/comtihon/catcher.svg?branch=master
+    :target: https://travis-ci.com/comtihon/catcher
 .. image:: https://img.shields.io/pypi/v/catcher.svg
     :target: https://pypi.python.org/pypi/catcher
 .. image:: https://img.shields.io/pypi/pyversions/catcher.svg
@@ -152,6 +152,10 @@ Why catcher?
 * automate your testing!
 
 Changelog is `here <https://github.com/comtihon/catcher/blob/master/Changelog.rst>`_.
+
+Contributors:
+-------------
+* Many thanks to `Ekaterina Belova <https://github.com/kbelova>`_ for core & modules contribution.
 
 .. _readthedocs: https://catcher-test-tool.readthedocs.io/en/latest/
 .. _microservices: https://catcher-test-tool.readthedocs.io/en/latest/source/microservices.html
