@@ -101,8 +101,7 @@ html_theme_options = {
     'github_button': True,
     'badge_branch': 'master',
     'page_width': 'auto',
-    'body_max_width': 'auto',
-    'travis_button': True
+    'body_max_width': 'auto'
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
