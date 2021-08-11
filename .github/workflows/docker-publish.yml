@@ -21,8 +21,6 @@ jobs:
         with:
           context: .
           push: false
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
 
   push:
     # Ensure test job passes before pushing image.
