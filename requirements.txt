@@ -7,7 +7,7 @@ requests_mock==1.9.*
 PyYAML==5.*
 Jinja2==3.0.*
 uuid==1.30
-Faker==8.8.*
+Faker==8.12.*
 colorama==0.4.*
 networkx==2.5.1
 grpcio==1.38.*
