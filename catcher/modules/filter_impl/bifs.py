@@ -1,3 +1,4 @@
+import base64
 import hashlib
 import random
 import sys
@@ -8,6 +9,33 @@ from faker import Faker
 from catcher.utils import module_utils, misc
 
 random.seed()
+
+
+def filter_b64encode(param):
+    """
+    Encode string as base64
+    F.e. ::
+
+        - http:
+              post:
+                url: '{{ auth_service }}/oauth/token'
+                headers: {Authorization: '{{ admin_token | b64encode }}'}
+
+    :param param: data to convert
+    """
+    return base64.b64encode(param.encode('utf-8')).decode('utf-8')
+
+
+def filter_b64decode(param):
+    """
+        Decode base64 encoded string
+        F.e. ::
+
+            - echo: '{{ token |b64decode }}'
+
+        :param param: data to convert
+        """
+    return base64.b64decode(param.encode('utf-8')).decode('utf-8')
 
 
 def filter_astuple(param):
