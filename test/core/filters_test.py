@@ -263,3 +263,18 @@ def _not_a_fun(arg):
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
         self.assertTrue(runner.run_tests())
         ipaddress.ip_address(read_file(join(self.test_dir, 'one.output')))
+
+    def test_base64_filters(self):
+        self.populate_file('main.yaml', '''---
+                variables:
+                    foo: 'foo:bar'
+                steps:
+                    - echo: {from: '{{ foo |b64encode }}', register: encoded}
+                    - assert: 
+                        equals: {the: '{{ encoded }}', is: 'Zm9vOmJhcg=='}
+                    - echo: {from: '{{ encoded |b64decode }}', register: decoded}
+                    - assert: 
+                        equals: {the: '{{ decoded }}', is: '{{ foo }}'}
+                ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
