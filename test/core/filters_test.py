@@ -269,10 +269,10 @@ def _not_a_fun(arg):
                 variables:
                     foo: 'foo:bar'
                 steps:
-                    - echo: {from: '{{ foo |b64encode }}', register: encoded}
+                    - echo: {from: '{{ foo |b64encode }}', register: {encoded: '{{ OUTPUT }}'}}
                     - assert: 
                         equals: {the: '{{ encoded }}', is: 'Zm9vOmJhcg=='}
-                    - echo: {from: '{{ encoded |b64decode }}', register: decoded}
+                    - echo: {from: '{{ encoded |b64decode }}', register: {decoded: '{{ OUTPUT }}'}}
                     - assert: 
                         equals: {the: '{{ decoded }}', is: '{{ foo }}'}
                 ''')
