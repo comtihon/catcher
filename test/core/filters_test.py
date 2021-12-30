@@ -270,10 +270,10 @@ def _not_a_fun(arg):
                     foo: 'foo:bar'
                 steps:
                     - echo: {from: '{{ foo |b64encode }}', register: {encoded: '{{ OUTPUT }}'}}
-                    - assert: 
+                    - check: 
                         equals: {the: '{{ encoded }}', is: 'Zm9vOmJhcg=='}
                     - echo: {from: '{{ encoded |b64decode }}', register: {decoded: '{{ OUTPUT }}'}}
-                    - assert: 
+                    - check: 
                         equals: {the: '{{ decoded }}', is: '{{ foo }}'}
                 ''')
         runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
