@@ -221,6 +221,8 @@ class Http(Step):
         isjson, body = self.__form_body(variables)
         debug('http ' + str(self.method) + ' ' + str(url) + ', ' + str(headers) + ', ' + str(body))
         content_type = self.__get_content_type(headers)
+        if isinstance(body, str):  # decode all strings to utf to prevents latin-1 errors
+            body = body.encode('utf-8')
         if isjson or isinstance(body, dict):  # contains tojson or dict supplied
             if isinstance(body, dict) and content_type == 'application/json':
                 # json body formed manually via python dict
@@ -250,7 +252,7 @@ class Http(Step):
             body = json.dumps(body)
         if body is None:
             return False, None
-        isjson = 'tojson' in body
+        isjson = 'tojson' in body  # converted to json manually via template filter
         return isjson, fill_template(body, variables, isjson=isjson)
 
     def __form_files(self, variables) -> Optional[list]:
