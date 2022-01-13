@@ -4,6 +4,8 @@ import json
 import random
 import time
 import uuid
+# noinspection PyUnresolvedReferences
+from uuid import UUID  # for UUID as object parsing
 from collections.abc import Iterable
 from types import ModuleType
 from typing import Union
