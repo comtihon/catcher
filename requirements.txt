@@ -11,5 +11,5 @@ Faker==11.1.0
 colorama==0.4.4
 networkx==2.6.3
 grpcio==1.43.0
-grpcio-tools==1.43.0
+grpcio-tools==1.46.3
 
