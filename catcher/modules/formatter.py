@@ -1,5 +1,7 @@
 import datetime
 import os
+import sys
+import inspect
 import time
 from abc import ABC, abstractmethod
 from os.path import join
@@ -16,19 +18,20 @@ class Formatter(ABC):
     """
 
     @abstractmethod
-    def format(self, path: str, reports: str, data: list):
+    def format(self, path: str, reports: str, data: list, steps, modules, bifs):
         pass
 
 
 class JsonFormatter(Formatter):
-    def format(self, path: str, reports: str, data: list):
+    def format(self, path: str, reports: str, data: list, steps, modules, bifs):
         import json
         with open(join(path, reports, 'report_' + str(time.time()) + '.json'), 'w') as fp:
             json.dump(data, fp)
 
 
 class HTMLFormatter(Formatter):
-    def format(self, path: str, reports: str, data: list):
+    def format(self, path: str, reports: str, data: list, steps, modules, bifs):
+        self._dump_system_log(join(path, reports), steps, modules, bifs)
         self._write_static(join(path, reports))
         total_time = 0
         passed = 0
@@ -44,10 +47,15 @@ class HTMLFormatter(Formatter):
             test_time = time.mktime(time.strptime(test['end_time'], "%Y-%m-%d %H:%M:%S")) - time.mktime(
                 time.strptime(test['start_time'], "%Y-%m-%d %H:%M:%S"))
             test['test_time'] = test_time
+            test['filepath'] = join(path, test['file'])
             total_time += test_time
             self._write_test(run_time_dir, test)
         modify_resource('index.html',
-                        dict(test_runs=tests, path=path, total_time=total_time, passed=passed, failed=failed),
+                        dict(test_runs=tests,
+                             total_time=total_time,
+                             catcher_v=catcher.APPVSN,
+                             passed=passed,
+                             failed=failed),
                         path=join(path, reports, 'index.html'))
 
     @classmethod
@@ -72,7 +80,6 @@ class HTMLFormatter(Formatter):
         return test_runs
 
     def _write_test(self, path, test):
-        # TODO include and finally.
         raw_log_filename = self._dump_raw_log(path, test, test['name'])
         step_finish_only = [o for o in test['output'] if 'success' in o and o['nested'] == 0]
         passed = 0
@@ -139,13 +146,19 @@ class HTMLFormatter(Formatter):
                         path=raw_log_filename)
         return raw_log_filename
 
-    def _dump_system_log(self):
-        # TODO
-        pass
+    def _dump_system_log(self, path: str, steps: dict, modules: dict, bifs):
+        modify_resource('system.log.html',
+                        dict(steps=[{'name': k, 'file': inspect.getfile(v)} for k, v in steps.items()],
+                             modules=[{'name': k, 'file': inspect.getfile(v.__class__)} for k, v in modules.items()],
+                             filters=[{'name': k, 'file': inspect.getfile(v)} for k, v in bifs._filters.items()],
+                             functions=[{'name': k, 'file': inspect.getfile(v)} for k, v in bifs._functions.items()],
+                             catcher_v=catcher.APPVSN,
+                             py_v=sys.version),
+                        path=join(path, 'system.log.html'))
 
 
 class OutputFormatter(Formatter):
-    def format(self, path: str, reports: str, data: list):
+    def format(self, path: str, reports: str, data: list, steps, modules, bifs):
         print(data)
 
 

@@ -1,6 +1,5 @@
 import os
 import traceback
-from os.path import join
 
 from catcher.core.var_holder import VariablesHolder
 from catcher.core.parser import Parser
@@ -68,7 +67,10 @@ class Runner:
                     results.append(False)
             return all(results)
         finally:
-            logger.log_storage.write_report(self.path, 'reports')
+            logger.log_storage.write_report(self.path, 'reports',
+                                            StepFactory().modules,
+                                            ModulesFactory().modules,
+                                            FiltersFactory())
             logger.log_storage.print_summary(self.tests_path)
             [mod.after() for mod in ModulesFactory().modules.values()]
 

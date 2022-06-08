@@ -14,7 +14,7 @@ Options:
   -s SYS_ENV --system_env SYS-ENV    use system environment variables as variables [default: true]
   -m MODULES --modules MODULES       specify directories or python packages to search for external modules
   -r RESOURCES --resources RESOURCES set the resources dir [default: ./resources]
-  -p FORMAT --format FORMAT          set the format (json) for the resulting file, which includes all steps
+  -p FORMAT --format FORMAT          set the format (json/html) for the resulting file, which includes all steps
                                      execution results, variables and outputs. It is created in the `reports` directory.
                                      Is not created by default.
   -f FILTER --filter FILTER          Path to python file with custom filters implementation or python module's path if

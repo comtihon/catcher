@@ -1,0 +1,86 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>System log</title>
+    <meta http-equiv="cache-control" content="no-cache">
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <link rel="stylesheet" href="default.css" type="text/css">
+</head>
+<body>
+
+<h4>System information:</h4>
+<table>
+    <tbody>
+    <tr class="odd">
+        <td>Python Verson</td>
+        <td>{{ py_v }}</td>
+    </tr>
+    <tr class="even">
+        <td>Catcher Verson</td>
+        <td>{{ catcher_v }}</td>
+    </tr>
+    </tbody>
+</table>
+
+<h4>Loaded steps:</h4>
+<table>
+    <tbody>
+    {%- for step in steps %}
+    <tr class="{{ loop.cycle('odd', 'even') }}">
+        <td>{{ step.name }}</td>
+        <td>{{ step.file }}</td>
+    </tr>
+    {%- endfor -%}
+    </tbody>
+</table>
+
+<h4>Loaded modules:</h4>
+<table>
+    <tbody>
+    {%- for module in modules %}
+    <tr class="{{ loop.cycle('odd', 'even') }}">
+        <td>{{ module.name }}</td>
+        <td>{{ module.file }}</td>
+    </tr>
+    {%- endfor -%}
+    </tbody>
+</table>
+
+<h4>Loaded filters:</h4>
+<table>
+    <tbody>
+    {%- for filter in filters %}
+    <tr class="{{ loop.cycle('odd', 'even') }}">
+        <td>{{ filter.name }}</td>
+        <td>{{ filter.file }}</td>
+    </tr>
+    {%- endfor -%}
+    </tbody>
+</table>
+
+
+<h4>Loaded functions:</h4>
+<table>
+    <tbody>
+    {%- for function in functions %}
+    <tr class="{{ loop.cycle('odd', 'even') }}">
+        <td>{{ function.name }}</td>
+        <td>{{ function.file }}</td>
+    </tr>
+    {%- endfor -%}
+    </tbody>
+</table>
+
+<center>
+    <br/>
+    <hr/>
+    <p>
+        <a href="index.html">Index</a>
+    </p>
+    <div class="copyright"><a href="https://github.com/comtihon/catcher">Catcher E2E</a><br/>
+        Updated: <!--date-->{{ now() }}<!--/date--><br/>
+    </div>
+</center>
+</body>
+</html>
