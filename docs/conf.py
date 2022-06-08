@@ -28,7 +28,7 @@ def get_version():
 # -- Project information -----------------------------------------------------
 
 project = 'Catcher'
-copyright = '2020, Valerii Tikhonov'
+copyright = '2022, Valerii Tikhonov'
 author = 'Valerii Tikhonov'
 
 # The short X.Y version
