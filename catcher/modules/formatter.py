@@ -44,6 +44,9 @@ class HTMLFormatter(Formatter):
                 passed += 1
             else:
                 failed += 1
+            if test['status'] == 'CRASH':
+                failed += 1
+                continue
             test_time = time.mktime(time.strptime(test['end_time'], "%Y-%m-%d %H:%M:%S")) - time.mktime(
                 time.strptime(test['start_time'], "%Y-%m-%d %H:%M:%S"))
             test['test_time'] = test_time
@@ -63,20 +66,24 @@ class HTMLFormatter(Formatter):
         test_runs = []
         last_added = None
         for test in data:
-            if test['type'] in ['test', 'include']:
-                test_name = '.'.join(os.path.basename(test['file']).split('.')[:-1]) + '.html'
-                test['name'] = test_name
-                test['log_file'] = join(run_time_dir, test_name)
+            try:
+                if test['type'] in ['test', 'include']:
+                    test_name = '.'.join(os.path.basename(test['file']).split('.')[:-1]) + '.html'
+                    test['name'] = test_name
+                    test['log_file'] = join(run_time_dir, test_name)
+                    test_runs += [test]
+                    last_added = test
+                elif test['type'].endswith('_cleanup'):  # add cleanup to the last added test as cleanup
+                    last_added['end_time'] = test['end_time']
+                    for step in test['output']:
+                        if 'comment' in step:
+                            step['comment'] = 'Cleanup; ' + step['comment']
+                        else:
+                            step['comment'] = 'Cleanup.'
+                        last_added['output'] += [step]
+            except KeyError:
+                test['status'] = 'CRASH'
                 test_runs += [test]
-                last_added = test
-            elif test['type'].endswith('_cleanup'):  # add cleanup to the last added test as cleanup
-                last_added['end_time'] = test['end_time']
-                for step in test['output']:
-                    if 'comment' in step:
-                        step['comment'] = 'Cleanup; ' + step['comment']
-                    else:
-                        step['comment'] = 'Cleanup.'
-                    last_added['output'] += [step]
         return test_runs
 
     def _write_test(self, path, test):
@@ -116,6 +123,8 @@ class HTMLFormatter(Formatter):
     @classmethod
     def _dump_raw_log(cls, path, test, test_name):
         data = []
+        if isinstance(test['output'], str):  # no such file error
+            return None
         for step in test['output']:
             entity = {}
             if 'step' in step:
@@ -146,7 +155,8 @@ class HTMLFormatter(Formatter):
                         path=raw_log_filename)
         return raw_log_filename
 
-    def _dump_system_log(self, path: str, steps: dict, modules: dict, bifs):
+    @classmethod
+    def _dump_system_log(cls, path: str, steps: dict, modules: dict, bifs):
         modify_resource('system.log.html',
                         dict(steps=[{'name': k, 'file': inspect.getfile(v)} for k, v in steps.items()],
                              modules=[{'name': k, 'file': inspect.getfile(v.__class__)} for k, v in modules.items()],
