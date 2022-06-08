@@ -33,28 +33,47 @@ class HTMLFormatter(Formatter):
         total_time = 0
         passed = 0
         failed = 0
-        run_time = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
-        run_time_dir = join(path, reports, 'run_' + run_time)
+        run_time_dir = join(path, reports, 'run_' + datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S'))
         ensure_empty(run_time_dir)
-        for test in data:
-            test_name = '.'.join(os.path.basename(test['file']).split('.')[:-1]) + '.html'
-            test_time = time.mktime(time.strptime(test['end_time'], "%Y-%m-%d %H:%M:%S")) - time.mktime(
-                time.strptime(test['start_time'], "%Y-%m-%d %H:%M:%S"))
+        tests = self._form_tests(run_time_dir, data)
+        for test in tests:
             if test['status'] == 'OK':
                 passed += 1
             else:
                 failed += 1
+            test_time = time.mktime(time.strptime(test['end_time'], "%Y-%m-%d %H:%M:%S")) - time.mktime(
+                time.strptime(test['start_time'], "%Y-%m-%d %H:%M:%S"))
             test['test_time'] = test_time
             total_time += test_time
-            test['log_file'] = join(run_time_dir, test_name)
-            self._write_test(run_time_dir, test, test_name)
+            self._write_test(run_time_dir, test)
         modify_resource('index.html',
-                        dict(test_runs=data, path=path, total_time=total_time, passed=passed, failed=failed),
+                        dict(test_runs=tests, path=path, total_time=total_time, passed=passed, failed=failed),
                         path=join(path, reports, 'index.html'))
 
-    def _write_test(self, path, test, test_name):
+    @classmethod
+    def _form_tests(cls, run_time_dir: str, data: list):
+        test_runs = []
+        last_added = None
+        for test in data:
+            if test['type'] in ['test', 'include']:
+                test_name = '.'.join(os.path.basename(test['file']).split('.')[:-1]) + '.html'
+                test['name'] = test_name
+                test['log_file'] = join(run_time_dir, test_name)
+                test_runs += [test]
+                last_added = test
+            elif test['type'].endswith('_cleanup'):  # add cleanup to the last added test as cleanup
+                last_added['end_time'] = test['end_time']
+                for step in test['output']:
+                    if 'comment' in step:
+                        step['comment'] = 'Cleanup; ' + step['comment']
+                    else:
+                        step['comment'] = 'Cleanup.'
+                    last_added['output'] += [step]
+        return test_runs
+
+    def _write_test(self, path, test):
         # TODO include and finally.
-        raw_log_filename = self._dump_raw_log(path, test, test_name)
+        raw_log_filename = self._dump_raw_log(path, test, test['name'])
         step_finish_only = [o for o in test['output'] if 'success' in o and o['nested'] == 0]
         passed = 0
         failed = 0
@@ -70,14 +89,14 @@ class HTMLFormatter(Formatter):
         modify_resource('test.log.html',
                         dict(steps=step_finish_only,
                              path=path,
-                             test_name=test_name,
+                             test_name=test['name'],
                              raw_log=raw_log_filename,
                              catcher_v=catcher.APPVSN,
                              result=test['status'] == 'OK',
                              total_time=test['test_time'],
                              passed=passed,
                              failed=failed),
-                        path=join(path, test_name))
+                        path=join(path, test['name']))
 
     @classmethod
     def _write_static(cls, path):
