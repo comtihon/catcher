@@ -5,6 +5,8 @@ RUN apk update \
 
 
 COPY catcher catcher
+COPY Readme.rst Readme.rst
+COPY docs docs
 COPY requirements.txt requirements.txt
 COPY setup.py setup.py
 
