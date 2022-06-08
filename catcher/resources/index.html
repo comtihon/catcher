@@ -1,0 +1,78 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Test Results </title>
+    <meta http-equiv="cache-control" content="no-cache">
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <link rel="stylesheet" href="default.css" type="text/css">
+</head>
+<body>
+<div style="text-align:center">
+    <h1><img src="logo_small.png" alt="Catcher E2E">Test Results</h1>
+</div>
+<h4 style="text-align:center">Catcher: {{ catcher_v }}</h4>
+<ul style="text-align:center">
+    <li><a href="system.log.html">System log</a></li>
+</ul>
+<br/>
+<center>
+    <br/><br/>
+    <table>
+        <thead>
+        <tr>
+            <th>Test</th>
+            <th>Group</th>
+            <th>Test Run Started</th>
+            <th>Run Log</th>
+            <th>Time</th>
+            <th>Status</th>
+        </tr>
+        </thead>
+        <tbody>
+        {%- for test_run in test_runs %}
+        <tr class="{{ loop.cycle('odd', 'even') }}">
+            <td>
+                <a href="{{ test_run.filepath }}">{{ test_run.name }}</a>
+            </td>
+            <td align=center><b>{{ test_run.group }}</b></td>
+            <td>{{ test_run.start_time }}</td>
+            <td><a href="{{ test_run.log_file }}">Details</a></td>
+            <td>
+                {% if test_run.end_time and test_run.start_time %}
+                {{ mktime(strptime(test_run.end_time, "%Y-%m-%d %H:%M:%S")) -
+                mktime(strptime(test_run.start_time, "%Y-%m-%d %H:%M:%S")) }}
+                {% endif %}
+            </td>
+            <td>{% if test_run.status == 'OK' %}
+                <p style="color:green">Passed
+                    {% elif test_run.status == 'CRASH' %}
+                <p style="color:red">{{ test_run.data }}
+                    {% else %}
+                <p style="color:red">Failed
+                    {% endif %}
+            </td>
+        </tr>
+        {%- endfor -%}
+        </tbody>
+        <tfoot>
+        <tr class="odd">
+            <td><b>Total: {{ test_runs |length }} </b></td>
+            <td>&nbsp;</td>
+            <td>&nbsp;</td>
+            <td>&nbsp;</td>
+            <td align=right><b>{{ total_time }}</b></td>
+            <td align=right>
+                {% if failed > 0 %}<b style="color:red">{{ failed }}</b>/{% endif %}
+                <b style="color:green">{{ passed }}</b>
+            </td>
+        </tr>
+        </tfoot>
+    </table>
+</center>
+<br/><br/>
+<div style="text-align:center">
+    <div><a href="https://github.com/comtihon/catcher">Catcher E2E</a></div>
+</div>
+</body>
+</html>

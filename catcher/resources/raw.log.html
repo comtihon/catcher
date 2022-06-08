@@ -1,0 +1,71 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Test {{ test_name }} logs</title>
+    <meta http-equiv="cache-control" content="no-cache">
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <link rel="stylesheet" href="../default.css" type="text/css">
+</head>
+<script src="../jquery.js" type="text/javascript"></script>
+<script src="../jquery.expander.min.js" type="text/javascript"></script>
+<script src="../custom_expand.js" type="text/javascript"></script>
+<body>
+
+<h1>Results for <i>{{ test_name }}</i></h1>
+<h4>Catcher: {{ catcher_v }}</h4>
+
+<table>
+    <thead>
+    <tr>
+        <th>Num</th>
+        <th>Step</th>
+        <th>Body</th>
+        <th>Time</th>
+        <th>Variables</th>
+        <th>Output</th>
+    </tr>
+    </thead>
+    <tbody>
+    {%- for data in logs %}
+    <tr class="{{ loop.cycle('odd', 'even') }}">
+        <td><span class="text_black">{{loop.index}}</span></td>
+        <td>{% if data.success == True %}
+            <p style="color:green">{{data.name}}
+                {% elif data.success == False %}
+            <p style="color:red">{{data.name}}
+                {% else %}
+            <p style="color:black">{{data.name}}
+                {% endif %}
+        </td>
+        <td>{{data.body}}</td>
+        <td>{{data.time}}</td>
+        <td>
+            <div class="expandable"><p>{{data.variables}}</p></div>
+        </td>
+        <td>
+            <div class="expandable">
+                <p>
+                    {% if data.output %}
+                    {{ data.output }}
+                    {% endif %}
+                </p>
+            </div>
+        </td>
+    </tr>
+    {%- endfor -%}
+    </tbody>
+
+</table>
+<center>
+    <br/>
+    <hr/>
+    <p>
+        <a href="../index.html">Index</a>
+    </p>
+    <div class="copyright"><a href="https://github.com/comtihon/catcher">Catcher E2E</a><br/>
+        Updated: <!--date-->{{ now() }}<!--/date--><br/>
+    </div>
+</center>
+</body>
+</html>

@@ -27,7 +27,7 @@ The test itself::
         fname: '{{ random("first_name") }}'
         lname: '{{ random("last_name") }}'
     include:
-        file: include.yml
+        file: include.yaml
         as: simple
     steps:
         - echo: 'email is {{ email }}'
@@ -37,14 +37,62 @@ The test itself::
 As you may see the main test already has a random **email** defined in the variables section. And somewhere in the middle
 of the test it changes. Let's form a report to find where.
 
-Run Catcher with ``--format json`` (only **json** format is supported for now)::
+Since Catcher **1.36.0** html format for reports is supported, which is more human-friendly.
+I advice to leave json for machine-machine integration and use html for day-to-day life.
+
+Run Catcher with ``--format html`` (available since 1.36)::
+
+    catcher -i inventory/dev_inventory.yaml --format html tests/my_complex_test.yaml
+
+Run Catcher with ``--format json`` (versions up to 1.35 support only **json**)::
 
     catcher -i inventory/dev_inventory.yaml --format json tests/my_complex_test.yaml
 
 It will run your test and create a report file in ``reports`` directory.
 
-How to read
------------
+How to read: HTML
+-----------------
+The root report for html is **reports/index.html** file. Open it in your browser. For the example test above it will
+show you:
+
+.. image:: https://raw.githubusercontent.com/comtihon/catcher/master/docs/_static/index.png
+
+This is the main test report. Each testcase is mentioned in the separate row. Includes, which run before the testcase
+are shown in the separate row before the test they were included from. Named includes which you run via :meth:`catcher.steps.run`
+are displayed as steps.
+
+From this page you can:
+
+- navigate to testcases source
+- navigate to test run's details to investigate a problem
+- see the system information
+
+.. image:: https://raw.githubusercontent.com/comtihon/catcher/master/docs/_static/details.png
+
+This is the test run details page. As you can see all three steps of your example test succeeded.
+You can explore the variables, registered **after** each step. It is very useful, when you are trying to understand why
+your test is not working as expected.
+
+.. image:: https://raw.githubusercontent.com/comtihon/catcher/master/docs/_static/log.png
+
+This is the test run's full log. Sometimes just checking variables after each step is not enough and you need more information.
+Here it is. It contains log statements, outputs, steps definitions and variables. Included substeps are also described here.
+Actual steps are highlighted with green (passed) and red (failed) colors.
+
+.. image:: https://raw.githubusercontent.com/comtihon/catcher/master/docs/_static/system.png
+
+The last thing is system output. This is the information gathered from the system tests are running in. Can be useful if
+everything is OK locally, but fails in CI or for other engineers.
+
+It contains system information, all loaded `steps <https://catcher-test-tool.readthedocs.io/en/latest/source/steps.html>`_
+including external and custom ones, all `modules <https://catcher-test-tool.readthedocs.io/en/latest/source/catcher.modules.html>`_,
+`filters <https://catcher-test-tool.readthedocs.io/en/latest/source/filters_and_functions.html#filters>`_ and
+`functions <https://catcher-test-tool.readthedocs.io/en/latest/source/filters_and_functions.html#functions>`_,
+including custom implementations. If you are going to share test results make sure to archive the whole reports directory,
+together with this system log.
+
+How to read: JSON
+-----------------
 Let's open **report_<timestamp>.json** file. You'll see a list of json objects. For every test run - there will be an
 object in the top list. In our case - there will be only one object::
 

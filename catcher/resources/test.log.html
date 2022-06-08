@@ -1,0 +1,94 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Test {{ test_name }} results</title>
+    <meta http-equiv="cache-control" content="no-cache">
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <link rel="stylesheet" href="../default.css" type="text/css">
+</head>
+<script src="../jquery.js" type="text/javascript"></script>
+<script src="../jquery.expander.min.js" type="text/javascript"></script>
+<script src="../custom_expand.js" type="text/javascript"></script>
+<body>
+
+<h1>Results for <i>{{ test_name }}</i></h1>
+<h4>Catcher: {{ catcher_v }}</h4>
+
+<ul>
+    <li><a href="{{ raw_log }}">Full log</a></li>
+    <li><a href="../system.log.html">System log</a></li>
+</ul>
+<p><i>Run <b> {{ steps | length }}</b> {% if steps | length > 1 %} steps {% else %} step {% endif %}</i>
+    <br/>
+</p>
+<table>
+    <thead>
+    <tr>
+        <th>Num</th>
+        <th>Step</th>
+        <th>Variables</th>
+        <th>Time</th>
+        <th>Result</th>
+        <th>Comment</th>
+    </tr>
+    </thead>
+    <tbody>
+    {%- for step in steps %}
+    <tr class="{{ loop.cycle('odd', 'even') }}">
+        <td><span class="text_black">{{loop.index}}</span></td>
+        <td><span class="text_black">{{step.name}}</span></td>
+        <td>
+            <div class="expandable"><p>{{step.variables}}</p></div>
+        </td>
+        <td><span class="text_black">{{step.time}}</span></td>
+        <td>{% if step.success %}
+            <p style="color:green">OK
+                {% else %}
+            <p style="color:red">Fail
+                {% endif %}
+        </td>
+        <td>
+            <div class="expandable">
+                <p>
+                    {% if step.comment %}
+                    {{ step.comment }}
+                    {% endif %}
+                </p>
+            </div>
+
+        </td>
+    </tr>
+    {%- endfor -%}
+    </tbody>
+    <tfoot>
+    <tr>
+        <td></td>
+        <td><b>Total: {{ steps |length }} </b></td>
+        <td></td>
+        <td>{{ test_time }}</td>
+        <td>{% if result %}
+            <p style="color:green">Passed
+                {% else %}
+            <p style="color:red">Failed
+                {% endif %}</td>
+        <td align=right>
+            {% if failed > 0 %}<b style="color:red">{{ failed }}</b>/{% endif %}
+            <b style="color:green">{{ passed }}</b>
+        </td>
+    </tr>
+    </tfoot>
+
+</table>
+<center>
+    <br/>
+    <hr/>
+    <p>
+        <a href="../index.html">Index</a>
+    </p>
+    <div class="copyright"><a href="https://github.com/comtihon/catcher">Catcher E2E</a><br/>
+        Updated: <!--date-->{{ now() }}<!--/date--><br/>
+    </div>
+</center>
+</body>
+</html>
