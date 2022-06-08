@@ -1,6 +1,8 @@
 import json
 from copy import deepcopy
 from datetime import datetime
+from os.path import join
+
 from catcher.modules.formatter import formatter_factory
 from catcher.utils import file_utils
 
@@ -74,10 +76,11 @@ class LogStorage:
         else:
             self._data += [{'time': datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'data': output, 'level': level}]
 
-    def write_report(self, path):
-        file_utils.ensure_dir(path)
+    def write_report(self, path, reports_path):
+        reports_dir = join(path, reports_path)
+        file_utils.ensure_dir(reports_dir)
         formatter = formatter_factory(self._format)
-        formatter.format(path, self._data)
+        formatter.format(path, reports_path, self._data)
 
     def print_summary(self, path):
         from catcher.utils import logger
@@ -171,5 +174,5 @@ class EmptyLogStorage(LogStorage):
     def output(self, level, output):
         pass
 
-    def write_report(self, path):
+    def write_report(self, path, reports_path):
         pass

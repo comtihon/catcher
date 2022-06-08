@@ -68,7 +68,7 @@ class Runner:
                     results.append(False)
             return all(results)
         finally:
-            logger.log_storage.write_report(join(self.path, 'reports'))
+            logger.log_storage.write_report(self.path, 'reports')
             logger.log_storage.print_summary(self.tests_path)
             [mod.after() for mod in ModulesFactory().modules.values()]
 

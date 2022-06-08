@@ -107,6 +107,6 @@ def critical(msg: str):
 
 def _nested_output(msg):
     if log_storage.nesting_counter > 0:
-        spaces = ''.join(['\t' for i in range(0, log_storage.nesting_counter - 1)])
+        spaces = ''.join(['\t' for _ in range(0, log_storage.nesting_counter - 1)])
         msg = spaces + '|--> ' + str(msg)
     return msg
