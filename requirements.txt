@@ -10,6 +10,6 @@ uuid==1.30
 Faker==13.12.1
 colorama==0.4.4
 networkx==2.6.3
-grpcio==1.46.3
+grpcio==1.47.0
 grpcio-tools==1.46.3
 
