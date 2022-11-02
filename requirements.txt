@@ -9,7 +9,7 @@ Jinja2==3.1.2
 uuid==1.30
 Faker==13.12.1
 colorama==0.4.4
-networkx==2.6.3
+networkx==2.8.8
 grpcio==1.46.3
 grpcio-tools==1.46.3
 
