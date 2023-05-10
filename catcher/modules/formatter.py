@@ -8,8 +8,8 @@ from os.path import join
 from typing import Union
 
 import catcher
+from catcher.utils import file_utils
 from catcher.utils.internal_utils import modify_resource, ensure_resource
-from catcher.utils.file_utils import ensure_empty
 
 
 class Formatter(ABC):
@@ -36,8 +36,8 @@ class HTMLFormatter(Formatter):
         total_time = 0
         passed = 0
         failed = 0
-        run_time_dir = join(path, reports, 'run_' + datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S'))
-        ensure_empty(run_time_dir)
+        run_time_dir = 'run_' + datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+        file_utils.ensure_empty(join(path, reports, run_time_dir))
         tests = self._form_tests(run_time_dir, data)
         for test in tests:
             if test['status'] == 'OK':
@@ -50,13 +50,14 @@ class HTMLFormatter(Formatter):
             test_time = time.mktime(time.strptime(test['end_time'], "%Y-%m-%d %H:%M:%S")) - time.mktime(
                 time.strptime(test['start_time'], "%Y-%m-%d %H:%M:%S"))
             test['test_time'] = test_time
-            test['filepath'] = join(path, test['file'])
             total_time += test_time
-            self._write_test(run_time_dir, test)
+            self._write_test_yaml(join(path, reports, run_time_dir), test)
+            self._write_test(join(path, reports, run_time_dir), test)
         modify_resource('index.html',
                         dict(test_runs=tests,
                              total_time=total_time,
                              catcher_v=catcher.APPVSN,
+                             run_time_dir=run_time_dir,
                              passed=passed,
                              failed=failed),
                         path=join(path, reports, 'index.html'))
@@ -68,9 +69,10 @@ class HTMLFormatter(Formatter):
         for test in data:
             try:
                 if test['type'] in ['test', 'include']:
-                    test_name = '.'.join(os.path.basename(test['file']).split('.')[:-1]) + '.html'
-                    test['name'] = test_name
-                    test['log_file'] = join(run_time_dir, test_name)
+                    test_name = '.'.join(os.path.basename(test['file']).split('.')[:-1])
+                    test['name'] = test_name + '.html'
+                    test['log_file'] = join(run_time_dir, test_name + '.html')
+                    test['yaml_page'] = f"{test_name}_yml.html"
                     test_runs += [test]
                     last_added = test
                 elif test['type'].endswith('_cleanup'):  # add cleanup to the last added test as cleanup
@@ -112,6 +114,13 @@ class HTMLFormatter(Formatter):
                              failed=failed),
                         path=join(path, test['name']))
 
+    def _write_test_yaml(self, path, test):
+        content = file_utils.read_file(test['file'])
+        modify_resource('yml_display.html',
+                        dict(test_name=test['name'],
+                             yml_data=content),
+                        path=join(path, test['yaml_page']))
+
     @classmethod
     def _write_static(cls, path):
         ensure_resource('logo_small.png', path=path)
@@ -146,13 +155,13 @@ class HTMLFormatter(Formatter):
             entity['time'] = step['time']
             entity['output'] = step.get('output')
             data += [entity]
-        raw_log_filename = join(path, '.'.join(os.path.basename(test['file']).split('.')[:-1]) + '.raw.html')
+        raw_log_filename = '.'.join(os.path.basename(test['file']).split('.')[:-1]) + '.raw.html'
         modify_resource('raw.log.html',
                         dict(logs=data,
                              path=path,
                              test_name=test_name,
                              catcher_v=catcher.APPVSN),
-                        path=raw_log_filename)
+                        path=join(path, raw_log_filename))
         return raw_log_filename
 
     @classmethod

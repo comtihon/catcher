@@ -33,7 +33,7 @@
         {%- for test_run in test_runs %}
         <tr class="{{ loop.cycle('odd', 'even') }}">
             <td>
-                <a href="{{ test_run.filepath }}">{{ test_run.name }}</a>
+                <a href="{{ run_time_dir }}/{{ test_run.yaml_page }}">{{ test_run.name }}</a>
             </td>
             <td align=center><b>{{ test_run.group }}</b></td>
             <td>{{ test_run.start_time }}</td>

@@ -67,7 +67,8 @@ class Runner:
                     results.append(False)
             return all(results)
         finally:
-            logger.log_storage.write_report(self.path, 'reports',
+            logger.log_storage.write_report(self.path,
+                                            'reports',
                                             StepFactory().modules,
                                             ModulesFactory().modules,
                                             FiltersFactory())
