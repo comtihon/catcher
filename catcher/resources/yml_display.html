@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ test_name }}</title>
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/styles/default.min.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/highlight.min.js"></script>
+    <style>
+        pre {
+            background-color: #f8f8f8;
+            padding: 16px;
+            border-radius: 4px;
+            width: 80%;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .back-btn {
+            text-decoration: none;
+            background-color: #4CAF50;
+            color: white;
+            padding: 8px 16px;
+            margin: 10px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="back-btn">Back</a>
+    <h1>{{ test_name }}</h1>
+    <pre><code class="yaml">{{ yml_data|safe }}</code></pre>
+    <script>
+        hljs.highlightAll();
+    </script>
+<center>
+    <br/>
+    <hr/>
+    <p>
+        <a href="../index.html">Index</a>
+    </p>
+    <div class="copyright"><a href="https://github.com/comtihon/catcher">Catcher E2E</a><br/>
+        Updated: <!--date-->{{ now() }}<!--/date--><br/>
+    </div>
+</center>
+</body>
+</html>

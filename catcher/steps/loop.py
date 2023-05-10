@@ -1,6 +1,7 @@
 import collections
 import itertools
 import json
+from collections.abc import Iterable
 
 from catcher.steps.check import Operator
 from catcher.steps.step import Step, update_variables
@@ -150,7 +151,7 @@ class Loop(Step):
             return output
         elif self.type == 'foreach':
             loop_var = try_get_objects(fill_template_str(json.dumps(self.in_var), variables))
-            if not isinstance(loop_var, collections.Iterable):
+            if not isinstance(loop_var, Iterable):
                 raise ValueError(str(loop_var) + ' is not iterable')
             for entry in loop_var:
                 debug('Looping over {}'.format(entry))
