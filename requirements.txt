@@ -1,12 +1,12 @@
 docopt==0.6.2
 mock==5.0.2
-pytest==7.3.1
+pytest==7.4.0
 requests==2.31.0
-urllib3==2.0.2
+urllib3==2.0.3
 requests_mock==1.10.0
 PyYAML==6.0
 Jinja2==3.1.2
-Faker==18.7.0
+Faker==18.11.1
 colorama==0.4.6
 networkx==2.6.3
 grpcio==1.54.0
