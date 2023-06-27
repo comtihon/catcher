@@ -1,10 +1,9 @@
-import collections
 import itertools
 import json
 from collections.abc import Iterable
-
+from catcher.utils import logger
 from catcher.steps.check import Operator
-from catcher.steps.step import Step, update_variables
+from catcher.steps.step import Step, update_variables, SkipException
 from catcher.utils.logger import debug
 from catcher.utils.misc import fill_template_str, try_get_objects
 
@@ -163,7 +162,11 @@ class Loop(Step):
         output = variables
         for action in self.do_action:
             try:
+                action.check_skip(variables)
                 output = action.action(includes, output)
+            except SkipException:  # skip this step
+                debug('SubStep ' + fill_template_str(action.name, variables) + logger.yellow(' skipped'))
+                return output
             except Exception as e:
                 if action.ignore_errors:
                     debug('{} got {} but we ignore it'.format(fill_template_str(action.name, variables), e))

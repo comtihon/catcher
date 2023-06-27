@@ -156,3 +156,54 @@ class LoopTest(TestClass):
         self.assertTrue(check_file(join(self.test_dir, 'a'), '1'))
         self.assertTrue(check_file(join(self.test_dir, 'b'), '2'))
         self.assertTrue(check_file(join(self.test_dir, 'c'), '3'))
+
+    def test_loop_skip_if(self):
+        self.populate_file('main.yaml', '''---
+                variables:
+                  test_data: [ "NOT_PRESENT", "NOT_PRESENT", "PRESENT" ]
+                steps:
+                  - echo:
+                      name: 'echo test items'
+                      from: 'Items are {{ test_data }}'
+                  - loop:
+                      foreach:
+                        in: '{{ test_data }}'
+                        do:
+                          - echo:
+                              name: 'echo test item'
+                              from: 'Item is {{ ITEM }}'
+                              register: {found: '{{ ITEM == "PRESENT" }}'}
+                          - echo:
+                              name: 'echo flag'
+                              from: 'Found flag is {{ found }}'
+                          - check:
+                              name: 'truefalse test'
+                              skip_if: '{{ not found }}'
+                              equals: {the: '{{ found }}', is: True}
+                ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
+
+    def test_loop_ignore_errors(self):
+        self.populate_file('main.yaml', '''---
+        variables:
+            list: [{'key': 'a', 'value': 1}, {'key': 'b', 'value': 2}, {'key': 'c', 'value': 3}]
+        steps:
+            - loop: 
+                foreach:
+                    in: '{{ list }}'
+                    do:
+                        - echo: {from: '{{ ITEM["value"] }}', to: '{{ ITEM["key"] }}_before.output'}
+                        - check:
+                            ignore_errors: true
+                            equals: {the: False, is: True}
+                        - echo: {from: '{{ ITEM["value"] }}', to: '{{ ITEM["key"] }}_after.output'}
+                        ''')
+        runner = Runner(self.test_dir, join(self.test_dir, 'main.yaml'), None)
+        self.assertTrue(runner.run_tests())
+        self.assertTrue(check_file(join(self.test_dir, 'a_before.output'), '1'))
+        self.assertTrue(check_file(join(self.test_dir, 'b_before.output'), '2'))
+        self.assertTrue(check_file(join(self.test_dir, 'c_before.output'), '3'))
+        self.assertFalse(check_file(join(self.test_dir, 'a_after.output'), '1'))
+        self.assertFalse(check_file(join(self.test_dir, 'b_after.output'), '1'))
+        self.assertFalse(check_file(join(self.test_dir, 'c_after.output'), '1'))

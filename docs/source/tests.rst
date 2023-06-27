@@ -270,6 +270,24 @@ New in `1.17.0` - you can now use `Wait.for` instead::
 In this case `other_steps` will be executed only when `select 1;` becomes true. Test will fail after 30 seconds,
 if `select 1;` is still failing.
 
+Ignore errors and loops::
+
+    ---
+    - loop:
+        foreach:
+            in: '{{ list }}'
+            do:
+                - echo: {from: '{{ ITEM["value"] }}', to: '{{ ITEM["key"] }}_before.output'}
+                - check:
+                    ignore_errors: true
+                    equals: {the: False, is: True}
+                - echo: {from: '{{ ITEM["value"] }}', to: '{{ ITEM["key"] }}_after.output'}
+
+| You can use `ignore_errors` on the substep level as well.
+| In this case second loop's substep contains an error which is marked with `ignore_errors = true` This test will run the
+first step of the loop for every element of the `{{ list }}` variable. Treat it as a `continue` keyword in other programming
+languages.
+
 Skip steps
 ----------
 | You can skip your steps based on conditions.
