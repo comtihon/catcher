@@ -6,7 +6,7 @@ urllib3==2.0.3
 requests_mock==1.11.0
 PyYAML==6.0
 Jinja2==3.1.2
-Faker==19.1.0
+Faker==19.6.2
 colorama==0.4.6
 networkx==3.1
 grpcio==1.56.0
